@@ -1,0 +1,51 @@
+import fs from "node:fs";
+
+import { App } from "octokit";
+
+for (const name of [
+  "GITHUB_APP_ID",
+  "GITHUB_PRIVATE_KEY_PATH",
+  "GITHUB_WEBHOOK_URL",
+]) {
+  if (!process.env[name]) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+}
+
+const webhookUrl = new URL(process.env.GITHUB_WEBHOOK_URL);
+const allowInsecureHttp =
+  process.env.GITHUB_WEBHOOK_ALLOW_INSECURE_HTTP === "true";
+if (
+  webhookUrl.protocol !== "https:" &&
+  !(webhookUrl.protocol === "http:" && allowInsecureHttp)
+) {
+  throw new Error(
+    "GITHUB_WEBHOOK_URL must use HTTPS; explicitly allow HTTP only for a public test repository",
+  );
+}
+if (webhookUrl.pathname !== "/api/webhook") {
+  throw new Error("GITHUB_WEBHOOK_URL must end with /api/webhook");
+}
+
+const app = new App({
+  appId: process.env.GITHUB_APP_ID,
+  privateKey: fs.readFileSync(
+    process.env.GITHUB_PRIVATE_KEY_PATH,
+    "utf8",
+  ),
+});
+
+const response = await app.octokit.request("PATCH /app/hook/config", {
+  url: webhookUrl.toString(),
+  content_type: "json",
+  insecure_ssl: "0",
+});
+
+console.log(
+  JSON.stringify({
+    contentType: response.data.content_type,
+    insecureSsl: response.data.insecure_ssl,
+    url: response.data.url,
+    insecureHttp: webhookUrl.protocol === "http:",
+  }),
+);

@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#F8F6F1" />
+    <title>AI Review Console</title>
+    <meta name="description" content="AI Review 服务状态、审查队列与运行配置看板" />
+    <link rel="stylesheet" href="/dashboard.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="#overview" aria-label="AI Review Console 首页">
+          <span class="brand-mark" aria-hidden="true">AR</span>
+          <span>
+            <strong>AI Review</strong>
+            <small>Operations Console</small>
+          </span>
+        </a>
+        <nav class="topnav" aria-label="页面导航">
+          <a class="active" href="#overview">概览</a>
+          <a href="#queue">审查队列</a>
+          <a href="#rankings">仓库排行</a>
+          <a href="#runtime">运行配置</a>
+        </nav>
+        <div class="top-actions">
+          <span class="service-pill" id="servicePill"><span class="status-dot"></span><span>等待连接</span></span>
+          <button class="quiet-button" id="refreshButton" type="button">立即刷新</button>
+        </div>
+      </header>
+
+      <main id="main">
+        <section class="intro" id="overview">
+          <div>
+            <p class="eyebrow">审查运行中心</p>
+            <h1>让每一次审查都有迹可循。</h1>
+            <p class="intro-copy">查看 PR 与 CI 审查的实时队列、异常任务和服务配置。看板不会展示代码 diff、原始日志或敏感扫描内容。</p>
+          </div>
+          <div class="freshness" aria-live="polite">
+            <span>数据更新时间</span>
+            <strong id="lastUpdated">尚未连接</strong>
+            <small>每 15 秒自动刷新</small>
+          </div>
+        </section>
+
+        <section class="metrics" aria-label="关键指标">
+          <article class="metric-card">
+            <span>等待处理</span>
+            <strong id="pendingMetric">—</strong>
+            <small>已进入持久队列</small>
+          </article>
+          <article class="metric-card emphasis">
+            <span>正在审查</span>
+            <strong id="runningMetric">—</strong>
+            <small id="workerMetric">工作线程 —</small>
+          </article>
+          <article class="metric-card">
+            <span>需要关注</span>
+            <strong id="attentionMetric">—</strong>
+            <small>可续审或需检查配置</small>
+          </article>
+          <article class="metric-card">
+            <span>近 24 小时完成</span>
+            <strong id="completedMetric">—</strong>
+            <small id="repositoryMetric">涉及 — 个仓库</small>
+          </article>
+        </section>
+
+        <section class="ranking-grid" id="rankings" aria-label="仓库排行榜">
+          <article class="panel ranking-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">近 7 天</p>
+                <h2>活跃仓库</h2>
+              </div>
+              <span class="ranking-total" id="activeRepositoryTotal">—</span>
+            </div>
+            <ol class="ranking-list" id="activeRepositoryRanking"></ol>
+            <div class="ranking-empty" id="activeRepositoryEmpty" hidden>近 7 天暂无审查任务</div>
+          </article>
+
+          <article class="panel ranking-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">近 7 天 · 供应商上报</p>
+                <h2>Token 消耗</h2>
+              </div>
+              <span class="ranking-total" id="tokenUsageTotal">—</span>
+            </div>
+            <ol class="ranking-list" id="tokenUsageRanking"></ol>
+            <div class="ranking-empty" id="tokenUsageEmpty" hidden>计量数据将从本次升级后开始累积</div>
+            <p class="ranking-note">总量按输入 + 输出计算；推理 Token 已包含在输出 Token 中，不重复计数。</p>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel queue-panel" id="queue">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">任务流</p>
+                <h2>审查队列</h2>
+              </div>
+              <div class="queue-summary"><span id="visibleCount">0</span> / <span id="totalCount">0</span></div>
+            </div>
+
+            <div class="toolbar">
+              <div class="segmented" id="kindFilters" aria-label="任务类型筛选">
+                <button class="selected" type="button" data-kind="all">全部</button>
+                <button type="button" data-kind="pr">PR Review</button>
+                <button type="button" data-kind="ci">CI 分析</button>
+              </div>
+              <label class="search-field">
+                <span>筛选仓库</span>
+                <input id="repositorySearch" type="search" placeholder="owner/repository" autocomplete="off" />
+              </label>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">仓库与任务</th>
+                    <th scope="col">类型</th>
+                    <th scope="col">状态</th>
+                    <th scope="col">进度</th>
+                    <th scope="col">最近变化</th>
+                  </tr>
+                </thead>
+                <tbody id="queueBody"></tbody>
+              </table>
+              <div class="empty-state" id="emptyState" hidden>
+                <strong>当前没有匹配的任务</strong>
+                <span>调整筛选条件，或等待新的 PR 与 CI 事件。</span>
+              </div>
+            </div>
+          </article>
+
+          <aside class="side-stack" id="runtime">
+            <article class="panel runtime-panel">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="eyebrow">服务配置</p>
+                  <h2>运行状态</h2>
+                </div>
+              </div>
+              <dl class="definition-list">
+                <div><dt>模型</dt><dd id="modelName">—</dd></div>
+                <div><dt>接口格式</dt><dd id="apiFormat">—</dd></div>
+                <div><dt>队列并发</dt><dd id="queueWorkers">—</dd></div>
+                <div><dt>模型并发</dt><dd id="modelConcurrency">—</dd></div>
+                <div><dt>运行时长</dt><dd id="uptime">—</dd></div>
+              </dl>
+            </article>
+
+            <article class="panel policy-panel">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="eyebrow">自动化策略</p>
+                  <h2>当前能力</h2>
+                </div>
+              </div>
+              <ul class="policy-list">
+                <li><span>PR 自动审查</span><strong id="prReviewState">—</strong></li>
+                <li><span>CI 失败分析</span><strong id="ciReviewState">—</strong></li>
+                <li><span>敏感内容保护</span><strong>已启用</strong></li>
+              </ul>
+              <p class="privacy-note">只显示任务元数据和聚合数字。代码、模型回复、CI 日志、邮箱及敏感命中不会进入看板响应。</p>
+            </article>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="accessDialog">
+      <form method="dialog" id="accessForm">
+        <p class="eyebrow">受保护的运维入口</p>
+        <h2>输入访问令牌</h2>
+        <p>令牌仅保存在当前标签页，刷新后继续有效，关闭标签页即清除。</p>
+        <label>
+          <span>访问令牌</span>
+          <input id="accessToken" type="password" required autocomplete="current-password" />
+        </label>
+        <p class="form-error" id="accessError" role="alert"></p>
+        <button class="primary-button" type="submit">进入看板</button>
+      </form>
+    </dialog>
+
+    <script type="module" src="/dashboard.js"></script>
+  </body>
+</html>

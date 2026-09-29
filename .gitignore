@@ -1,0 +1,12 @@
+node_modules/
+state/
+secrets/
+.env
+.env.*
+!.env.example
+.dashboard-token
+*.pem
+*.key
+*.log
+*.tar.gz
+*.zip

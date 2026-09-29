@@ -1,0 +1,21 @@
+{
+  "name": "github-ai-reviewer",
+  "version": "1.0.0",
+  "description": "Label-triggered GitHub App service for AI-assisted pull request review",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node src/index.mjs",
+    "preview:dashboard": "node scripts/preview-dashboard.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@octokit/webhooks": "^14.2.0",
+    "dotenv": "^17.4.2",
+    "octokit": "^5.0.5",
+    "openai": "^7.9.0"
+  }
+}

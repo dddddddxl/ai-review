@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import { App } from 'octokit';
+const app = new App({ appId: process.env.GITHUB_APP_ID, privateKey: fs.readFileSync(process.env.GITHUB_PRIVATE_KEY_PATH, 'utf8') });
+const { data: info } = await app.octokit.request('GET /app');
+const owner = 'HYGON-AI', repo = 'Megatron-LM-das', comment_id = Number(process.argv[2] || 5598064875);
+if (!Number.isSafeInteger(comment_id) || comment_id <= 0) throw new Error('Invalid comment ID');
+const { data: installation } = await app.octokit.request('GET /repos/{owner}/{repo}/installation', { owner, repo });
+const octokit = await app.getInstallationOctokit(installation.id);
+const { data: comment } = await octokit.rest.issues.getComment({ owner, repo, comment_id });
+if (comment.user.login !== `${info.slug}[bot]`) throw new Error('Comment is not owned by this App');
+const body = comment.body.replace(/^> 警告：模型 API 使用未加密 HTTP，仅适用于已批准的测试网络。\r?\n?/m, '');
+if (body !== comment.body) await octokit.rest.issues.updateComment({ owner, repo, comment_id, body });
+console.log('Existing comment HTTP notice removed.');
