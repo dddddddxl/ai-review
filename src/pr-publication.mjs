@@ -3,6 +3,17 @@ import { digest } from './review-state.mjs';
 const MAX_FILE_ROWS = 20;
 const MAX_UNPOSITIONED_FINDINGS = 5;
 const priorities = ['P1', 'P2', 'P3'];
+// All writers of one PR review share a process-local lock. CI failure backfeed
+// and coverage refresh must not overwrite each other's read-modify-write body.
+const publicationLocks = new Map();
+async function serializePublication(args, action) {
+  const key = `${args.owner}/${args.repo}#${args.pullNumber}`.toLowerCase();
+  const prior = publicationLocks.get(key) || Promise.resolve();
+  const current = prior.catch(() => {}).then(() => action(args));
+  publicationLocks.set(key, current);
+  try { return await current; }
+  finally { if (publicationLocks.get(key) === current) publicationLocks.delete(key); }
+}
 
 const sensitivePatterns = [
   /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
@@ -209,6 +220,7 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
     '- 本服务以 GitHub 提供的 PR diff 为审查主体，PR 描述与按相关性选取的仓库片段仅用于核验；未执行代码或重跑测试，结论仍需维护者核验。',
     '',
     '</details>',
+    renderTestReviewSummary(result.testReview),
     safeFindings.length ? '提交修复并推送新 commit 后，将自动审查 PR 的最新版本。' : '',
   ].filter((line, index, all) => line !== '' || (index > 0 && all[index - 1] !== '')).join('\n').trim();
 
@@ -217,7 +229,35 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
   return { body: `${marker}\n${body}`, comments, marker, fingerprint, safetyFiltered, status: status.label };
 }
 
-export async function publishPrReview({ octokit, owner, repo, pullNumber, pr, files, result, botLogin, isCurrent = async () => true }) {
+export function renderTestReviewSummary(testReview) {
+  if (!testReview) return '';
+  const start = '<!-- ai-test-review:start -->', end = '<!-- ai-test-review:end -->';
+  const prefix = `${start}\n\n### 测试充分性审查（独立于代码缺陷）\n\n`;
+  if (testReview.status !== 'validated') return `${prefix}未完成：版本、skill 或证据校验不可用，不能据此认定没有测试缺口。\n\n${end}`;
+  const review = testReview.review;
+  const verdict = { changes_recommended: '建议补充或修正测试/CI', needs_evidence: '需要补充证据', no_material_gaps_found: '已审范围内未发现实质缺口' }[review.verdict] || '需要核验';
+  const labels = { supported: '断言支持', partial: '部分', gap: '缺口', unknown: '未知', included: '选中', excluded: '未选中', conditional: '条件选择', not_verified: '未核验', passed: '有匹配通过证据', failed: '失败', skipped: '跳过' };
+  const rows = review.behaviors.slice(0, 12).map(b => `| ${safeText(sensitivePatterns.some(p => p.test(b.name)) ? '敏感名称不展示' : b.name)} | ${labels[b.design] || '未知'} | ${labels[b.selection] || '未知'} | ${labels[b.execution] || '未核验'} |`);
+  return `${prefix}${verdict}；不是合并批准，也不等于发现产品缺陷。\n\n| 行为 | 断言设计 | CI 选择 | 实际执行 |\n|---|---|---|---|\n${rows.join('\n')}\n\n补测任务：${review.tasks.length} 项；代码覆盖率未测量；本次未运行测试。${review.behaviors.length > 12 ? '部分行为未展开。' : ''}\n\n${end}`;
+}
+
+export const updateTestReviewSummary = args => serializePublication(args, updateTestReviewSummaryUnlocked);
+async function updateTestReviewSummaryUnlocked({ octokit, owner, repo, pullNumber, headSha, botLogin, testReview, isCurrent }) {
+  if (!await isCurrent()) return { status: 'stale' };
+  const reviews = await octokit.paginate(octokit.rest.pulls.listReviews, { owner, repo, pull_number: pullNumber, per_page: 100 });
+  const review = [...reviews].reverse().find(r => r.user?.login === botLogin && r.body?.includes(`<!-- github-ai-review:v1:${pullNumber}:${headSha}:`));
+  if (!review) return { status: 'deferred', reason: 'no_current_review' };
+  const section = renderTestReviewSummary(testReview);
+  const pattern = /<!-- ai-test-review:start -->[\s\S]*?<!-- ai-test-review:end -->/;
+  const body = pattern.test(review.body) ? review.body.replace(pattern, () => section) : `${review.body}\n\n${section}`;
+  if (body === review.body) return { status: 'done', duplicate: true };
+  if (Buffer.byteLength(body, 'utf8') >= 65000 || !await isCurrent()) return { status: 'deferred', reason: 'stale_or_too_long' };
+  await octokit.rest.pulls.updateReview({ owner, repo, pull_number: pullNumber, review_id: review.id, body });
+  return { status: 'done' };
+}
+
+export const publishPrReview = args => serializePublication(args, publishPrReviewUnlocked);
+async function publishPrReviewUnlocked({ octokit, owner, repo, pullNumber, pr, files, result, botLogin, isCurrent = async () => true }) {
   const publication = buildPrReviewPublication({ pr, files, result, pullNumber });
   const reviews = await octokit.paginate(octokit.rest.pulls.listReviews, {
     owner, repo, pull_number: pullNumber, per_page: 100,
@@ -277,13 +317,14 @@ function mergeCiSection(body, section, run) {
   return merged.replace(/\n{3,}/g, '\n\n').trim();
 }
 
-export async function updateReviewWithCiEvidence({ octokit, owner, repo, pullNumber, headSha, botLogin, run, result,
+export const updateReviewWithCiEvidence = args => serializePublication(args, updateReviewWithCiEvidenceUnlocked);
+async function updateReviewWithCiEvidenceUnlocked({ octokit, owner, repo, pullNumber, headSha, botLogin, run, result,
   restricted = false, reviewId, reviewBody, isCurrent = async () => true }) {
   if (!octokit?.rest?.pulls?.listReviews || !octokit?.rest?.pulls?.updateReview) {
     return { integrated: false, reason: 'review_update_unavailable' };
   }
-  let review = Number.isSafeInteger(reviewId) && typeof reviewBody === 'string'
-    ? { id: reviewId, body: reviewBody, user: { login: botLogin } } : null;
+  // Caller hints may predate a coverage refresh. Always re-read inside the lock.
+  let review = null;
   if (!review) {
     let reviews;
     try {

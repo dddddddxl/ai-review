@@ -1,0 +1,132 @@
+{
+  "provenance": {
+    "kind": "offline_historical_replay",
+    "real_model": false,
+    "tests_executed": false,
+    "network": false,
+    "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/436",
+    "source_head": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+    "captured_at": "2026-09-28T12:33:00.489051+00:00",
+    "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+    "input_hash": "45cefc65c4b2623ae3d5157f75f577277cc28b21cbf925c498de363e09710319"
+  },
+  "records": [
+    {
+      "id": "E1",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": "python/sglang/srt/environ.py",
+      "start": 1395,
+      "end": 1399,
+      "sha256": "f54cc37c70eedf2f47062336d287563334294cbf208fe68d5bd11f9aba481f09",
+      "truncated": false
+    },
+    {
+      "id": "E2",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "start": 80,
+      "end": 172,
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1",
+      "truncated": false
+    },
+    {
+      "id": "E3",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "start": 901,
+      "end": 1008,
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1",
+      "truncated": false
+    },
+    {
+      "id": "E4",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "start": 1080,
+      "end": 1140,
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1",
+      "truncated": false
+    },
+    {
+      "id": "E5",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
+      "start": 16,
+      "end": 54,
+      "sha256": "bc300beb36b11f07b1102755996c745892df4b01acc712cd408396af55d87809",
+      "truncated": false
+    },
+    {
+      "id": "E6",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+      "start": 376,
+      "end": 480,
+      "sha256": "7b6c6ae78d8c22eee7b8484caa4b789d22663e8c1e1ca5d7a3e236b286947a5d",
+      "truncated": false
+    },
+    {
+      "id": "E7",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": ".github/workflows/pr-test-hcu.yml",
+      "start": 757,
+      "end": 817,
+      "sha256": "1ef88cfc496da803b15f4e98994482da3d1dbdd7effa30572915a8855ac84775",
+      "truncated": false
+    },
+    {
+      "id": "E8",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": "test/registered/unit/layers/attention/dsa/test_hcu_indexer.py",
+      "start": 1,
+      "end": 155,
+      "sha256": "3783340edca3a2d096ece78c9e2abf4db22894ddea5a2e362f3bc52bb2e80a4a",
+      "truncated": false
+    },
+    {
+      "id": "E9",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_file",
+      "path": "test/registered/attention/unittests/dsv4/test_deepseek_v4.py",
+      "start": 1,
+      "end": 55,
+      "sha256": "b8a70cb62fd5327f15cb0f78e18df7cc4acfbba70fc9dbd06eaaf572242388c5",
+      "truncated": false
+    },
+    {
+      "id": "E10",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_artifact",
+      "path": "artifacts/job-excerpts.txt",
+      "sha256": "a8d881665501450df725e95a3b3cc5de3bbc152ffc2446c6678552069b856e00",
+      "truncated": false
+    },
+    {
+      "id": "E11",
+      "status": "available",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "tool": "read_artifact",
+      "path": "artifacts/search-evidence.txt",
+      "sha256": "418ebabbc59679e056530e04d6561275426ffa183667d24ca0e3e63a3bbaf4e6",
+      "truncated": false
+    }
+  ]
+}

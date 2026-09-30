@@ -7,8 +7,7 @@ import http from "node:http";
 import { createNodeMiddleware } from "@octokit/webhooks";
 import { App } from "octokit";
 import { createModelClient } from "./model-client.mjs";
-import { createCiReviewer } from "./ci-review.mjs";
-import { reviewPrBatches } from "./pr-review.mjs";
+import { createCiReviewer, resolveRunPullRequests } from "./ci-review.mjs";
 import { buildPrRepositoryContext } from './pr-context.mjs';
 import { deleteProgressComment, publishPrReview, updateReviewWithCiEvidence, upsertProgressComment } from './pr-publication.mjs';
 import { applyPendingCiBackfeeds } from './ci-backfeed.mjs';
@@ -17,6 +16,8 @@ import { ReviewState, ReviewQueue, limitModelConcurrency, stateDirectory } from 
 import { createModelUsageMeter, hasReportedUsage } from './model-usage.mjs';
 import { createDashboardSnapshot, dashboardAuthorized, dashboardHeaders, loadDashboardAssets } from './dashboard.mjs';
 import { verificationRetryDecision } from './retry-policy.mjs';
+import { enhancementConfig, runReviewPipeline } from './review-pipeline.mjs';
+import { updateTestReviewSummary } from './pr-publication.mjs';
 
 const requiredEnvironment = [
   "GITHUB_APP_ID",
@@ -60,6 +61,9 @@ const dashboardToken = process.env.AI_DASHBOARD_TOKEN || '';
 const dashboardAssets = await loadDashboardAssets();
 
 const reviewState = new ReviewState();
+const enhancedConfig = enhancementConfig();
+const testRefreshState = new ReviewState(path.join(stateDirectory(), 'test-refresh'));
+const activeTestRefreshes = new Set();
 const reviewQueue = new ReviewQueue();
 const ciBackfeedState = new ReviewState(path.join(stateDirectory(), 'ci-backfeed'));
 await reviewQueue.recover();
@@ -72,6 +76,8 @@ githubApp.webhooks.on('workflow_run.completed', async (context) => {
   const run = context.payload.workflow_run;
   if (isUpstreamSyncBranch(run.head_branch)) return;
   await reviewQueue.enqueue({ kind: 'ci', repository: context.payload.repository.full_name,
+    installationId: context.payload.installation.id, runId: run.id, runAttempt: run.run_attempt || 1, headSha: run.head_sha });
+  if (enhancedConfig.testEnabled) await reviewQueue.enqueue({ kind: 'test-ci', repository: context.payload.repository.full_name,
     installationId: context.payload.installation.id, runId: run.id, runAttempt: run.run_attempt || 1, headSha: run.head_sha });
 });
 
@@ -154,7 +160,7 @@ async function reviewPullRequest(job) {
     return latest.state === 'open' && !latest.draft && latest.head.sha === currentPr.head.sha && latest.base.sha === currentPr.base.sha;
   };
   let lastPublished = 0;
-  const result = await reviewPrBatches({ client: modelClient, files, repository, pullNumber, title: currentPr.title,
+  const result = await runReviewPipeline({ client: modelClient, files, repository, pullNumber, title: currentPr.title,
     prDescription: currentPr.body || '', repositoryContext,
     headSha: currentPr.head.sha, baseSha: currentPr.base.sha, totalFiles: currentPr.changed_files, state: reviewState,
     batchChars: positiveInteger(process.env.AI_REVIEW_BATCH_CHARS, 10000),
@@ -164,7 +170,7 @@ async function reviewPullRequest(job) {
       await upsertProgressComment({ octokit, owner, repo, pullNumber, headSha: currentPr.head.sha, botLogin, body: progress.body });
       lastPublished = Date.now();
     },
-  });
+  }, { config: enhancedConfig, octokit });
   if (result.cancelled || !await isCurrent()) return { status: 'stale' };
 
   const publication = await publishPrReview({ octokit, owner, repo, pullNumber, pr: currentPr, files, result, botLogin, isCurrent });
@@ -188,10 +194,11 @@ async function reviewPullRequest(job) {
   console.log(
     `[Review] ${result.partial ? 'partial' : 'complete'} repository=${repository} pr=${pullNumber} batches=${result.batches} completed=${result.completed} pending=${result.pending} failedBatches=${result.failures}`,
   );
-  return { status: result.retryableVerificationFailures ? 'retry' : result.pending || result.failures ? 'paused' : 'done',
+  return { status: result.retryableVerificationFailures ? 'retry' : result.pending || result.failures || result.testReview?.status === 'incomplete' ? 'paused' : 'done',
     retryableVerificationFailures: result.retryableVerificationFailures,
     summary: { batches: result.batches, completed: result.completed, pending: result.pending, failures: result.failures,
-      findings: result.findings, reviewedFiles: result.reviewedFiles, partial: result.partial } };
+      findings: result.findings, reviewedFiles: result.reviewedFiles, partial: result.partial,
+      ...(result.testReview ? { testReviewStatus: result.testReview.status } : {}) } };
 }
 
 async function reviewWorkflowRun(job) {
@@ -205,6 +212,46 @@ async function reviewWorkflowRun(job) {
     repository: { owner: { login: owner }, name: repo, full_name: job.repository } } });
 }
 
+async function refreshTestCoverage(job) {
+  if (!enhancedConfig.testEnabled || !modelConfigured) return { status: 'skipped', reason: 'test_review_disabled_or_model_unconfigured' };
+  if (allowedRepositories.size && !allowedRepositories.has(job.repository.toLowerCase())) return { status: 'skipped' };
+  const [owner, repo] = job.repository.split('/');
+  const octokit = await githubApp.getInstallationOctokit(job.installationId);
+  const { data: run } = await octokit.rest.actions.getWorkflowRun({ owner, repo, run_id: job.runId });
+  if (run.status !== 'completed' || run.run_attempt !== job.runAttempt || isUpstreamSyncBranch(run.head_branch)) return { status: 'stale' };
+  const association = await resolveRunPullRequests(octokit, { owner: { login: owner }, name: repo, full_name: job.repository }, run);
+  let unfinished = false;
+  for (const linked of association.linked) {
+    const { data: pr } = await octokit.rest.pulls.get({ owner, repo, pull_number: linked.number });
+    if (pr.state !== 'open' || pr.draft || linked.head?.sha !== pr.head.sha || isUpstreamSyncPullRequest(pr)) continue;
+    const key = [job.repository, pr.number, pr.base.sha, pr.head.sha, run.id, run.run_attempt];
+    const activeKey = JSON.stringify(key);
+    if (activeTestRefreshes.has(activeKey)) { unfinished = true; continue; }
+    activeTestRefreshes.add(activeKey);
+    try {
+      const previous = await testRefreshState.read(key);
+      if (previous?.status === 'done') continue;
+      const isCurrent = async () => {
+        const { data: latest } = await octokit.rest.pulls.get({ owner, repo, pull_number: pr.number });
+        const { data: currentRun } = await octokit.rest.actions.getWorkflowRun({ owner, repo, run_id: run.id });
+        return latest.state === 'open' && !latest.draft && latest.head.sha === pr.head.sha && latest.base.sha === pr.base.sha && currentRun.run_attempt === run.run_attempt;
+      };
+      let testReview = previous?.testReview;
+      if (!testReview || testReview.status !== 'validated') {
+        const files = await octokit.paginate(octokit.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
+        ({ testReview } = await runReviewPipeline({ client: modelClient, files, repository: job.repository, pullNumber: pr.number,
+          title: pr.title, baseSha: pr.base.sha, headSha: pr.head.sha, isCurrent, state: reviewState },
+        { config: enhancedConfig, octokit, extraRun: run, testsOnly: true }));
+      }
+      const outcome = await updateTestReviewSummary({ octokit, owner, repo, pullNumber: pr.number, headSha: pr.head.sha, botLogin, testReview, isCurrent });
+      const status = testReview.status === 'validated' && outcome.status === 'done' ? 'done' : 'paused';
+      await testRefreshState.write(key, { status, testReview, repository: job.repository, pullNumber: pr.number, headSha: pr.head.sha });
+      if (status !== 'done') unfinished = true;
+    } finally { activeTestRefreshes.delete(activeKey); }
+  }
+  return { status: unfinished ? 'paused' : 'done' };
+}
+
 // Only this process consumes the durable inbox. Claims remain serialized while
 // different jobs can run concurrently. The global model semaphore is the final
 // provider-load boundary across every PR and CI worker.
@@ -214,7 +261,7 @@ async function processQueuedJob(job) {
   const usageScope = modelUsageMeter.createScope(job.usage);
   try {
     const { status, ...result } = await usageScope.run(() =>
-      job.kind === 'ci' ? reviewWorkflowRun(job) : reviewPullRequest(job));
+      job.kind === 'ci' ? reviewWorkflowRun(job) : job.kind === 'test-ci' ? refreshTestCoverage(job) : reviewPullRequest(job));
     const usage = usageScope.snapshot();
     if (status === 'retry') {
       const decision = verificationRetryDecision(job, { limit: verificationRetryLimit, baseDelayMs: verificationRetryDelayMs });

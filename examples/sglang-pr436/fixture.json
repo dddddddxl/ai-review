@@ -1,0 +1,2474 @@
+{
+  "provenance": {
+    "kind": "offline_historical_replay",
+    "real_model": false,
+    "tests_executed": false,
+    "network": false,
+    "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/436",
+    "source_head": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+    "captured_at": "2026-09-28T12:33:00.489051+00:00",
+    "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+    "input_hash": "45cefc65c4b2623ae3d5157f75f577277cc28b21cbf925c498de363e09710319"
+  },
+  "snapshot": {
+    "snapshot_version": 1,
+    "repository": "https://github.com/HYGON-AI/sglang-das",
+    "captured_at": "2026-09-28T12:33:00.489051+00:00",
+    "pr": {
+      "number": 436,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/436",
+      "title": "perf: 为 HCU gfx936 DeepSeek-V4 增加 INT8 Persistent Paged MQA Logits",
+      "state": "merged",
+      "base_branch": "release/20260825_v0.5.18",
+      "base_sha": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+      "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "merge_sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+      "head_repository": "dyq-w/sglang-das"
+    },
+    "endpoints": {
+      "files": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/pulls/436/files?per_page=100",
+        "truncated": false
+      },
+      "head_checks": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/commits/6f0f185a691c16b0134a26f2ff172c7e2af31edb/check-runs?per_page=100&filter=all",
+        "truncated": false
+      },
+      "head_statuses": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/commits/6f0f185a691c16b0134a26f2ff172c7e2af31edb/statuses?per_page=100",
+        "truncated": false
+      },
+      "pr_head_runs": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs?head_sha=6f0f185a691c16b0134a26f2ff172c7e2af31edb&per_page=100",
+        "truncated": false
+      },
+      "merge_candidate_runs": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs?head_sha=ea1c297dc23343cbe5c6b619f3094325fb5fe45b&per_page=100",
+        "truncated": false
+      },
+      "jobs:35856335333:1": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs/35856335333/attempts/1/jobs?per_page=100",
+        "truncated": false
+      },
+      "jobs:35820902721:2": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs/35820902721/attempts/2/jobs?per_page=100",
+        "truncated": false
+      },
+      "jobs:35820902718:1": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs/35820902718/attempts/1/jobs?per_page=100",
+        "truncated": false
+      },
+      "jobs:35820751411:1": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs/35820751411/attempts/1/jobs?per_page=100",
+        "truncated": false
+      },
+      "jobs:35820749322:1": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs/35820749322/attempts/1/jobs?per_page=100",
+        "truncated": false
+      },
+      "jobs:35820749310:1": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs/35820749310/attempts/1/jobs?per_page=100",
+        "truncated": false
+      },
+      "jobs:35820749297:1": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs/35820749297/attempts/1/jobs?per_page=100",
+        "truncated": false
+      },
+      "jobs:35820749286:1": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/actions/runs/35820749286/attempts/1/jobs?per_page=100",
+        "truncated": false
+      },
+      "legacy_protection": {
+        "status": "unavailable",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/branches/release%2F20260825_v0.5.18/protection/required_status_checks",
+        "truncated": true,
+        "reason": "GitHub HTTP 404；未读取到该接口证据"
+      },
+      "branch_rules": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/rules/branches/release%2F20260825_v0.5.18",
+        "truncated": false
+      },
+      "pr_recheck": {
+        "status": "available",
+        "url": "https://api.github.com/repos/HYGON-AI/sglang-das/pulls/436",
+        "truncated": false
+      }
+    },
+    "runs": [
+      {
+        "id": 35856335333,
+        "name": "Cancel PR Workflows on Close",
+        "event": "pull_request_target",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/cancel-pr-workflows-on-close.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35856335333",
+        "created_at": "2026-09-23T11:44:55Z",
+        "relation": "pr_head",
+        "jobs": [
+          {
+            "id": 107165577303,
+            "name": "cancel",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35856335333/job/107165577303",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T11:44:59Z",
+                "completed_at": "2026-09-23T11:45:00Z"
+              },
+              {
+                "name": "Cancel unfinished runs of this PR",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T11:45:00Z",
+                "completed_at": "2026-09-23T11:45:02Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T11:45:02Z",
+                "completed_at": "2026-09-23T11:45:02Z"
+              }
+            ]
+          }
+        ],
+        "detail_status": "available"
+      },
+      {
+        "id": 35820902721,
+        "name": "PR Test (HCU)",
+        "event": "pull_request_target",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/pr-test-hcu.yml",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 2,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721",
+        "created_at": "2026-09-23T05:04:28Z",
+        "relation": "pr_head",
+        "jobs": [
+          {
+            "id": 107080419782,
+            "name": "Check changes",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080419782",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:06:30Z",
+                "completed_at": "2026-09-23T05:06:31Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:06:31Z",
+                "completed_at": "2026-09-23T05:06:46Z"
+              },
+              {
+                "name": "Determine run mode",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:06:46Z",
+                "completed_at": "2026-09-23T05:06:46Z"
+              },
+              {
+                "name": "Detect HCU-relevant changes",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:06:46Z",
+                "completed_at": "2026-09-23T05:06:47Z"
+              },
+              {
+                "name": "Select HCU stages",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:06:47Z",
+                "completed_at": "2026-09-23T05:06:47Z"
+              },
+              {
+                "name": "Classify HCU wheel sync mode",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-09-23T05:06:47Z",
+                "completed_at": "2026-09-23T05:06:48Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-09-23T05:06:48Z",
+                "completed_at": "2026-09-23T05:06:49Z"
+              }
+            ]
+          },
+          {
+            "id": 107080420755,
+            "name": "Call PR gate",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080420755",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:07:25Z",
+                "completed_at": "2026-09-23T05:07:28Z"
+              },
+              {
+                "name": "Fetch latest PR info",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:07:28Z",
+                "completed_at": "2026-09-23T05:07:29Z"
+              },
+              {
+                "name": "Log PR info",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:07:29Z",
+                "completed_at": "2026-09-23T05:07:29Z"
+              },
+              {
+                "name": "Block draft PR",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 4,
+                "started_at": "2026-09-23T05:07:29Z",
+                "completed_at": "2026-09-23T05:07:29Z"
+              },
+              {
+                "name": "Require run-ci label or HCU auto-run",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:07:29Z",
+                "completed_at": "2026-09-23T05:07:29Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-09-23T05:07:29Z",
+                "completed_at": "2026-09-23T05:07:30Z"
+              }
+            ]
+          },
+          {
+            "id": 107080421199,
+            "name": "Validate HCU config",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080421199",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:08:07Z",
+                "completed_at": "2026-09-23T05:08:07Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:08:07Z",
+                "completed_at": "2026-09-23T05:08:20Z"
+              },
+              {
+                "name": "Checkout code for workflow_dispatch",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 3,
+                "started_at": "2026-09-23T05:08:20Z",
+                "completed_at": "2026-09-23T05:08:20Z"
+              },
+              {
+                "name": "Resolve HCU runner and image",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:08:20Z",
+                "completed_at": "2026-09-23T05:08:20Z"
+              },
+              {
+                "name": "Verify HCU registration",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:08:20Z",
+                "completed_at": "2026-09-23T05:08:23Z"
+              },
+              {
+                "name": "Setup HCU validation container",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 6,
+                "started_at": "2026-09-23T05:08:23Z",
+                "completed_at": "2026-09-23T05:08:23Z"
+              },
+              {
+                "name": "Verify HCU registration in container",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 7,
+                "started_at": "2026-09-23T05:08:23Z",
+                "completed_at": "2026-09-23T05:08:23Z"
+              },
+              {
+                "name": "Cleanup HCU validation container",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 8,
+                "started_at": "2026-09-23T05:08:23Z",
+                "completed_at": "2026-09-23T05:08:23Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9,
+                "started_at": "2026-09-23T05:08:23Z",
+                "completed_at": "2026-09-23T05:08:24Z"
+              }
+            ]
+          },
+          {
+            "id": 107080422410,
+            "name": "Stage B HCU required (stage-b-required-2)",
+            "status": "completed",
+            "conclusion": "failure",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422410",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T07:07:52Z",
+                "completed_at": "2026-09-23T07:07:52Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T07:07:52Z",
+                "completed_at": "2026-09-23T07:08:39Z"
+              },
+              {
+                "name": "Setup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T07:08:39Z",
+                "completed_at": "2026-09-23T07:08:39Z"
+              },
+              {
+                "name": "Install dependencies",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T07:08:39Z",
+                "completed_at": "2026-09-23T07:13:37Z"
+              },
+              {
+                "name": "Verify HCU external APIs",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T07:13:37Z",
+                "completed_at": "2026-09-23T07:14:05Z"
+              },
+              {
+                "name": "Run stage-b-test-1-hcu-small required partition",
+                "status": "completed",
+                "conclusion": "failure",
+                "number": 6,
+                "started_at": "2026-09-23T07:14:05Z",
+                "completed_at": "2026-09-23T07:33:27Z"
+              },
+              {
+                "name": "Cleanup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-09-23T07:33:27Z",
+                "completed_at": "2026-09-23T07:33:28Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-09-23T07:33:28Z",
+                "completed_at": "2026-09-23T07:33:28Z"
+              }
+            ]
+          },
+          {
+            "id": 107080422433,
+            "name": "Stage B HCU required (stage-b-required-3)",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422433",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T07:34:29Z",
+                "completed_at": "2026-09-23T07:34:30Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T07:34:30Z",
+                "completed_at": "2026-09-23T07:34:57Z"
+              },
+              {
+                "name": "Setup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T07:34:57Z",
+                "completed_at": "2026-09-23T07:34:57Z"
+              },
+              {
+                "name": "Install dependencies",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T07:34:57Z",
+                "completed_at": "2026-09-23T07:38:37Z"
+              },
+              {
+                "name": "Verify HCU external APIs",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T07:38:37Z",
+                "completed_at": "2026-09-23T07:39:05Z"
+              },
+              {
+                "name": "Run stage-b-test-1-hcu-small required partition",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-09-23T07:39:05Z",
+                "completed_at": "2026-09-23T08:01:06Z"
+              },
+              {
+                "name": "Cleanup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-09-23T08:01:06Z",
+                "completed_at": "2026-09-23T08:01:07Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-09-23T08:01:07Z",
+                "completed_at": "2026-09-23T08:01:07Z"
+              }
+            ]
+          },
+          {
+            "id": 107080422438,
+            "name": "Wait HCU wheels",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422438",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:09:00Z",
+                "completed_at": "2026-09-23T05:09:00Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:09:00Z",
+                "completed_at": "2026-09-23T05:09:15Z"
+              },
+              {
+                "name": "Resolve wheel target SHA",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:09:15Z",
+                "completed_at": "2026-09-23T05:09:15Z"
+              },
+              {
+                "name": "Wait for current commit HCU wheels",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:09:15Z",
+                "completed_at": "2026-09-23T05:13:15Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:13:15Z",
+                "completed_at": "2026-09-23T05:13:16Z"
+              }
+            ]
+          },
+          {
+            "id": 107080422930,
+            "name": "Stage A HCU smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422930",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:13:54Z",
+                "completed_at": "2026-09-23T05:13:55Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:13:55Z",
+                "completed_at": "2026-09-23T05:14:08Z"
+              },
+              {
+                "name": "Setup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:14:08Z",
+                "completed_at": "2026-09-23T05:14:08Z"
+              },
+              {
+                "name": "Install dependencies",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:14:08Z",
+                "completed_at": "2026-09-23T05:20:24Z"
+              },
+              {
+                "name": "Verify HCU external APIs",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:20:24Z",
+                "completed_at": "2026-09-23T05:20:53Z"
+              },
+              {
+                "name": "Run stage-a-test-1-hcu-small",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-09-23T05:20:53Z",
+                "completed_at": "2026-09-23T05:21:50Z"
+              },
+              {
+                "name": "Cleanup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-09-23T05:21:50Z",
+                "completed_at": "2026-09-23T05:21:51Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-09-23T05:21:51Z",
+                "completed_at": "2026-09-23T05:21:51Z"
+              }
+            ]
+          },
+          {
+            "id": 107080422995,
+            "name": "Stage B HCU required (stage-b-required-0)",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422995",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:22:28Z",
+                "completed_at": "2026-09-23T05:22:28Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:22:28Z",
+                "completed_at": "2026-09-23T05:22:40Z"
+              },
+              {
+                "name": "Setup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:22:40Z",
+                "completed_at": "2026-09-23T05:22:40Z"
+              },
+              {
+                "name": "Install dependencies",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:22:40Z",
+                "completed_at": "2026-09-23T05:28:33Z"
+              },
+              {
+                "name": "Verify HCU external APIs",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:28:33Z",
+                "completed_at": "2026-09-23T05:29:01Z"
+              },
+              {
+                "name": "Run stage-b-test-1-hcu-small required partition",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-09-23T05:29:01Z",
+                "completed_at": "2026-09-23T05:31:25Z"
+              },
+              {
+                "name": "Cleanup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-09-23T05:31:25Z",
+                "completed_at": "2026-09-23T05:31:25Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-09-23T05:31:25Z",
+                "completed_at": "2026-09-23T05:31:26Z"
+              }
+            ]
+          },
+          {
+            "id": 107080423596,
+            "name": "Stage B HCU required (stage-b-required-1)",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080423596",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:32:07Z",
+                "completed_at": "2026-09-23T05:32:07Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:32:07Z",
+                "completed_at": "2026-09-23T05:32:28Z"
+              },
+              {
+                "name": "Setup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:32:28Z",
+                "completed_at": "2026-09-23T05:32:28Z"
+              },
+              {
+                "name": "Install dependencies",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:32:28Z",
+                "completed_at": "2026-09-23T05:37:23Z"
+              },
+              {
+                "name": "Verify HCU external APIs",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:37:23Z",
+                "completed_at": "2026-09-23T05:37:50Z"
+              },
+              {
+                "name": "Run stage-b-test-1-hcu-small required partition",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-09-23T05:37:50Z",
+                "completed_at": "2026-09-23T05:49:52Z"
+              },
+              {
+                "name": "Cleanup HCU container",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-09-23T05:49:52Z",
+                "completed_at": "2026-09-23T05:49:53Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-09-23T05:49:53Z",
+                "completed_at": "2026-09-23T05:49:53Z"
+              }
+            ]
+          },
+          {
+            "id": 107095640960,
+            "name": "PR Test (HCU) finish",
+            "status": "completed",
+            "conclusion": "failure",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107095640960",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T08:01:56Z",
+                "completed_at": "2026-09-23T08:01:56Z"
+              },
+              {
+                "name": "Check all dependent job statuses",
+                "status": "completed",
+                "conclusion": "failure",
+                "number": 2,
+                "started_at": "2026-09-23T08:01:56Z",
+                "completed_at": "2026-09-23T08:01:56Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T08:01:56Z",
+                "completed_at": "2026-09-23T08:01:57Z"
+              }
+            ]
+          }
+        ],
+        "detail_status": "available"
+      },
+      {
+        "id": 35820902718,
+        "name": "PR States",
+        "event": "pull_request_target",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/pr-states.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902718",
+        "created_at": "2026-09-23T05:04:28Z",
+        "relation": "pr_head",
+        "jobs": [
+          {
+            "id": 107052322620,
+            "name": "update-pr-body",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902718/job/107052322620",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:04:54Z",
+                "completed_at": "2026-09-23T05:04:57Z"
+              },
+              {
+                "name": "Update CI states block in PR body",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:04:57Z",
+                "completed_at": "2026-09-23T05:05:16Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:05:17Z",
+                "completed_at": "2026-09-23T05:05:17Z"
+              }
+            ]
+          }
+        ],
+        "detail_status": "available"
+      },
+      {
+        "id": 35820751411,
+        "name": "Quality Gate",
+        "event": "pull_request",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/quality-gate.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411",
+        "created_at": "2026-09-23T05:02:14Z",
+        "relation": "pr_head",
+        "jobs": [
+          {
+            "id": 107051862231,
+            "name": "Checks / Code compliance",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411/job/107051862231",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:02:19Z",
+                "completed_at": "2026-09-23T05:02:22Z"
+              },
+              {
+                "name": "checkout-pr-head",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:02:22Z",
+                "completed_at": "2026-09-23T05:02:27Z"
+              },
+              {
+                "name": "checkout-quality-gate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:02:27Z",
+                "completed_at": "2026-09-23T05:02:29Z"
+              },
+              {
+                "name": "quality-gate-engine",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:02:29Z",
+                "completed_at": "2026-09-23T05:02:29Z"
+              },
+              {
+                "name": "Code compliance",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:02:29Z",
+                "completed_at": "2026-09-23T05:02:30Z"
+              },
+              {
+                "name": "Post checkout-quality-gate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9,
+                "started_at": "2026-09-23T05:02:30Z",
+                "completed_at": "2026-09-23T05:02:30Z"
+              },
+              {
+                "name": "Post checkout-pr-head",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10,
+                "started_at": "2026-09-23T05:02:30Z",
+                "completed_at": "2026-09-23T05:02:31Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 11,
+                "started_at": "2026-09-23T05:02:31Z",
+                "completed_at": "2026-09-23T05:02:31Z"
+              }
+            ]
+          },
+          {
+            "id": 107051862385,
+            "name": "Checks / Code quality",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411/job/107051862385",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:02:16Z",
+                "completed_at": "2026-09-23T05:02:21Z"
+              },
+              {
+                "name": "checkout-pr-head",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:02:21Z",
+                "completed_at": "2026-09-23T05:02:26Z"
+              },
+              {
+                "name": "checkout-quality-gate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:02:26Z",
+                "completed_at": "2026-09-23T05:02:29Z"
+              },
+              {
+                "name": "quality-gate-engine",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:02:29Z",
+                "completed_at": "2026-09-23T05:02:29Z"
+              },
+              {
+                "name": "Code quality",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:02:29Z",
+                "completed_at": "2026-09-23T05:02:30Z"
+              },
+              {
+                "name": "Post checkout-quality-gate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9,
+                "started_at": "2026-09-23T05:02:30Z",
+                "completed_at": "2026-09-23T05:02:30Z"
+              },
+              {
+                "name": "Post checkout-pr-head",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10,
+                "started_at": "2026-09-23T05:02:30Z",
+                "completed_at": "2026-09-23T05:02:31Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 11,
+                "started_at": "2026-09-23T05:02:31Z",
+                "completed_at": "2026-09-23T05:02:31Z"
+              }
+            ]
+          },
+          {
+            "id": 107051862466,
+            "name": "Checks / Code security",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411/job/107051862466",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:02:45Z",
+                "completed_at": "2026-09-23T05:02:48Z"
+              },
+              {
+                "name": "checkout-pr-head",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:02:48Z",
+                "completed_at": "2026-09-23T05:02:50Z"
+              },
+              {
+                "name": "checkout-quality-gate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:02:50Z",
+                "completed_at": "2026-09-23T05:02:52Z"
+              },
+              {
+                "name": "quality-gate-engine",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:02:52Z",
+                "completed_at": "2026-09-23T05:02:52Z"
+              },
+              {
+                "name": "Code security",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:02:52Z",
+                "completed_at": "2026-09-23T05:03:38Z"
+              },
+              {
+                "name": "Post checkout-quality-gate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9,
+                "started_at": "2026-09-23T05:03:38Z",
+                "completed_at": "2026-09-23T05:03:38Z"
+              },
+              {
+                "name": "Post checkout-pr-head",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10,
+                "started_at": "2026-09-23T05:03:38Z",
+                "completed_at": "2026-09-23T05:03:39Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 11,
+                "started_at": "2026-09-23T05:03:39Z",
+                "completed_at": "2026-09-23T05:03:39Z"
+              }
+            ]
+          },
+          {
+            "id": 107052175315,
+            "name": "Checks / All required checks",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411/job/107052175315",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:03:53Z",
+                "completed_at": "2026-09-23T05:03:53Z"
+              },
+              {
+                "name": "result",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:03:53Z",
+                "completed_at": "2026-09-23T05:03:53Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:03:53Z",
+                "completed_at": "2026-09-23T05:03:54Z"
+              }
+            ]
+          }
+        ],
+        "detail_status": "available"
+      },
+      {
+        "id": 35820749322,
+        "name": "Release PR HCU Wheels",
+        "event": "pull_request_target",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/release-pr-hcu.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749322",
+        "created_at": "2026-09-23T05:02:12Z",
+        "relation": "pr_head",
+        "jobs": [
+          {
+            "id": 107051856423,
+            "name": "compile (3.10)",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749322/job/107051856423",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:02:16Z",
+                "completed_at": "2026-09-23T05:02:21Z"
+              },
+              {
+                "name": "Initialize containers",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:02:21Z",
+                "completed_at": "2026-09-23T05:02:21Z"
+              },
+              {
+                "name": "Validate manual build target",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 3,
+                "started_at": "2026-09-23T05:02:21Z",
+                "completed_at": "2026-09-23T05:02:21Z"
+              },
+              {
+                "name": "Verify image Torch version before building extensions",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:02:21Z",
+                "completed_at": "2026-09-23T05:02:25Z"
+              },
+              {
+                "name": "Detect runner workspace ownership",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:02:25Z",
+                "completed_at": "2026-09-23T05:02:26Z"
+              },
+              {
+                "name": "Normalize workspace ownership before checkout",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-09-23T05:02:26Z",
+                "completed_at": "2026-09-23T05:02:26Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-09-23T05:02:26Z",
+                "completed_at": "2026-09-23T05:02:45Z"
+              },
+              {
+                "name": "Trust checked-out workspace",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-09-23T05:02:45Z",
+                "completed_at": "2026-09-23T05:02:45Z"
+              },
+              {
+                "name": "Install build deps",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9,
+                "started_at": "2026-09-23T05:02:45Z",
+                "completed_at": "2026-09-23T05:02:59Z"
+              },
+              {
+                "name": "Install DTK",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10,
+                "started_at": "2026-09-23T05:02:59Z",
+                "completed_at": "2026-09-23T05:06:07Z"
+              },
+              {
+                "name": "Check changed paths",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 11,
+                "started_at": "2026-09-23T05:06:07Z",
+                "completed_at": "2026-09-23T05:06:09Z"
+              },
+              {
+                "name": "Build sgl-kernel (HIP)",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 12,
+                "started_at": "2026-09-23T05:06:09Z",
+                "completed_at": "2026-09-23T05:07:37Z"
+              },
+              {
+                "name": "Build sglang python package",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 13,
+                "started_at": "2026-09-23T05:07:37Z",
+                "completed_at": "2026-09-23T05:12:58Z"
+              },
+              {
+                "name": "Build sgl-model-gateway",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 14,
+                "started_at": "2026-09-23T05:12:58Z",
+                "completed_at": "2026-09-23T05:12:58Z"
+              },
+              {
+                "name": "Apply DAS local version to wheels",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15,
+                "started_at": "2026-09-23T05:12:58Z",
+                "completed_at": "2026-09-23T05:13:03Z"
+              },
+              {
+                "name": "Report staged PR wheels",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 16,
+                "started_at": "2026-09-23T05:13:03Z",
+                "completed_at": "2026-09-23T05:13:03Z"
+              },
+              {
+                "name": "Normalize workspace ownership",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 17,
+                "started_at": "2026-09-23T05:13:03Z",
+                "completed_at": "2026-09-23T05:13:04Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 33,
+                "started_at": "2026-09-23T05:13:04Z",
+                "completed_at": "2026-09-23T05:13:04Z"
+              },
+              {
+                "name": "Stop containers",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 34,
+                "started_at": "2026-09-23T05:13:04Z",
+                "completed_at": "2026-09-23T05:13:07Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 35,
+                "started_at": "2026-09-23T05:13:07Z",
+                "completed_at": "2026-09-23T05:13:07Z"
+              }
+            ]
+          }
+        ],
+        "detail_status": "available"
+      },
+      {
+        "id": 35820749310,
+        "name": "PR States",
+        "event": "pull_request_target",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/pr-states.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749310",
+        "created_at": "2026-09-23T05:02:12Z",
+        "relation": "pr_head",
+        "jobs": [
+          {
+            "id": 107051856493,
+            "name": "update-pr-body",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749310/job/107051856493",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:02:33Z",
+                "completed_at": "2026-09-23T05:02:36Z"
+              },
+              {
+                "name": "Update CI states block in PR body",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:02:36Z",
+                "completed_at": "2026-09-23T05:02:39Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:02:39Z",
+                "completed_at": "2026-09-23T05:02:40Z"
+              }
+            ]
+          }
+        ],
+        "detail_status": "available"
+      },
+      {
+        "id": 35820749297,
+        "name": "Auto Label PRs",
+        "event": "pull_request_target",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/labeler.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749297",
+        "created_at": "2026-09-23T05:02:12Z",
+        "relation": "pr_head",
+        "jobs": [
+          {
+            "id": 107051856065,
+            "name": "label",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749297/job/107051856065",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:04:10Z",
+                "completed_at": "2026-09-23T05:04:14Z"
+              },
+              {
+                "name": "Auto-label by file changes",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:04:14Z",
+                "completed_at": "2026-09-23T05:04:15Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:04:15Z",
+                "completed_at": "2026-09-23T05:04:16Z"
+              }
+            ]
+          }
+        ],
+        "detail_status": "available"
+      },
+      {
+        "id": 35820749286,
+        "name": "PR Test (HCU)",
+        "event": "pull_request_target",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/pr-test-hcu.yml",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "run_attempt": 1,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286",
+        "created_at": "2026-09-23T05:02:12Z",
+        "relation": "pr_head",
+        "jobs": [
+          {
+            "id": 107051856449,
+            "name": "Check changes",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107051856449",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:03:14Z",
+                "completed_at": "2026-09-23T05:03:15Z"
+              },
+              {
+                "name": "Checkout code",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-09-23T05:03:15Z",
+                "completed_at": "2026-09-23T05:03:29Z"
+              },
+              {
+                "name": "Determine run mode",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:03:29Z",
+                "completed_at": "2026-09-23T05:03:29Z"
+              },
+              {
+                "name": "Detect HCU-relevant changes",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-09-23T05:03:29Z",
+                "completed_at": "2026-09-23T05:03:30Z"
+              },
+              {
+                "name": "Select HCU stages",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-09-23T05:03:30Z",
+                "completed_at": "2026-09-23T05:03:30Z"
+              },
+              {
+                "name": "Classify HCU wheel sync mode",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-09-23T05:03:30Z",
+                "completed_at": "2026-09-23T05:03:31Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-09-23T05:03:31Z",
+                "completed_at": "2026-09-23T05:03:31Z"
+              }
+            ]
+          },
+          {
+            "id": 107052206763,
+            "name": "Call PR gate",
+            "status": "completed",
+            "conclusion": "cancelled",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052206763",
+            "steps": []
+          },
+          {
+            "id": 107052325443,
+            "name": "Validate HCU config",
+            "status": "completed",
+            "conclusion": "cancelled",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052325443",
+            "steps": []
+          },
+          {
+            "id": 107052326233,
+            "name": "PR Test (HCU) finish",
+            "status": "completed",
+            "conclusion": "failure",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052326233",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-09-23T05:05:51Z",
+                "completed_at": "2026-09-23T05:05:51Z"
+              },
+              {
+                "name": "Check all dependent job statuses",
+                "status": "completed",
+                "conclusion": "failure",
+                "number": 2,
+                "started_at": "2026-09-23T05:05:51Z",
+                "completed_at": "2026-09-23T05:05:51Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-09-23T05:05:51Z",
+                "completed_at": "2026-09-23T05:05:52Z"
+              }
+            ]
+          },
+          {
+            "id": 107052326426,
+            "name": "Wait HCU wheels",
+            "status": "completed",
+            "conclusion": "cancelled",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052326426",
+            "steps": []
+          },
+          {
+            "id": 107052326505,
+            "name": "Stage A HCU smoke",
+            "status": "completed",
+            "conclusion": "cancelled",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052326505",
+            "steps": []
+          },
+          {
+            "id": 107052327346,
+            "name": "Stage B HCU required (${{ matrix.name }})",
+            "status": "completed",
+            "conclusion": "cancelled",
+            "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052327346",
+            "steps": []
+          }
+        ],
+        "detail_status": "available"
+      },
+      {
+        "id": 35856335112,
+        "name": "Release HCU Nightly Wheels",
+        "event": "push",
+        "head_sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+        "head_branch": "release/20260825_v0.5.18",
+        "path": ".github/workflows/release-pypi-nightly-hcu.yml",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "html_url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35856335112",
+        "created_at": "2026-09-23T11:44:55Z",
+        "relation": "merge_candidate",
+        "jobs": [],
+        "detail_status": "deferred_budget"
+      }
+    ],
+    "checks": [
+      {
+        "id": 107165577303,
+        "name": "cancel",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35856335333/job/107165577303",
+        "app_id": 15368,
+        "started_at": "2026-09-23T11:44:58Z",
+        "completed_at": "2026-09-23T11:45:04Z"
+      },
+      {
+        "id": 107095640960,
+        "name": "PR Test (HCU) finish",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107095640960",
+        "app_id": 15368,
+        "started_at": "2026-09-23T08:01:46Z",
+        "completed_at": "2026-09-23T08:02:22Z"
+      },
+      {
+        "id": 107080423596,
+        "name": "Stage B HCU required (stage-b-required-1)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080423596",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:31:56Z",
+        "completed_at": "2026-09-23T05:50:17Z"
+      },
+      {
+        "id": 107080422995,
+        "name": "Stage B HCU required (stage-b-required-0)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422995",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:22:18Z",
+        "completed_at": "2026-09-23T05:31:53Z"
+      },
+      {
+        "id": 107080422930,
+        "name": "Stage A HCU smoke",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422930",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:13:43Z",
+        "completed_at": "2026-09-23T05:22:13Z"
+      },
+      {
+        "id": 107080422438,
+        "name": "Wait HCU wheels",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422438",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:08:50Z",
+        "completed_at": "2026-09-23T05:13:38Z"
+      },
+      {
+        "id": 107080422433,
+        "name": "Stage B HCU required (stage-b-required-3)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422433",
+        "app_id": 15368,
+        "started_at": "2026-09-23T07:34:18Z",
+        "completed_at": "2026-09-23T08:01:41Z"
+      },
+      {
+        "id": 107080422410,
+        "name": "Stage B HCU required (stage-b-required-2)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422410",
+        "app_id": 15368,
+        "started_at": "2026-09-23T07:07:38Z",
+        "completed_at": "2026-09-23T07:34:12Z"
+      },
+      {
+        "id": 107080421199,
+        "name": "Validate HCU config",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080421199",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:07:57Z",
+        "completed_at": "2026-09-23T05:08:46Z"
+      },
+      {
+        "id": 107080420755,
+        "name": "Call PR gate",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080420755",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:07:14Z",
+        "completed_at": "2026-09-23T05:07:54Z"
+      },
+      {
+        "id": 107080419782,
+        "name": "Check changes",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080419782",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:06:19Z",
+        "completed_at": "2026-09-23T05:07:11Z"
+      },
+      {
+        "id": 107070669074,
+        "name": "PR Test (HCU) finish",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107070669074",
+        "app_id": 15368,
+        "started_at": "2026-09-23T06:29:04Z",
+        "completed_at": "2026-09-23T06:29:42Z"
+      },
+      {
+        "id": 107056012727,
+        "name": "Stage B HCU required (stage-b-required-1)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107056012727",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:31:56Z",
+        "completed_at": "2026-09-23T05:50:17Z"
+      },
+      {
+        "id": 107056012726,
+        "name": "Stage B HCU required (stage-b-required-2)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107056012726",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:50:21Z",
+        "completed_at": "2026-09-23T06:24:28Z"
+      },
+      {
+        "id": 107056012362,
+        "name": "Stage B HCU required (stage-b-required-0)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107056012362",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:22:18Z",
+        "completed_at": "2026-09-23T05:31:53Z"
+      },
+      {
+        "id": 107056012219,
+        "name": "Stage B HCU required (stage-b-required-3)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107056012219",
+        "app_id": 15368,
+        "started_at": "2026-09-23T06:26:04Z",
+        "completed_at": "2026-09-23T06:28:59Z"
+      },
+      {
+        "id": 107054242661,
+        "name": "Stage A HCU smoke",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107054242661",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:13:43Z",
+        "completed_at": "2026-09-23T05:22:13Z"
+      },
+      {
+        "id": 107053218792,
+        "name": "Wait HCU wheels",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107053218792",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:08:50Z",
+        "completed_at": "2026-09-23T05:13:38Z"
+      },
+      {
+        "id": 107053034928,
+        "name": "Validate HCU config",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107053034928",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:07:57Z",
+        "completed_at": "2026-09-23T05:08:46Z"
+      },
+      {
+        "id": 107052885391,
+        "name": "Call PR gate",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107052885391",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:07:14Z",
+        "completed_at": "2026-09-23T05:07:54Z"
+      },
+      {
+        "id": 107052696011,
+        "name": "Check changes",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107052696011",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:06:19Z",
+        "completed_at": "2026-09-23T05:07:11Z"
+      },
+      {
+        "id": 107052327346,
+        "name": "Stage B HCU required (${{ matrix.name }})",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052327346",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:04:30Z",
+        "completed_at": "2026-09-23T05:04:30Z"
+      },
+      {
+        "id": 107052326505,
+        "name": "Stage A HCU smoke",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052326505",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:04:30Z",
+        "completed_at": "2026-09-23T05:04:30Z"
+      },
+      {
+        "id": 107052326426,
+        "name": "Wait HCU wheels",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052326426",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:04:30Z",
+        "completed_at": "2026-09-23T05:04:30Z"
+      },
+      {
+        "id": 107052326233,
+        "name": "PR Test (HCU) finish",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052326233",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:05:41Z",
+        "completed_at": "2026-09-23T05:06:15Z"
+      },
+      {
+        "id": 107052325443,
+        "name": "Validate HCU config",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052325443",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:04:30Z",
+        "completed_at": "2026-09-23T05:04:30Z"
+      },
+      {
+        "id": 107052322620,
+        "name": "update-pr-body",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820902718/job/107052322620",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:04:41Z",
+        "completed_at": "2026-09-23T05:05:38Z"
+      },
+      {
+        "id": 107052206763,
+        "name": "Call PR gate",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107052206763",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:03:56Z",
+        "completed_at": "2026-09-23T05:04:29Z"
+      },
+      {
+        "id": 107052175315,
+        "name": "Checks / All required checks",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411/job/107052175315",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:03:49Z",
+        "completed_at": "2026-09-23T05:03:59Z"
+      },
+      {
+        "id": 107051862466,
+        "name": "Checks / Code security",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411/job/107051862466",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:02:43Z",
+        "completed_at": "2026-09-23T05:03:47Z"
+      },
+      {
+        "id": 107051862385,
+        "name": "Checks / Code quality",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411/job/107051862385",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:02:18Z",
+        "completed_at": "2026-09-23T05:02:45Z"
+      },
+      {
+        "id": 107051862231,
+        "name": "Checks / Code compliance",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820751411/job/107051862231",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:02:18Z",
+        "completed_at": "2026-09-23T05:02:40Z"
+      },
+      {
+        "id": 107051856493,
+        "name": "update-pr-body",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749310/job/107051856493",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:02:23Z",
+        "completed_at": "2026-09-23T05:03:01Z"
+      },
+      {
+        "id": 107051856449,
+        "name": "Check changes",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749286/job/107051856449",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:03:05Z",
+        "completed_at": "2026-09-23T05:03:56Z"
+      },
+      {
+        "id": 107051856423,
+        "name": "compile (3.10)",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749322/job/107051856423",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:02:16Z",
+        "completed_at": "2026-09-23T05:13:22Z"
+      },
+      {
+        "id": 107051856065,
+        "name": "label",
+        "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/HYGON-AI/sglang-das/actions/runs/35820749297/job/107051856065",
+        "app_id": 15368,
+        "started_at": "2026-09-23T05:04:00Z",
+        "completed_at": "2026-09-23T05:04:38Z"
+      }
+    ],
+    "statuses": [],
+    "files": [
+      {
+        "filename": "python/sglang/srt/environ.py",
+        "previous_filename": null,
+        "status": "modified",
+        "additions": 2,
+        "deletions": 0,
+        "patch": "@@ -1393,6 +1393,8 @@ class Envs:\n     # Enabling this also requires the native LightOp INT8 Paged MQA consumer;\n     # there is intentionally no BF16 dequantization fallback.\n     SGLANG_DSV4_HCU_INT8_INDEX_K_CACHE = EnvBool(False)\n+    # Opt in to the persistent INT8 Paged MQA producer on HCU gfx936.\n+    SGLANG_MQA_PERSISTENT = EnvBool(False)\n     # Fuse C4 indexer Q RoPE, Hadamard, and INT8 quantization into one kernel.\n     # This is independent from the INT8 K-cache switch but requires it at runtime.\n     SGLANG_NSA_INDEX_Q_INT8 = EnvBool(False)"
+      },
+      {
+        "filename": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+        "previous_filename": null,
+        "status": "added",
+        "additions": 480,
+        "deletions": 0,
+        "patch": "@@ -0,0 +1,480 @@\n+// paged_mqa_pers_jit.cu -- persistent INT8 paged-MQA (JIT build, ref: topk512_jit).\n+//\n+// Persistent rewrite of lightop's paged_mqa_logits_int8: a prologue kernel\n+// compacts the real chunks into a device task list and a fixed grid of CTAs\n+// iterates it, instead of launching (max_c4_seq_len/256) x B CTAs whose\n+// invalid majority only writes -INFINITY. The mmac compute body is unchanged.\n+//\n+// Invariants (do not simplify away):\n+//  * all warps must traverse the same barrier sequence: tail warps beyond the\n+//    sequence keep computing (kv_block_idx=-1 => scale 0 => sums 0) instead of\n+//    returning early;\n+//  * dynamic smem must stay exactly 16KB (the Q region is reused as KV staging\n+//    and again as the writeback buffer; growing it drops occupancy);\n+//  * the padding region of the logits row is left unwritten:\n+//    topk_transform_512 scans only [0, seq_len) per row.\n+\n+#include <hip/hip_runtime.h>\n+#include <algorithm>\n+#include <cstdint>\n+\n+constexpr int kNextN = 1;\n+constexpr int kNumHeads = 64;\n+constexpr int kHeadDim = 128;\n+constexpr int BLOCK_KV = 64;\n+constexpr int kNumWarps = 4;\n+constexpr int kTokensPerWarp = 64;\n+constexpr int kBatchSplit = BLOCK_KV * kNumWarps;\n+\n+using int8x8_t = __attribute__((__vector_size__(8 * sizeof(int8_t)))) int8_t;\n+using int32x4_t = __attribute__((__vector_size__(4 * sizeof(int32_t)))) int32_t;\n+using v4i = int32x4_t;\n+union i8x16_t { int8x8_t data; struct { int8x8_t front; int8x8_t rear; }; };\n+#define WARP_SIZE_GPU 64\n+__host__ __device__ __forceinline__ constexpr int constexpr_ceil_div(int a, int b) { return (a + b - 1) / b; }\n+__host__ __device__ __forceinline__ constexpr int ceil_div(int a, int b) { return (a + b - 1) / b; }\n+\n+__device__ __forceinline__ void builtin_i8_mmac(const int8x8_t& a, const int8x8_t& b, int32x4_t& c) {\n+#if defined(__gfx936__) || defined(__gfx928__)\n+    const auto* pa = reinterpret_cast<const long*>(&a);\n+    const auto* pb = reinterpret_cast<const long*>(&b);\n+    c = __builtin_amdgcn_mmac_i32_16x16x32i8(*pa, *pb, c);\n+#endif\n+}\n+\n+__device__ __forceinline__ void buffer_load_lds_x4(v4i* desc, uint8_t* smem_ptr, int offset) {\n+#if defined(__gfx936__) || defined(__gfx938__)\n+    __builtin_amdgcn_raw_buffer_load_lds(*desc,\n+        *(__attribute__((address_space(3))) int**)&smem_ptr, 16, offset, 0, 0, 0);\n+#endif\n+}\n+\n+// Wait for the per-wave buffer load; a CTA barrier would desynchronize tail warps.\n+__device__ __forceinline__ void WAIT_VMCNT_LDS(int X) {\n+    __builtin_amdgcn_sched_barrier(0);\n+    asm volatile(\"s_waitcnt vmcnt(%0)\\n\\t\" :: \"I\"(X) :);\n+    __builtin_amdgcn_sched_barrier(0);\n+}\n+\n+// Dead branch stub: kNumHeads=64 is not smaller than Q_TILE=16.\n+template <int NH, int QT, typename T>\n+__device__ __forceinline__ T load_padded_q_operand(uint8_t* smem, int offset, int row) { return T{}; }\n+template <int NH, int QT>\n+__device__ __forceinline__ float load_padded_weight(float* smem, int idx) { return 0.f; }\n+__attribute__((amdgpu_flat_work_group_size(1, 512))) __global__ void\n+mqa_pers_kernel(const signed char* q, const signed char* kv_block, const float* kv_block_scales, const float* weights,\n+                      const int batch_size, const int total_chunks_pers, const int64_t kv_cache_stride_bytes, const int64_t logits_stride,\n+                      const int64_t block_table_stride, const int* context_lens, float* logits, const int* block_table,\n+                      const int* task_list, const int* num_real_ptr) {\n+    const int& warp_idx = threadIdx.x / 64;\n+    const int& lane_idx = threadIdx.x % 64;\n+    const int& t_id = threadIdx.x;\n+\n+    static constexpr uint32_t kSwizzleAlignment = kHeadDim * 8;\n+\n+    static constexpr int K_TILE = 64;\n+    static constexpr int Q_TILE = 16;\n+    static constexpr int KV_TILE = 16;\n+    static constexpr int Q_ITER = constexpr_ceil_div(kNumHeads, Q_TILE);\n+    static constexpr int KV_ITER = kTokensPerWarp / KV_TILE;\n+    static constexpr int PAGES_PER_WARP = kTokensPerWarp / BLOCK_KV;\n+    static constexpr int Stages = kHeadDim / K_TILE;\n+    static_assert(true, \"Invalid INT8 element type\");\n+    static_assert(kBatchSplit == BLOCK_KV * kNumWarps, \"Invalid INT8 batch split\");\n+    static_assert(BLOCK_KV == 16 || BLOCK_KV == 32 || BLOCK_KV == 64, \"Invalid BLOCK_KV\");\n+    static_assert(kTokensPerWarp % BLOCK_KV == 0 && kTokensPerWarp <= WARP_SIZE_GPU, \"Invalid tokens per warp\");\n+\n+    extern __shared__ __align__(kSwizzleAlignment) uint8_t smem_buffer[];\n+\n+    auto* smem_kv_block = reinterpret_cast<uint8_t*>(smem_buffer);\n+\n+    const int next_n = 0;\n+    const int num_real = *num_real_ptr;  // One global read per CTA\n+    for (int ti = blockIdx.x; ti < num_real; ti += gridDim.x) {\n+    const int task_id = task_list[ti];\n+\n+    int q_idx = task_id / total_chunks_pers;\n+    int start_kv_idx = (task_id - q_idx * total_chunks_pers) * kNumWarps * PAGES_PER_WARP;\n+    int kv_idx = start_kv_idx + warp_idx * PAGES_PER_WARP;\n+    int context_len = context_lens[q_idx];\n+\n+    // Calculate logits KV block offset in advance\n+    auto base_logits_offset = q_idx * kNextN * logits_stride + next_n * logits_stride;\n+    auto base_seq_kv_offset = kv_idx * BLOCK_KV;\n+    int num_kv = ceil_div(context_len, BLOCK_KV);\n+\n+    if (context_len <= 0) {\n+        for (int offset = t_id; offset < logits_stride; offset += blockDim.x) {\n+            logits[base_logits_offset + offset] = -INFINITY;\n+        }\n+        __syncthreads();\n+        continue;\n+    }\n+\n+    // Non-empty rows have start_kv_idx < num_kv; empty rows use one task\n+    // only to initialize their output.\n+\n+    // fetch Q && Q weights\n+    auto gQ = q + q_idx * kNextN * kNumHeads * kHeadDim + next_n * kNumHeads * kHeadDim;\n+    constexpr int kAlignmentQ = 16 / sizeof(uint8_t);\n+    constexpr int fetch_q_cnt = constexpr_ceil_div(kNumHeads * kHeadDim, kNumWarps * WARP_SIZE_GPU * kAlignmentQ);\n+    constexpr int fetch_q_stride = kAlignmentQ * kNumWarps * WARP_SIZE_GPU;\n+\n+#pragma unroll\n+    for (int i = 0; i < fetch_q_cnt; ++i) {\n+        auto pos = t_id * kAlignmentQ + i * fetch_q_stride;\n+        if (pos + kAlignmentQ <= kNumHeads * kHeadDim) {\n+            *reinterpret_cast<i8x16_t*>(&smem_kv_block[pos]) = *reinterpret_cast<const i8x16_t*>(&gQ[pos]);\n+        }\n+    }\n+\n+    auto gW = weights + q_idx * kNextN * kNumHeads + next_n * kNumHeads;\n+    auto smem_weight = reinterpret_cast<float*>(smem_kv_block + kNumHeads * kHeadDim);\n+    if (warp_idx == 0 && lane_idx < kNumHeads) {\n+        smem_weight[lane_idx] = gW[lane_idx];\n+    }\n+\n+    // fetch kv block idx\n+    int kv_block_idx[PAGES_PER_WARP];\n+    uint64_t block_table_offset = q_idx * block_table_stride + kv_idx;\n+#pragma unroll\n+    for (int i = 0; i < PAGES_PER_WARP; ++i) {\n+        kv_block_idx[i] = kv_idx + i < num_kv ? block_table[block_table_offset + i] : -1;\n+    }\n+\n+    // fetch kv block scales\n+    const int kv_scale_stride = kv_cache_stride_bytes / sizeof(float);\n+    auto* smem_kv_scales = reinterpret_cast<float*>(smem_kv_block + kNumHeads * kHeadDim + kNumHeads * sizeof(float));\n+    if (lane_idx < kTokensPerWarp) {\n+        const int lane_page_delta = lane_idx / BLOCK_KV;\n+        const int lane_row_in_page = lane_idx % BLOCK_KV;\n+        const int lane_block_idx = kv_block_idx[lane_page_delta];\n+        if (lane_block_idx != -1) {\n+            auto gKv_scales = kv_block_scales + lane_block_idx * kv_scale_stride;\n+            smem_kv_scales[warp_idx * kTokensPerWarp + lane_idx] = gKv_scales[lane_row_in_page];\n+        } else {\n+            smem_kv_scales[warp_idx * kTokensPerWarp + lane_idx] = 0.0f;\n+        }\n+    }\n+\n+    constexpr int heads_cnt = Q_ITER;\n+    constexpr int K_BLOCK_MAX = kHeadDim / K_TILE;\n+    i8x16_t reg_q_operand[heads_cnt][K_BLOCK_MAX];\n+\n+    __syncthreads();\n+    // pre-fetch Q from smem\n+    auto base_fetch_lds_Q = lane_idx % 16 * kHeadDim + lane_idx / 16 * 16;\n+#pragma unroll\n+    for (int i = 0; i < heads_cnt; ++i) {\n+#pragma unroll\n+        for (int j = 0; j < K_BLOCK_MAX; ++j) {\n+            auto offset = base_fetch_lds_Q + i * Q_TILE * kHeadDim + j * K_TILE;\n+            if constexpr (kNumHeads < Q_TILE) {\n+                reg_q_operand[i][j] = load_padded_q_operand<kNumHeads, Q_TILE, i8x16_t>(\n+                    smem_kv_block, offset, i * Q_TILE + lane_idx % Q_TILE);\n+            } else {\n+                reg_q_operand[i][j] = *reinterpret_cast<i8x16_t*>(&smem_kv_block[offset]);\n+            }\n+        }\n+    }\n+\n+    // pre-fetch weights\n+    float reg_weights[heads_cnt * 4];\n+#pragma unroll\n+    for (int j = 0; j < Q_ITER; ++j) {\n+#pragma unroll\n+        for (int k = 0; k < 4; ++k) {\n+            if constexpr (kNumHeads < Q_TILE) {\n+                reg_weights[j * 4 + k] = load_padded_weight<kNumHeads, Q_TILE>(\n+                    smem_weight, j * Q_TILE + k * 4 + lane_idx / Q_TILE);\n+            } else {\n+                reg_weights[j * 4 + k] = smem_weight[j * 16 + k * 4 + lane_idx / 16];\n+            }\n+        }\n+    }\n+\n+    // pre-fetch kv_scale\n+    float kv_scale[KV_ITER];\n+    const int logits_t_offset = warp_idx * kTokensPerWarp + lane_idx % 16;\n+#pragma unroll\n+    for (int i = 0; i < KV_ITER; ++i) {\n+        kv_scale[i] = smem_kv_scales[logits_t_offset + i * 16];\n+    }\n+\n+    __syncthreads();\n+\n+\n+    // fetch kv block\n+    constexpr int kAlignmentKV = 16 / sizeof(uint8_t);\n+    constexpr int prefetch_kv_stage = KV_ITER >= 2 ? 2 : 1;\n+    constexpr int smem_kv_block_per_warp = prefetch_kv_stage * KV_TILE * kHeadDim;\n+\n+    auto smem_warp_kv_start = smem_kv_block + warp_idx * smem_kv_block_per_warp;\n+\n+#pragma unroll\n+    for (int i = 0; i < prefetch_kv_stage; ++i) {\n+        const int page_delta = i * KV_TILE / BLOCK_KV;\n+        const int row_in_page = i * KV_TILE % BLOCK_KV;\n+        const int current_block_idx = kv_block_idx[page_delta];\n+        auto gKv =\n+            current_block_idx != -1 ? kv_block + (int64_t)current_block_idx * BLOCK_KV * (kHeadDim + 4) : kv_block;\n+        long glob_kv_desc[2];\n+        glob_kv_desc[0] = *reinterpret_cast<const long*>(&gKv);\n+        glob_kv_desc[1] = (long)0x20000 << 32 | 0xFFFFFFFE;\n+        auto* src = reinterpret_cast<v4i*>(glob_kv_desc);\n+        auto glob_stage_offset = row_in_page * kHeadDim;\n+        auto smem_per_stage = smem_warp_kv_start + i * KV_TILE * kHeadDim;\n+#pragma unroll\n+        for (int j = 0; j < Stages; ++j) {\n+            auto smem_ptr = smem_per_stage + j * KV_TILE * K_TILE;\n+            auto inner_warp_offset = current_block_idx != -1 ? glob_stage_offset + lane_idx % 4 * kAlignmentKV +\n+                                                                   lane_idx / 4 * kHeadDim + j * K_TILE\n+                                                             : -1;\n+            buffer_load_lds_x4(src, smem_ptr, inner_warp_offset);\n+        }\n+    }\n+\n+    // pre-fetch KV from smem\n+    i8x16_t reg_kv_operand;\n+\n+    auto base_fetch_lds_KV = lane_idx % 16 * K_TILE + lane_idx / 16 * 16;\n+\n+    int32x4_t acc[Q_ITER][KV_ITER];\n+#pragma unroll\n+    for (int q_iter = 0; q_iter < Q_ITER; ++q_iter) {\n+#pragma unroll\n+        for (int kv_iter = 0; kv_iter < KV_ITER; ++kv_iter) {\n+            acc[q_iter][kv_iter] = {0, 0, 0, 0};\n+        }\n+    }\n+    float sum_result[KV_ITER] = {0.f};\n+    constexpr int num_issue_kv_prefetch = Stages * prefetch_kv_stage;\n+\n+#pragma unroll\n+    for (uint32_t kv_iter = 0; kv_iter < KV_ITER - prefetch_kv_stage; ++kv_iter) {\n+        const uint32_t load_kv_iter = kv_iter + prefetch_kv_stage;\n+        const int page_delta = load_kv_iter * KV_TILE / BLOCK_KV;\n+        const int row_in_page = load_kv_iter * KV_TILE % BLOCK_KV;\n+        const int current_block_idx = kv_block_idx[page_delta];\n+        auto gKv =\n+            current_block_idx != -1 ? kv_block + (int64_t)current_block_idx * BLOCK_KV * (kHeadDim + 4) : kv_block;\n+        long glob_kv_desc[2];\n+        glob_kv_desc[0] = *reinterpret_cast<const long*>(&gKv);\n+        glob_kv_desc[1] = (long)0x20000 << 32 | 0xFFFFFFFE;\n+        auto* src = reinterpret_cast<v4i*>(glob_kv_desc);\n+        auto glob_stage_offset = row_in_page * kHeadDim;\n+        auto smem_per_stage = smem_warp_kv_start + kv_iter % prefetch_kv_stage * KV_TILE * kHeadDim;\n+#pragma unroll\n+        for (uint32_t k_block = 0; k_block < K_BLOCK_MAX; ++k_block) {\n+            auto fetch_lds_kv = base_fetch_lds_KV + k_block * K_TILE * KV_TILE;\n+            WAIT_VMCNT_LDS(num_issue_kv_prefetch - 1);\n+\n+            int lds_addr = reinterpret_cast<size_t>(smem_per_stage + fetch_lds_kv);\n+            __builtin_amdgcn_sched_barrier(0);\n+            asm volatile(\"\\n ds_read_b128 %0 ,%1\\n\\t\"\n+                         \"s_waitcnt lgkmcnt(0) \\n\\t\"\n+                         : \"=v\"(reg_kv_operand)\n+                         : \"v\"(lds_addr)\n+                         :);\n+            __builtin_amdgcn_sched_barrier(0);\n+\n+            auto smem_ptr = smem_per_stage + k_block * KV_TILE * K_TILE;\n+            int inner_warp_offset = current_block_idx != -1 ? glob_stage_offset + lane_idx % 4 * kAlignmentKV +\n+                                                                  lane_idx / 4 * kHeadDim + k_block * K_TILE\n+                                                            : -1;\n+            buffer_load_lds_x4(src, smem_ptr, inner_warp_offset);\n+\n+#pragma unroll\n+            for (int i = 0; i < Q_ITER; ++i) {\n+                builtin_i8_mmac(reg_kv_operand.front, reg_q_operand[i][k_block].front, acc[i][kv_iter]);\n+                builtin_i8_mmac(reg_kv_operand.rear, reg_q_operand[i][k_block].rear, acc[i][kv_iter]);\n+            }\n+\n+            if (k_block == K_BLOCK_MAX - 1) {\n+                const auto& transform = [&](const uint32_t& j, const uint32_t& k, const int32_t& value) {\n+                    return fmaxf(static_cast<float>(value), 0.0f) * reg_weights[j * 4 + k];\n+                };\n+\n+                auto& sum = sum_result[kv_iter];\n+                // Intra-thread reduction\n+                for (int j = 0; j < Q_ITER; ++j) {\n+                    for (int k = 0; k < 4; ++k) {\n+                        sum += transform(j, k, acc[j][kv_iter][k]);\n+                    }\n+                }\n+\n+                sum *= kv_scale[kv_iter];\n+\n+// Inter-thread reduction\n+#pragma unroll\n+                for (uint32_t shfl_idx = 16, j = 0; j < 2; ++j, shfl_idx = shfl_idx << 1) {\n+                    sum += __shfl_down(sum, shfl_idx);\n+                }\n+            }\n+        }\n+    }\n+\n+#pragma unroll\n+    for (uint32_t kv_iter = KV_ITER - prefetch_kv_stage; kv_iter < KV_ITER; ++kv_iter) {\n+        auto smem_per_stage = smem_warp_kv_start + kv_iter % prefetch_kv_stage * KV_TILE * kHeadDim;\n+#pragma unroll\n+        for (uint32_t k_block = 0; k_block < Stages; ++k_block) {\n+            auto fetch_lds_kv = base_fetch_lds_KV + k_block * K_TILE * KV_TILE;\n+            WAIT_VMCNT_LDS(num_issue_kv_prefetch - (kv_iter - (KV_ITER - prefetch_kv_stage)) * Stages - k_block - 1);\n+\n+            int lds_addr = reinterpret_cast<size_t>(smem_per_stage + fetch_lds_kv);\n+            __builtin_amdgcn_sched_barrier(0);\n+            asm volatile(\"\\n ds_read_b128 %0 ,%1\\n\\t\"\n+                         \"s_waitcnt lgkmcnt(0) \\n\\t\"\n+                         : \"=v\"(reg_kv_operand)\n+                         : \"v\"(lds_addr)\n+                         :);\n+            __builtin_amdgcn_sched_barrier(0);\n+\n+#pragma unroll\n+            for (int i = 0; i < Q_ITER; ++i) {\n+                builtin_i8_mmac(reg_kv_operand.front, reg_q_operand[i][k_block].front, acc[i][kv_iter]);\n+                builtin_i8_mmac(reg_kv_operand.rear, reg_q_operand[i][k_block].rear, acc[i][kv_iter]);\n+            }\n+\n+            if (k_block == K_BLOCK_MAX - 1) {\n+                const auto& transform = [&](const uint32_t& j, const uint32_t& k, const int32_t& value) {\n+                    return fmaxf(static_cast<float>(value), 0.0f) * reg_weights[j * 4 + k];\n+                };\n+\n+                auto& sum = sum_result[kv_iter];\n+                // Intra-thread reduction\n+                for (int j = 0; j < Q_ITER; ++j) {\n+                    for (int k = 0; k < 4; ++k) {\n+                        sum += transform(j, k, acc[j][kv_iter][k]);\n+                    }\n+                }\n+\n+                sum *= kv_scale[kv_iter];\n+\n+// Inter-thread reduction\n+#pragma unroll\n+                for (uint32_t shfl_idx = 16, j = 0; j < 2; ++j, shfl_idx = shfl_idx << 1) {\n+                    sum += __shfl_down(sum, shfl_idx);\n+                }\n+            }\n+        }\n+    }\n+\n+    auto* smem_write_back = reinterpret_cast<float*>(smem_kv_block);\n+    if (lane_idx < 16) {\n+#pragma unroll\n+        for (int i = 0; i < KV_ITER; ++i) {\n+            smem_write_back[warp_idx * kTokensPerWarp + i * KV_TILE + lane_idx % 16] = sum_result[i];\n+        }\n+    }\n+\n+    // LDS ordering: wait for ds_write before ds_read.\n+    asm volatile(\"s_waitcnt lgkmcnt(0)\\n\\t\" ::: \"memory\");\n+    float permuted_result = lane_idx < kTokensPerWarp ? smem_write_back[warp_idx * kTokensPerWarp + lane_idx] : 0.0f;\n+\n+    // Store into the global memory\n+    auto seq_kv_offset = base_seq_kv_offset + lane_idx;\n+    if (lane_idx < kTokensPerWarp && kv_idx < num_kv && seq_kv_offset < context_len - (kNextN - next_n) + 1) {\n+        logits[base_logits_offset + seq_kv_offset] = permuted_result;\n+    } else if (lane_idx < kTokensPerWarp && seq_kv_offset < logits_stride) {\n+        logits[base_logits_offset + seq_kv_offset] = -INFINITY;\n+    }\n+\n+    __syncthreads();  // Reuse the writeback region for the next task.\n+    } // persistent task loop\n+}\n+\n+// ===== host wrapper =====\n+#include <torch/extension.h>\n+#include <ATen/hip/HIPContext.h>\n+\n+extern \"C\" int mqa_pers_check(void) { return 42; }\n+\n+// Prologue: one CTA compacts real chunks into a task list and writes num_real.\n+__global__ void mqa_compact_kernel(const int* context_lens, int B, int chunks_per_q,\n+                                   int* task_list, int* num_real_out) {\n+    extern __shared__ int prefix[];  // B+1 ints\n+    const int t = threadIdx.x;\n+    if (t == 0) prefix[0] = 0;\n+    for (int qq = t; qq < B; qq += blockDim.x) {\n+        const int len = context_lens[qq];\n+        const int pages = (len + 63) >> 6;\n+        // Keep one task for an empty row so its output is initialized to -INF.\n+        prefix[qq + 1] = pages > 0 ? (pages + 3) >> 2 : 1;\n+    }\n+    __syncthreads();\n+    if (t == 0) {\n+        int acc = 0;\n+        for (int qq = 1; qq <= B; ++qq) { acc += prefix[qq]; prefix[qq] = acc; }\n+        *num_real_out = acc;\n+    }\n+    __syncthreads();\n+    for (int qq = t; qq < B; qq += blockDim.x) {\n+        const int base = prefix[qq], cnt = prefix[qq + 1] - base;\n+        for (int i = 0; i < cnt; ++i) task_list[base + i] = qq * chunks_per_q + i;\n+    }\n+}\n+\n+torch::Tensor mqa_pers_host(\n+    torch::Tensor q, torch::Tensor kv_cache, torch::Tensor weights,\n+    torch::Tensor context_lens, torch::Tensor block_table,\n+    int64_t max_context_len, int64_t num_sms, int64_t fill_upto) {\n+\n+    const int B = q.size(0);\n+    const int bkv = kv_cache.size(1);\n+    const int nblk = kv_cache.size(0);\n+    const int64_t kvs = (int64_t)kv_cache.stride(0);\n+    const int aligned = ((int)max_context_len + bkv - 1) / bkv * bkv;\n+\n+    auto kv_vals = torch::from_blob(kv_cache.data_ptr(),\n+        {(int64_t)nblk, (int64_t)bkv, (int64_t)128}, {(int64_t)kvs, 128, 1},\n+        torch::TensorOptions().dtype(torch::kInt8));\n+    auto kv_sc = torch::from_blob(\n+        reinterpret_cast<uint8_t*>(kv_cache.data_ptr()) + (int64_t)bkv * 128,\n+        {(int64_t)nblk, (int64_t)bkv}, {(int64_t)(kvs / 4), 1},\n+        torch::TensorOptions().dtype(torch::kFloat32));\n+\n+    // Optional prefix fill; zero means no fill because TopK bounds its reads.\n+    auto logits = torch::empty({B, (int64_t)aligned},\n+        torch::TensorOptions().dtype(torch::kFloat32).device(q.device()));\n+    if (fill_upto > 0) {\n+        logits.narrow(1, 0, (int64_t)fill_upto).fill_(-INFINITY);\n+    }\n+    if (B == 0 || max_context_len <= 0) {\n+        return logits;\n+    }\n+\n+    const int chunks = ((int)max_context_len + 255) / 256;\n+    const int total = B * chunks;\n+    dim3 grid((unsigned)std::min(num_sms, (int64_t)total), 1, 1);\n+    dim3 block(256, 1, 1);\n+    const int smem = 4 * 2 * 16 * 128;  // Reuse staging and writeback to keep 4 CTAs/CU.\n+    auto stream = at::hip::getCurrentHIPStream();\n+\n+    // Launch the prologue and main kernel in order on the same stream.\n+    auto task_list = torch::empty({(int64_t)total},\n+        torch::TensorOptions().dtype(torch::kInt32).device(q.device()));\n+    auto num_real = torch::empty({1},\n+        torch::TensorOptions().dtype(torch::kInt32).device(q.device()));\n+    mqa_compact_kernel<<<dim3(1,1,1), dim3(256,1,1), (B + 1) * sizeof(int), stream>>>(\n+        context_lens.data_ptr<int>(), B, chunks,\n+        task_list.data_ptr<int>(), num_real.data_ptr<int>());\n+\n+    mqa_pers_kernel<<<grid, block, smem, stream>>>(\n+        (const signed char*)q.data_ptr(),\n+        (const signed char*)kv_vals.data_ptr(),\n+        kv_sc.data_ptr<float>(), weights.data_ptr<float>(),\n+        B, chunks, kvs, (int64_t)aligned,\n+        (int64_t)block_table.stride(0),\n+        context_lens.data_ptr<int>(),\n+        logits.data_ptr<float>(), block_table.data_ptr<int>(),\n+        task_list.data_ptr<int>(), num_real.data_ptr<int>());\n+\n+    return logits;\n+}\n+\n+PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {\n+    m.def(\"persistent\", &mqa_pers_host, \"persistent int8 paged mqa v6\");\n+    m.def(\"check\", &mqa_pers_check, \"sanity check\");\n+}"
+      },
+      {
+        "filename": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+        "previous_filename": null,
+        "status": "modified",
+        "additions": 167,
+        "deletions": 12,
+        "patch": "@@ -77,6 +77,98 @@\n \n _arange_cache = {}\n \n+# Tuned on gfx936. Both producers read rows*actual*132B of index-K, but the\n+# dense LightOp path also writes the full rows*capacity*4B logits buffer while\n+# the persistent path writes only rows*actual*4B. The win therefore tracks the\n+# capacity-to-actual ratio, not the query-row count: measured 1.42x at 6 rows\n+# and 8.69x at 48 rows once the ratio is large, and a regression once capacity\n+# approaches the real length and the prologue launch stops paying for itself.\n+_PERSISTENT_MQA_MIN_CAPACITY_RATIO = 2.0\n+_PERSISTENT_MQA_NUM_SMS = 320\n+\n+\n+def _estimate_max_c4_seq_len(forward_batch: ForwardBatch) -> Optional[int]:\n+    seq_lens_cpu = forward_batch.seq_lens_cpu\n+    if (\n+        seq_lens_cpu is None\n+        or seq_lens_cpu.device.type != \"cpu\"\n+        or seq_lens_cpu.numel() == 0\n+    ):\n+        return None\n+\n+    max_raw_seq_len = int(seq_lens_cpu.max().item())\n+    extension_len = 1\n+    spec_info = forward_batch.spec_info\n+    if spec_info is not None:\n+        ragged_layout = spec_info.ragged_verify_layout\n+        if ragged_layout is not None and ragged_layout.verify_lens_cpu:\n+            extension_len = max(int(length) for length in ragged_layout.verify_lens_cpu)\n+        elif spec_info.num_tokens_per_req > 0:\n+            extension_len = spec_info.num_tokens_per_req\n+\n+    extend_seq_lens_cpu = forward_batch.extend_seq_lens_cpu\n+    if extend_seq_lens_cpu:\n+        extension_len = max(\n+            extension_len, max(int(length) for length in extend_seq_lens_cpu)\n+        )\n+\n+    return (max_raw_seq_len + extension_len + 3) // 4\n+\n+\n+def _can_use_persistent_int8_paged_mqa(\n+    q: torch.Tensor,\n+    kv_cache: torch.Tensor,\n+    weights: torch.Tensor,\n+    seq_lens: torch.Tensor,\n+    block_table: torch.Tensor,\n+    max_seq_len: int,\n+    estimated_max_c4_seq_len: Optional[int],\n+    use_graph_route: bool,\n+) -> bool:\n+    if not envs.SGLANG_MQA_PERSISTENT.get():\n+        return False\n+    if not use_graph_route:\n+        if estimated_max_c4_seq_len is None:\n+            return False\n+        if max_seq_len < _PERSISTENT_MQA_MIN_CAPACITY_RATIO * max(\n+            estimated_max_c4_seq_len, 1\n+        ):\n+            return False\n+\n+    from sglang.srt.layers.attention.dsv4.hcu_int8_index_k_cache import (\n+        is_hcu_gfx936,\n+    )\n+\n+    if not is_hcu_gfx936():\n+        return False\n+    batch_size = q.shape[0]\n+    return (\n+        q.is_cuda\n+        and q.dtype == torch.int8\n+        and q.ndim == 4\n+        and tuple(q.shape[1:]) == (1, 64, 128)\n+        and q.is_contiguous()\n+        and kv_cache.dtype == torch.int8\n+        and kv_cache.ndim == 4\n+        and tuple(kv_cache.shape[1:]) == (64, 1, 132)\n+        and kv_cache.is_contiguous()\n+        and weights.dtype == torch.float32\n+        and tuple(weights.shape) == (batch_size, 64)\n+        and weights.is_contiguous()\n+        and seq_lens.dtype == torch.int32\n+        and tuple(seq_lens.shape) == (batch_size,)\n+        and seq_lens.is_contiguous()\n+        and block_table.dtype == torch.int32\n+        and block_table.ndim == 2\n+        and block_table.shape[0] == batch_size\n+        and block_table.is_contiguous()\n+        and max_seq_len == block_table.shape[1] * 64\n+        and all(\n+            tensor.device == q.device\n+            for tensor in (kv_cache, weights, seq_lens, block_table)\n+        )\n+    )\n+\n \n def fp8_paged_mqa_logits_torch(\n     q_fp8: torch.Tensor,\n@@ -806,6 +898,19 @@ def match_num_queries(tensor: torch.Tensor, value: int) -> torch.Tensor:\n             # Pre-LayerSplit invariant: backend builds indexer page table from\n             # the same source as core_attn_metadata.page_table.\n             assert indexer_metadata.page_table is core_metadata.page_table\n+        persistent_mqa_enabled = envs.SGLANG_MQA_PERSISTENT.get()\n+        graph_mqa_route = (\n+            indexer_metadata.use_prefill_cuda_graph\n+            or is_in_tc_piecewise_cuda_graph()\n+            or is_in_breakable_cuda_graph()\n+            or torch.cuda.is_current_stream_capturing()\n+        )\n+        estimated_max_c4_seq_len = (\n+            _estimate_max_c4_seq_len(forward_batch)\n+            if persistent_mqa_enabled and not graph_mqa_route\n+            else None\n+        )\n+        persistent_mqa_selected = False\n         if nonpaged_plan is not None:\n             assert isinstance(q_indexer, torch.Tensor)\n             logits = self._forward_nonpaged_indexer(\n@@ -847,16 +952,61 @@ def match_num_queries(tensor: torch.Tensor, value: int) -> torch.Tensor:\n                         * q_scales.view(query_rows, -1)\n                     ).contiguous()\n \n-                logits = fn(\n-                    q_int8,\n-                    packed_cache,\n-                    adjusted_weights,\n-                    c4_seq_lens.reshape(-1).to(torch.int32).contiguous(),\n-                    indexer_page_table.to(torch.int32).contiguous(),\n-                    None,\n-                    indexer_metadata.max_c4_seq_len,\n-                    False,\n-                    forward_batch.forward_mode == ForwardMode.EXTEND,\n+                seq_lens_i32 = c4_seq_lens.reshape(-1).to(torch.int32).contiguous()\n+                block_table_i32 = indexer_page_table.to(torch.int32).contiguous()\n+                max_seq_len = indexer_metadata.max_c4_seq_len\n+                persistent_mqa_selected = (\n+                    not use_fp4_indexer\n+                    and not _use_tilelang\n+                    and not _use_aiter\n+                    and _can_use_persistent_int8_paged_mqa(\n+                        q_int8,\n+                        packed_cache,\n+                        adjusted_weights,\n+                        seq_lens_i32,\n+                        block_table_i32,\n+                        max_seq_len,\n+                        estimated_max_c4_seq_len,\n+                        graph_mqa_route,\n+                    )\n+                )\n+                if persistent_mqa_selected:\n+                    if not hasattr(self, \"_dsv4_persistent_mqa_path_logged\"):\n+                        logger.info(\n+                            \"DSV4 INT8 index-K consumer=Persistent JIT INT8 Paged MQA \"\n+                            \"(route=%s, query_rows=%d, capacity_c4=%d, \"\n+                            \"estimated_max_c4_seq_len=%s, num_sms=%d)\",\n+                            \"graph-capture\" if graph_mqa_route else \"eager\",\n+                            query_rows,\n+                            max_seq_len,\n+                            estimated_max_c4_seq_len,\n+                            _PERSISTENT_MQA_NUM_SMS,\n+                        )\n+                        self._dsv4_persistent_mqa_path_logged = True\n+                    from sglang.srt.layers.attention.dsv4.paged_mqa_pers_jit import (\n+                        persistent_int8_paged_mqa_logits,\n+                    )\n+\n+                    logits = persistent_int8_paged_mqa_logits(\n+                        q_int8,\n+                        packed_cache,\n+                        adjusted_weights,\n+                        seq_lens_i32,\n+                        block_table_i32,\n+                        max_seq_len,\n+                        num_sms=_PERSISTENT_MQA_NUM_SMS,\n+                    )\n+                else:\n+                    logits = fn(\n+                        q_int8,\n+                        packed_cache,\n+                        adjusted_weights,\n+                        c4_seq_lens.reshape(-1).to(torch.int32).contiguous(),\n+                        indexer_page_table.to(torch.int32).contiguous(),\n+                        None,\n+                        indexer_metadata.max_c4_seq_len,\n+                        False,\n+                        forward_batch.forward_mode == ForwardMode.EXTEND,\n                 )\n             else:\n                 c4_indexer_kv_cache = (\n@@ -896,10 +1046,15 @@ def match_num_queries(tensor: torch.Tensor, value: int) -> torch.Tensor:\n                     False,\n                 )\n \n-            if use_int8_index_k_cache and not hasattr(\n+            if use_int8_index_k_cache and not persistent_mqa_selected and not hasattr(\n                 self, \"_dsv4_int8_indexer_path_logged\"\n             ):\n-                logger.info(\"DSV4 INT8 index-K consumer=LightOp dense INT8 Paged MQA\")\n+                logger.info(\n+                    \"DSV4 INT8 index-K consumer=LightOp dense INT8 Paged MQA \"\n+                    \"(query_rows=%d, capacity_c4=%d)\",\n+                    query_rows,\n+                    indexer_metadata.max_c4_seq_len,\n+                )\n                 self._dsv4_int8_indexer_path_logged = True\n \n         if self.debug_use_external_c4_sparse_indices:"
+      },
+      {
+        "filename": "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
+        "previous_filename": null,
+        "status": "added",
+        "additions": 54,
+        "deletions": 0,
+        "patch": "@@ -0,0 +1,54 @@\n+\"\"\"JIT loader for the persistent INT8 paged-MQA kernel.\n+\n+See csrc/paged_mqa_pers_jit.cu. Enabled with\n+SGLANG_MQA_PERSISTENT=1 on the indexer path; the default is lightop\n+gemmopt.paged_mqa_logits.\n+\"\"\"\n+\n+from __future__ import annotations\n+\n+import functools\n+from pathlib import Path\n+\n+import torch\n+\n+\n+@functools.cache\n+def _module():\n+    import torch.utils.cpp_extension\n+\n+    source_path = Path(__file__).with_name(\"csrc\") / \"paged_mqa_pers_jit.cu\"\n+    return torch.utils.cpp_extension.load_inline(\n+        name=\"sgl_paged_mqa_pers_jit\",\n+        cpp_sources=\"\",\n+        cuda_sources=source_path.read_text(),\n+        extra_cflags=[\"-O3\"],\n+        extra_cuda_cflags=[\"-O3\", \"-w\", \"-DUSE_ROCM=1\"],\n+        verbose=False,\n+    )\n+\n+\n+def persistent_int8_paged_mqa_logits(\n+    q: torch.Tensor,\n+    kv_cache: torch.Tensor,\n+    weights: torch.Tensor,\n+    seq_lens: torch.Tensor,\n+    block_table: torch.Tensor,\n+    max_seq_len: int,\n+    num_sms: int = 320,\n+) -> torch.Tensor:\n+    \"\"\"Run the persistent INT8 Paged MQA kernel for the HCU indexer path.\"\"\"\n+    if max_seq_len <= 0 or max_seq_len % 64 != 0:\n+        raise ValueError(\"persistent Paged MQA requires a positive 64-token width\")\n+    if q.dim() == 4:\n+        q = q.reshape(q.shape[0], q.shape[-2], q.shape[-1])\n+    return _module().persistent(\n+        q,\n+        kv_cache,\n+        weights,\n+        seq_lens,\n+        block_table,\n+        int(max_seq_len),\n+        int(num_sms),\n+        0,\n+    )"
+      }
+    ],
+    "files_complete": true,
+    "run_details_truncated": true,
+    "required_status_checks": null,
+    "branch_rules": [],
+    "capture_consistent": true,
+    "limitations": [
+      "元数据不证明测试源码、安装 wheel 或具体测例实际执行；需要 job 日志及逐测试结果。",
+      "head/merge SHA 查询可能遗漏 pull_request_target、workflow_dispatch 和外部调度；按 workflow、PR checks 链接及调度系统补查。",
+      "合并提交上的 push/release 构建属于合入后证据，不能回填为 PR head 的测试通过。",
+      "checks 保留重跑记录，statuses 保留历史；分析时核对最新 attempt、同名 check 的 app 身份和时间。",
+      "权限不足、404、分页预算用未知表示，不推断门禁不存在。"
+    ]
+  },
+  "analysis": {
+    "review_version": 1,
+    "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+    "platform": "HCU-gfx936",
+    "summary": "PR #436 已有实际HCU CI运行，不能沿用PR正文“未运行”的判断；4个改动文件映射3类新增行为，已审测试未提供新路径的针对性断言。CI红灯与产品回归因果未确定。",
+    "limitations": [
+      "本次是只读历史PR审查，没有运行新HCU测试或重跑CI。",
+      "设计缺口结论限已读候选和记录的检索范围；所有分片完整日志及组织外部变量未全部取得。",
+      "缺少同版本coverage工件：行/分支/内核覆盖率未测量。",
+      "失败日志仅脱敏摘录；10/15是测试文件结果，不是test nodeid或功能覆盖率。",
+      "legacy protection接口不可用，不能推断分支无合并门禁。"
+    ],
+    "files": [
+      {
+        "path": "python/sglang/srt/environ.py",
+        "status": "reviewed",
+        "reason": "已读取本PR对应的开关/路由/JIT/内核行为，并映射行为合同"
+      },
+      {
+        "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+        "status": "reviewed",
+        "reason": "已读取本PR对应的开关/路由/JIT/内核行为，并映射行为合同"
+      },
+      {
+        "path": "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
+        "status": "reviewed",
+        "reason": "已读取本PR对应的开关/路由/JIT/内核行为，并映射行为合同"
+      },
+      {
+        "path": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+        "status": "reviewed",
+        "reason": "已读取本PR对应的开关/路由/JIT/内核行为，并映射行为合同"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ENV",
+        "kind": "source",
+        "path": "python/sglang/srt/environ.py",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 1395,
+        "end": 1399,
+        "claim": "新增开关默认关闭"
+      },
+      {
+        "id": "ROUTE",
+        "kind": "source",
+        "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 80,
+        "end": 172,
+        "claim": "CPU 长度估计、容量比阈值与设备/shape/layout约束"
+      },
+      {
+        "id": "CALL",
+        "kind": "source",
+        "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 901,
+        "end": 1008,
+        "claim": "graph route与 persistent/LightOp 调用分支"
+      },
+      {
+        "id": "TOPK",
+        "kind": "source",
+        "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 1080,
+        "end": 1140,
+        "claim": "下游TopK传递实际序列长度，未初始化尾部不能用全矩阵一致性判定"
+      },
+      {
+        "id": "JIT",
+        "kind": "source",
+        "path": "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 16,
+        "end": 54,
+        "claim": "延迟JIT与宽度校验、query reshape"
+      },
+      {
+        "id": "KERNEL",
+        "kind": "source",
+        "path": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 376,
+        "end": 480,
+        "claim": "空行任务、紧凑任务表、未填充尾部、当前HIP stream与两阶段launch"
+      },
+      {
+        "id": "CI",
+        "kind": "source",
+        "path": ".github/workflows/pr-test-hcu.yml",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 757,
+        "end": 817,
+        "claim": "head侧HCU Stage B白名单；当次命令还用日志核对"
+      },
+      {
+        "id": "DSA",
+        "kind": "source",
+        "path": "test/registered/unit/layers/attention/dsa/test_hcu_indexer.py",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 1,
+        "end": 155,
+        "claim": "现有测试针对dsa_indexer而非dsv4/indexer；断言LightOp ABI"
+      },
+      {
+        "id": "DSV4",
+        "kind": "source",
+        "path": "test/registered/attention/unittests/dsv4/test_deepseek_v4.py",
+        "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "start": 1,
+        "end": 55,
+        "claim": "测试注明绕过C4Indexer，且注册CUDA runner"
+      },
+      {
+        "id": "LOG",
+        "kind": "artifact",
+        "path": "artifacts/job-excerpts.txt",
+        "claim": "实际attempt2失败job的版本、白名单及失败症状脱敏摘录"
+      },
+      {
+        "id": "SEARCH",
+        "kind": "artifact",
+        "path": "artifacts/search-evidence.txt",
+        "claim": "PR head内按开关/符号检索并阅读候选的审查记录；不是全仓无覆盖证明"
+      }
+    ],
+    "behaviors": [
+      {
+        "lane": "pr-hcu-stage-b",
+        "platform": "HCU-gfx936",
+        "design": "gap",
+        "selection": "unknown",
+        "selection_reason": "head白名单及当次失败job命令未列出专用测试；开关默认关闭。未取得所有分片完整日志/外部变量，不能断言所有CI都没有执行新路径。",
+        "selection_evidence": [
+          "CI",
+          "LOG",
+          "ENV"
+        ],
+        "tests": [],
+        "observations": [],
+        "counterevidence": "test_hcu_indexer.py是DSA/LightOp ABI；DSV4 attention测试明确绕过C4Indexer；test/python测试辅助/.github/scripts未检索到新增开关或入口。已审候选不能证明此新增路径覆盖，未穷尽外部测试。",
+        "id": "B1",
+        "name": "路由选择与安全回退",
+        "changed_paths": [
+          "python/sglang/srt/environ.py",
+          "python/sglang/srt/layers/attention/dsv4/indexer.py"
+        ],
+        "before": "INT8 paged路径调用LightOp",
+        "after": "开关启用且满足gfx936/容量比/布局才走Persistent，其他走原分支",
+        "trigger": "开关开关两态；容量比<2/=2/>2；缺CPU长度；非gfx936；dtype/shape/contiguous/device不匹配；spec/ragged长度",
+        "risk": "错误进入特化内核，或应走新路径却静默回退",
+        "oracle": "表驱动契约 + 分支调用spy；实际生产函数，不复制判定表达式",
+        "evidence": [
+          "ENV",
+          "ROUTE",
+          "CALL"
+        ]
+      },
+      {
+        "lane": "pr-hcu-stage-b",
+        "platform": "HCU-gfx936",
+        "design": "gap",
+        "selection": "unknown",
+        "selection_reason": "head白名单及当次失败job命令未列出专用测试；开关默认关闭。未取得所有分片完整日志/外部变量，不能断言所有CI都没有执行新路径。",
+        "selection_evidence": [
+          "CI",
+          "LOG",
+          "ENV"
+        ],
+        "tests": [],
+        "observations": [],
+        "counterevidence": "test_hcu_indexer.py是DSA/LightOp ABI；DSV4 attention测试明确绕过C4Indexer；test/python测试辅助/.github/scripts未检索到新增开关或入口。已审候选不能证明此新增路径覆盖，未穷尽外部测试。",
+        "id": "B2",
+        "name": "INT8内核数值、有效长度与TopK",
+        "changed_paths": [
+          "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
+          "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu"
+        ],
+        "before": "LightOp生成dense logits",
+        "after": "JIT加载persistent内核，仅处理真实任务并依赖下游长度限制",
+        "trigger": "长度0/1/63/64/65/255/256/257；混合长度/非顺序页表；Q缩放与K尺度；正负值；宽度非法",
+        "risk": "页边界/空行错误、尾部未初始化被消费、缩放误差改变TopK",
+        "oracle": "独立反量化点积+ReLU+weights参考比较有效区；端到端检查TopK不得读取无效尾部；不能要求未承诺尾部全为-INF",
+        "evidence": [
+          "JIT",
+          "KERNEL",
+          "TOPK",
+          "CALL"
+        ]
+      },
+      {
+        "lane": "pr-hcu-stage-b",
+        "platform": "HCU-gfx936",
+        "design": "gap",
+        "selection": "unknown",
+        "selection_reason": "head白名单及当次失败job命令未列出专用测试；开关默认关闭。未取得所有分片完整日志/外部变量，不能断言所有CI都没有执行新路径。",
+        "selection_evidence": [
+          "CI",
+          "LOG",
+          "ENV"
+        ],
+        "tests": [],
+        "observations": [],
+        "counterevidence": "test_hcu_indexer.py是DSA/LightOp ABI；DSV4 attention测试明确绕过C4Indexer；test/python测试辅助/.github/scripts未检索到新增开关或入口。已审候选不能证明此新增路径覆盖，未穷尽外部测试。",
+        "id": "B3",
+        "name": "图捕获与重复replay",
+        "changed_paths": [
+          "python/sglang/srt/layers/attention/dsv4/indexer.py",
+          "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu"
+        ],
+        "before": "原LightOp图路径",
+        "after": "图路由跳过CPU长度/容量比条件，复用当前HIP stream launch compact与persistent",
+        "trigger": "预热后capture；固定shape下seq_lens/page table变化并重复replay；空行与不同实际长度",
+        "risk": "重放沿用旧任务数或读到旧页表；首次JIT/capture交互不可用",
+        "oracle": "每次replay对照独立参考与eager；确认Persistent实际命中；旧输入负控应被断言识别",
+        "evidence": [
+          "CALL",
+          "KERNEL",
+          "JIT"
+        ]
+      }
+    ],
+    "findings": [
+      {
+        "id": "F1",
+        "kind": "coverage_gap",
+        "severity": "P1",
+        "confidence": "high",
+        "title": "路由选择与安全回退缺少针对性断言证据",
+        "impact": "错误进入特化内核，或应走新路径却静默回退",
+        "recommendation": "按G1补齐；执行结果与CI纳入分别验收，不把CPU检查或文件收集当成HCU内核通过。",
+        "behavior_ids": [
+          "B1"
+        ],
+        "evidence": [
+          "ENV",
+          "ROUTE",
+          "CALL",
+          "SEARCH",
+          "DSA",
+          "DSV4"
+        ]
+      },
+      {
+        "id": "F2",
+        "kind": "coverage_gap",
+        "severity": "P1",
+        "confidence": "high",
+        "title": "INT8内核数值、有效长度与TopK缺少针对性断言证据",
+        "impact": "页边界/空行错误、尾部未初始化被消费、缩放误差改变TopK",
+        "recommendation": "按G2补齐；执行结果与CI纳入分别验收，不把CPU检查或文件收集当成HCU内核通过。",
+        "behavior_ids": [
+          "B2"
+        ],
+        "evidence": [
+          "JIT",
+          "KERNEL",
+          "TOPK",
+          "CALL",
+          "SEARCH",
+          "DSA",
+          "DSV4"
+        ]
+      },
+      {
+        "id": "F3",
+        "kind": "coverage_gap",
+        "severity": "P1",
+        "confidence": "high",
+        "title": "图捕获与重复replay缺少针对性断言证据",
+        "impact": "重放沿用旧任务数或读到旧页表；首次JIT/capture交互不可用",
+        "recommendation": "按G3补齐；执行结果与CI纳入分别验收，不把CPU检查或文件收集当成HCU内核通过。",
+        "behavior_ids": [
+          "B3"
+        ],
+        "evidence": [
+          "CALL",
+          "KERNEL",
+          "JIT",
+          "SEARCH",
+          "DSA",
+          "DSV4"
+        ]
+      },
+      {
+        "id": "F4",
+        "kind": "evidence_gap",
+        "severity": "P1",
+        "confidence": "high",
+        "title": "现有CI红灯需独立定位，不能归因新增MQA内核",
+        "impact": "attempt2的required-2分片10/15测试文件通过；日志含HIPBLAS_STATUS_ALLOC_FAILED、端口占用和服务连接失败症状，但没有新增内核回归因果证据。",
+        "recommendation": "核验设备资源/服务生命周期、基线复现和所有失败文件；隔离环境重跑需另行授权。不要把文件成功率当覆盖率。",
+        "behavior_ids": [
+          "B1",
+          "B2",
+          "B3"
+        ],
+        "evidence": [
+          "LOG"
+        ]
+      }
+    ],
+    "tasks": [
+      {
+        "id": "G1",
+        "feature_id": "B1",
+        "route": "write",
+        "priority": "P1",
+        "reason": "新路由缺口",
+        "evidence": [
+          "ROUTE",
+          "CALL",
+          "ENV",
+          "SEARCH"
+        ],
+        "prerequisites": [
+          "导入PR head真实函数的可用Python依赖；CPU选择器测试与HCU命中验证分开",
+          "先检查已有unit测试扩展位置；按原注册规则接入CI"
+        ],
+        "acceptance": [
+          "开关/阈值/布局/设备/长度估计各分支有断言",
+          "正确版通过；单项阈值反转或回退破坏使目标断言失败；非导入失败"
+        ],
+        "cases": [
+          {
+            "id": "G1-route",
+            "name": "路由边界",
+            "inputs": "容量比1.99/2/2.01，开关0/1、gfx936真假、合法/非法布局与device",
+            "expected": "仅满足全部合同进入Persistent；其他走原路径",
+            "oracle": "显式路由期望表+调用spy",
+            "negative_control": "阈值比较改为>或去掉gfx936门限"
+          },
+          {
+            "id": "G1-length",
+            "name": "C4长度估计",
+            "inputs": "CPU长度为空/缺失；raw len边界；spec num_tokens、ragged verify、extend长度组合",
+            "expected": "长度估计满足压缩/扩展合同，缺失则eager回退",
+            "oracle": "人工推导小样本结果",
+            "negative_control": "丢弃ragged最大扩展长度"
+          }
+        ]
+      },
+      {
+        "id": "G2",
+        "feature_id": "B2",
+        "route": "upstream_first",
+        "priority": "P1",
+        "reason": "硬件数值与边界缺口",
+        "evidence": [
+          "KERNEL",
+          "JIT",
+          "TOPK",
+          "SEARCH"
+        ],
+        "prerequisites": [
+          "空闲且授权的gfx936设备、匹配DTK/PyTorch/LightOp与JIT编译器",
+          "先查兼容版本上游paged MQA参考；不能直接搬NVIDIA专有执行器"
+        ],
+        "acceptance": [
+          "核对源码/wheel身份并确认新内核命中",
+          "有效区数值在预先说明的容差内；TopK不消费无效尾部",
+          "错误scale/页表/尾部消费者负控被目标断言检测"
+        ],
+        "cases": [
+          {
+            "id": "G2-boundary",
+            "name": "数值及页边界",
+            "inputs": "seq_len=0/1/63/64/65/255/256/257，混合batch、打乱页表与正负INT8",
+            "expected": "有效logits及合法TopK与参考一致；空行不产生有效索引",
+            "oracle": "独立PyTorch反量化点积/ReLU/加权，记录容差与tie规则",
+            "negative_control": "破坏K scale或错误页索引"
+          },
+          {
+            "id": "G2-width",
+            "name": "入口宽度约束",
+            "inputs": "max_seq_len<=0、非64倍数以及合法64",
+            "expected": "非法值ValueError，合法值进入JIT调用；不假装mock验证内核",
+            "oracle": "公开wrapper契约+实际函数",
+            "negative_control": "删除宽度合法性判断"
+          }
+        ]
+      },
+      {
+        "id": "G3",
+        "feature_id": "B3",
+        "route": "write",
+        "priority": "P1",
+        "reason": "图重放状态变化缺口",
+        "evidence": [
+          "CALL",
+          "KERNEL",
+          "JIT"
+        ],
+        "prerequisites": [
+          "gfx936设备与可用HIP graph环境",
+          "按生产语义在capture前预热JIT；核验replay过程无非授权资源变更"
+        ],
+        "acceptance": [
+          "固定shape多次replay改变长度/页表均匹配参考",
+          "确认Persistent而非fallback实际命中",
+          "固定旧任务列表负控被检测"
+        ],
+        "cases": [
+          {
+            "id": "G3-replay",
+            "name": "动态内容重放",
+            "inputs": "固定batch/shape；依次更换真实长度、页表、含空行输入",
+            "expected": "每次结果匹配当次输入，不沿用旧任务",
+            "oracle": "独立数值参考+eager交叉检查",
+            "negative_control": "复用上一次compact任务数或旧页表"
+          }
+        ]
+      }
+    ]
+  },
+  "artifacts": {
+    "artifacts/job-excerpts.txt": "# 实际 job 日志脱敏摘录\n来源：https://github.com/HYGON-AI/sglang-das/actions/runs/35820902721/job/107080422410\nrun=35820902721; attempt=2; job=107080422410。\n仅保留 checkout、安装产物、选择命令、失败症状和文件级汇总。不是完整日志或逐 nodeid 结果。\n\n2026-09-23T07:07:52.5533310Z   CHECKOUT_REF: 6f0f185a691c16b0134a26f2ff172c7e2af31edb\n2026-09-23T07:08:39.1957026Z HEAD 目前位于 6f0f185 Paged MQA Logits优化\n2026-09-23T07:08:55.1490719Z Processing <wheel-staging>/sglang-0.5.18+dtk2604.torch2110.2609231312.g6f0f18-cp310-cp310-linux_x86_64.whl\n2026-09-23T07:14:05.4932303Z     --suite stage-b-test-1-hcu-small \\\n2026-09-23T07:14:05.4932772Z     --include-file registered/hcu/interface/test_hcu_stage_b_flow_0.py \\\n2026-09-23T07:14:05.4933276Z     --include-file registered/hcu/interface/test_hcu_stage_b_flow_1.py \\\n2026-09-23T07:14:05.4933773Z     --include-file registered/unit/observability/test_metrics_utils.py \\\n2026-09-23T07:14:05.4934288Z     --include-file registered/unit/parser/test_harmony_parser.py \\\n2026-09-23T07:14:05.4934800Z     --include-file registered/unit/parser/test_jinja_template_utils.py \\\n2026-09-23T07:14:05.4935291Z     --include-file registered/unit/parser/test_reasoning_parser.py \\\n2026-09-23T07:14:05.4935826Z     --include-file registered/unit/entrypoints/openai/test_serving_embedding.py \\\n2026-09-23T07:14:05.4936379Z     --include-file registered/attention/test_triton_attention_kernels.py \\\n2026-09-23T07:14:05.4936848Z     --include-file registered/layers/mamba/test_mamba_ssm.py \\\n2026-09-23T07:14:05.4937300Z     --include-file registered/layers/mamba/test_mamba_ssm_ssd.py \\\n2026-09-23T07:14:05.4937728Z     --include-file registered/rl/test_fp32_lm_head.py \\\n2026-09-23T07:14:05.4938151Z     --include-file registered/embedding/test_input_embeddings.py \\\n2026-09-23T07:14:05.4938602Z     --include-file registered/embedding/test_openai_embedding.py \\\n2026-09-23T07:14:05.4939116Z     --include-file registered/unit/multimodal/test_evs.py \\\n2026-09-23T07:14:05.4940033Z     --include-file registered/openai_server/features/test_enable_thinking.py \\\n2026-09-23T07:14:05.4940925Z     --include-file registered/openai_server/features/test_reasoning_content.py \\\n2026-09-23T07:14:05.4941438Z     --include-file registered/attention/test_create_kvindices.py \\\n2026-09-23T07:14:05.4941895Z     --include-file registered/layers/mamba/test_causal_conv1d.py \\\n2026-09-23T07:14:05.4942347Z     --include-file registered/unit/managers/test_io_struct.py \\\n2026-09-23T07:14:05.4942837Z     --include-file registered/unit/managers/test_profile_merger_http_api.py \\\n2026-09-23T07:14:05.4943356Z     --include-file registered/unit/mem_cache/test_radix_cache_unit.py \\\n2026-09-23T07:14:05.4943832Z     --include-file registered/ops/test_repeat_interleave.py \\\n2026-09-23T07:14:05.4944325Z     --include-file registered/openai_server/basic/test_serving_completions.py \\\n2026-09-23T07:14:05.4944899Z     --include-file registered/openai_server/validation/test_large_max_new_tokens.py \\\n2026-09-23T07:14:05.4945483Z     --include-file registered/hcu/sampling/bw1100/test_original_logprobs_hcu.py \\\n2026-09-23T07:14:05.4946073Z     --include-file registered/openai_server/validation/test_request_length_validation.py \\\n2026-09-23T07:14:05.4946640Z     --include-file registered/sampling/test_pytorch_sampling_backend.py \\\n2026-09-23T07:14:05.4947238Z     --include-file registered/sampling/test_penalty.py \\\n2026-09-23T07:14:05.4947695Z     --include-file registered/hcu/core/bw1100/test_hidden_states_hcu.py \\\n2026-09-23T07:14:05.4948224Z     --include-file registered/constrained_decoding/test_constrained_decoding.py \\\n2026-09-23T07:14:05.4948742Z     --include-file registered/metrics/test_priority_metrics.py \\\n2026-09-23T07:14:05.4949285Z     --include-file registered/hcu/srt/bw1100/test_qwen25_0p5b_server_hcu.py \\\n2026-09-23T07:14:05.4949814Z     --include-file registered/hcu/openai_server/test_function_calling_hcu.py \\\n2026-09-23T07:14:05.4950353Z     --include-file registered/hcu/openai_server/test_hidden_states_base_hcu.py \\\n2026-09-23T07:14:05.4950886Z     --include-file registered/hcu/openai_server/test_protocol_hcu.py \\\n2026-09-23T07:14:05.4951379Z     --include-file registered/hcu/openai_server/test_serving_chat_hcu.py \\\n2026-09-23T07:14:05.4951891Z     --include-file registered/hcu/openai_server/test_tool_choice_hcu.py \\\n2026-09-23T07:14:05.4952450Z     --include-file registered/hcu/reranker/bw1100/test_qwen3_reranker_hcu.py \\\n2026-09-23T07:14:05.4953034Z     --include-file registered/hcu/lora/bw1100/test_qwen3_lora_server_hcu.py \\\n2026-09-23T07:14:05.4953566Z     --include-file registered/hcu/rotary/test_mrope_smoke_hcu.py \\\n2026-09-23T07:14:05.4954091Z     --include-file registered/hcu/spec/test_build_eagle_tree_hcu.py \\\n2026-09-23T07:14:05.4954665Z     --include-file registered/hcu/unit/function_call/test_json_schema_constraint_hcu.py \\\n2026-09-23T07:14:05.4955237Z     --include-file registered/hcu/unit/test_profile_merger_hcu.py \\\n2026-09-23T07:14:05.4955772Z     --include-file registered/hcu/infra/test_hcu_server_guard_failures_hcu.py \\\n2026-09-23T07:14:05.4956363Z     --include-file registered/hcu/vlm_models/bw1100/test_qwen25_vl_3b_server_hcu.py \\\n2026-09-23T07:15:55.7701376Z RuntimeError: CUDA error: HIPBLAS_STATUS_ALLOC_FAILED when calling `hipblasCreate(handle)`\n2026-09-23T07:18:03.3340987Z [2026-09-23 15:18:03] ERROR:    [Errno 98] error while attempting to bind on address ('<redacted-host>', 11000): address already in use\n2026-09-23T07:33:24.1282336Z Test Summary: 10/15 passed\n2026-09-23T07:33:24.1289412Z   /sglang-checkout/test/registered/hcu/openai_server/test_hidden_states_base_hcu.py (exit code 1)\n2026-09-23T07:33:24.1290157Z   /sglang-checkout/test/registered/constrained_decoding/test_constrained_decoding.py (exit code 1)\n2026-09-23T07:33:24.1290837Z   /sglang-checkout/test/registered/embedding/test_input_embeddings.py (exit code 1)\n2026-09-23T07:33:24.1291507Z   /sglang-checkout/test/registered/hcu/openai_server/test_function_calling_hcu.py (exit code 1)\n2026-09-23T07:33:24.1292197Z   /sglang-checkout/test/registered/sampling/test_pytorch_sampling_backend.py (exit code 1)\n\n",
+    "artifacts/search-evidence.txt": "源版本：6f0f185a691c16b0134a26f2ff172c7e2af31edb\ngit status --porcelain：空；原始diff 4文件，703行新增、12行删除。\nrg -n 'MQA_PERSISTENT|persistent_int8_paged' test python/sglang/test .github scripts：退出码1，无匹配。\nrg -n 'paged_mqa|dsv4' test/registered：有较多候选，进一步阅读以下代表性调用链，不声称遍历全部语义。\ntest/registered/unit/layers/attention/dsa/test_hcu_indexer.py：import dsa_indexer；测试LightOp ABI调用参数与后端选择，并非新增dsv4/indexer入口。\ntest/registered/attention/unittests/dsv4/test_deepseek_v4.py：头部明确C4/C128用例绕过生产C4Indexer，注册CUDA runner。\n.github/workflows/pr-test-hcu.yml：Stage B include-file白名单无上述新路径测试。当次失败job的实际命令亦核验，见job-excerpts.txt。\n局限：外部调度/变量和其他job完整日志未全部审阅；阴性检索不是全仓无覆盖的充分证明。\n"
+  }
+}

@@ -4,7 +4,9 @@
   "description": "Label-triggered GitHub App service for AI-assisted pull request review",
   "main": "index.js",
   "scripts": {
-    "test": "node --test",
+    "test": "node --import ./test/deny-network.mjs --test test/*.test.mjs",
+    "test:acceptance": "node scripts/offline-acceptance.mjs",
+    "replay:sglang": "node --import ./test/deny-network.mjs scripts/replay-sglang.mjs",
     "start": "node src/index.mjs",
     "preview:dashboard": "node scripts/preview-dashboard.mjs"
   },

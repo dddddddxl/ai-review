@@ -1,0 +1,369 @@
+{
+  "plan_schema_version": 1,
+  "status": "ready_for_review",
+  "repository": "https://github.com/HYGON-AI/sglang-das",
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "platform": "HCU-gfx936",
+  "tasks": [
+    {
+      "id": "G1",
+      "feature_id": "B1",
+      "route": "write",
+      "priority": "P1",
+      "reason": "新路由缺口",
+      "evidence": [
+        "ROUTE",
+        "CALL",
+        "ENV",
+        "SEARCH"
+      ],
+      "prerequisites": [
+        "导入PR head真实函数的可用Python依赖；CPU选择器测试与HCU命中验证分开",
+        "先检查已有unit测试扩展位置；按原注册规则接入CI"
+      ],
+      "acceptance": [
+        "开关/阈值/布局/设备/长度估计各分支有断言",
+        "正确版通过；单项阈值反转或回退破坏使目标断言失败；非导入失败"
+      ],
+      "cases": [
+        {
+          "id": "G1-route",
+          "name": "路由边界",
+          "inputs": "容量比1.99/2/2.01，开关0/1、gfx936真假、合法/非法布局与device",
+          "expected": "仅满足全部合同进入Persistent；其他走原路径",
+          "oracle": "显式路由期望表+调用spy",
+          "negative_control": "阈值比较改为>或去掉gfx936门限"
+        },
+        {
+          "id": "G1-length",
+          "name": "C4长度估计",
+          "inputs": "CPU长度为空/缺失；raw len边界；spec num_tokens、ragged verify、extend长度组合",
+          "expected": "长度估计满足压缩/扩展合同，缺失则eager回退",
+          "oracle": "人工推导小样本结果",
+          "negative_control": "丢弃ragged最大扩展长度"
+        }
+      ],
+      "lanes": [
+        "pr-hcu-stage-b"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    },
+    {
+      "id": "G2",
+      "feature_id": "B2",
+      "route": "upstream_first",
+      "priority": "P1",
+      "reason": "硬件数值与边界缺口",
+      "evidence": [
+        "KERNEL",
+        "JIT",
+        "TOPK",
+        "SEARCH"
+      ],
+      "prerequisites": [
+        "空闲且授权的gfx936设备、匹配DTK/PyTorch/LightOp与JIT编译器",
+        "先查兼容版本上游paged MQA参考；不能直接搬NVIDIA专有执行器"
+      ],
+      "acceptance": [
+        "核对源码/wheel身份并确认新内核命中",
+        "有效区数值在预先说明的容差内；TopK不消费无效尾部",
+        "错误scale/页表/尾部消费者负控被目标断言检测"
+      ],
+      "cases": [
+        {
+          "id": "G2-boundary",
+          "name": "数值及页边界",
+          "inputs": "seq_len=0/1/63/64/65/255/256/257，混合batch、打乱页表与正负INT8",
+          "expected": "有效logits及合法TopK与参考一致；空行不产生有效索引",
+          "oracle": "独立PyTorch反量化点积/ReLU/加权，记录容差与tie规则",
+          "negative_control": "破坏K scale或错误页索引"
+        },
+        {
+          "id": "G2-width",
+          "name": "入口宽度约束",
+          "inputs": "max_seq_len<=0、非64倍数以及合法64",
+          "expected": "非法值ValueError，合法值进入JIT调用；不假装mock验证内核",
+          "oracle": "公开wrapper契约+实际函数",
+          "negative_control": "删除宽度合法性判断"
+        }
+      ],
+      "lanes": [
+        "pr-hcu-stage-b"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    },
+    {
+      "id": "G3",
+      "feature_id": "B3",
+      "route": "write",
+      "priority": "P1",
+      "reason": "图重放状态变化缺口",
+      "evidence": [
+        "CALL",
+        "KERNEL",
+        "JIT"
+      ],
+      "prerequisites": [
+        "gfx936设备与可用HIP graph环境",
+        "按生产语义在capture前预热JIT；核验replay过程无非授权资源变更"
+      ],
+      "acceptance": [
+        "固定shape多次replay改变长度/页表均匹配参考",
+        "确认Persistent而非fallback实际命中",
+        "固定旧任务列表负控被检测"
+      ],
+      "cases": [
+        {
+          "id": "G3-replay",
+          "name": "动态内容重放",
+          "inputs": "固定batch/shape；依次更换真实长度、页表、含空行输入",
+          "expected": "每次结果匹配当次输入，不沿用旧任务",
+          "oracle": "独立数值参考+eager交叉检查",
+          "negative_control": "复用上一次compact任务数或旧页表"
+        }
+      ],
+      "lanes": [
+        "pr-hcu-stage-b"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    }
+  ],
+  "scope": {
+    "platform": "HCU-gfx936",
+    "extent": "bounded",
+    "lanes": [
+      "pr-hcu-stage-b"
+    ],
+    "limitations": [
+      "本次是只读历史PR审查，没有运行新HCU测试或重跑CI。",
+      "设计缺口结论限已读候选和记录的检索范围；所有分片完整日志及组织外部变量未全部取得。",
+      "缺少同版本coverage工件：行/分支/内核覆盖率未测量。",
+      "失败日志仅脱敏摘录；10/15是测试文件结果，不是test nodeid或功能覆盖率。",
+      "legacy protection接口不可用，不能推断分支无合并门禁。",
+      "元数据不证明测试源码、安装 wheel 或具体测例实际执行；需要 job 日志及逐测试结果。",
+      "head/merge SHA 查询可能遗漏 pull_request_target、workflow_dispatch 和外部调度；按 workflow、PR checks 链接及调度系统补查。",
+      "合并提交上的 push/release 构建属于合入后证据，不能回填为 PR head 的测试通过。",
+      "checks 保留重跑记录，statuses 保留历史；分析时核对最新 attempt、同名 check 的 app 身份和时间。",
+      "权限不足、404、分页预算用未知表示，不推断门禁不存在。"
+    ]
+  },
+  "source_fingerprints": {
+    "python/sglang/srt/environ.py": "56233ff61abd6be17465dd93a95a3c75e8fea808f712b3d829a5eb8512c27db0",
+    "python/sglang/srt/layers/attention/dsv4/indexer.py": "7577d46bb347468ba728fbebba5a8d90aeb43c9f4cb975fa3ef3d584a095fcba",
+    "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py": "ed628d65140de2793052309a43ea53616d63a49ad83aa2cb140210c0566b8c56",
+    "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu": "f51ad5e90a529bf2587b916ef12015ed82bf04c961dd3d3a425ac7a73e1a40aa",
+    ".github/workflows/pr-test-hcu.yml": "ea7c11617c27109eedd3e6840b4507877c17bff771dc93afba3c5c20e82f6ed8",
+    "test/registered/unit/layers/attention/dsa/test_hcu_indexer.py": "474355dd85755d31ae7cca27f835262b4231cd7a2bd42937c315e9a4c737ee31",
+    "test/registered/attention/unittests/dsv4/test_deepseek_v4.py": "785776f59c51b2a80d59434ec7fd34a0ed89b8e362d1951eb697cfa19cc924f0"
+  },
+  "evidence": [
+    {
+      "id": "ENV",
+      "kind": "source",
+      "path": "python/sglang/srt/environ.py",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 1395,
+      "end": 1399,
+      "claim": "新增开关默认关闭",
+      "sha256": "f54cc37c70eedf2f47062336d287563334294cbf208fe68d5bd11f9aba481f09"
+    },
+    {
+      "id": "ROUTE",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 80,
+      "end": 172,
+      "claim": "CPU 长度估计、容量比阈值与设备/shape/layout约束",
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1"
+    },
+    {
+      "id": "CALL",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 901,
+      "end": 1008,
+      "claim": "graph route与 persistent/LightOp 调用分支",
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1"
+    },
+    {
+      "id": "TOPK",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 1080,
+      "end": 1140,
+      "claim": "下游TopK传递实际序列长度，未初始化尾部不能用全矩阵一致性判定",
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1"
+    },
+    {
+      "id": "JIT",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 16,
+      "end": 54,
+      "claim": "延迟JIT与宽度校验、query reshape",
+      "sha256": "bc300beb36b11f07b1102755996c745892df4b01acc712cd408396af55d87809"
+    },
+    {
+      "id": "KERNEL",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 376,
+      "end": 480,
+      "claim": "空行任务、紧凑任务表、未填充尾部、当前HIP stream与两阶段launch",
+      "sha256": "7b6c6ae78d8c22eee7b8484caa4b789d22663e8c1e1ca5d7a3e236b286947a5d"
+    },
+    {
+      "id": "CI",
+      "kind": "source",
+      "path": ".github/workflows/pr-test-hcu.yml",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 757,
+      "end": 817,
+      "claim": "head侧HCU Stage B白名单；当次命令还用日志核对",
+      "sha256": "1ef88cfc496da803b15f4e98994482da3d1dbdd7effa30572915a8855ac84775"
+    },
+    {
+      "id": "DSA",
+      "kind": "source",
+      "path": "test/registered/unit/layers/attention/dsa/test_hcu_indexer.py",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 1,
+      "end": 155,
+      "claim": "现有测试针对dsa_indexer而非dsv4/indexer；断言LightOp ABI",
+      "sha256": "3783340edca3a2d096ece78c9e2abf4db22894ddea5a2e362f3bc52bb2e80a4a"
+    },
+    {
+      "id": "DSV4",
+      "kind": "source",
+      "path": "test/registered/attention/unittests/dsv4/test_deepseek_v4.py",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "start": 1,
+      "end": 55,
+      "claim": "测试注明绕过C4Indexer，且注册CUDA runner",
+      "sha256": "b8a70cb62fd5327f15cb0f78e18df7cc4acfbba70fc9dbd06eaaf572242388c5"
+    },
+    {
+      "id": "LOG",
+      "kind": "artifact",
+      "path": "artifacts/job-excerpts.txt",
+      "claim": "实际attempt2失败job的版本、白名单及失败症状脱敏摘录",
+      "sha256": "a8d881665501450df725e95a3b3cc5de3bbc152ffc2446c6678552069b856e00"
+    },
+    {
+      "id": "SEARCH",
+      "kind": "artifact",
+      "path": "artifacts/search-evidence.txt",
+      "claim": "PR head内按开关/符号检索并阅读候选的审查记录；不是全仓无覆盖证明",
+      "sha256": "418ebabbc59679e056530e04d6561275426ffa183667d24ca0e3e63a3bbaf4e6"
+    }
+  ],
+  "unselected_dependencies": [],
+  "planning": [
+    {
+      "task_id": "G1",
+      "next_action": "design_then_write",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "G1-route",
+          "name": "路由边界",
+          "inputs": "容量比1.99/2/2.01，开关0/1、gfx936真假、合法/非法布局与device",
+          "expected": "仅满足全部合同进入Persistent；其他走原路径",
+          "oracle": "显式路由期望表+调用spy",
+          "negative_control": "阈值比较改为>或去掉gfx936门限",
+          "scenario_id": "G1-route",
+          "identity_mode": "explicit"
+        },
+        {
+          "id": "G1-length",
+          "name": "C4长度估计",
+          "inputs": "CPU长度为空/缺失；raw len边界；spec num_tokens、ragged verify、extend长度组合",
+          "expected": "长度估计满足压缩/扩展合同，缺失则eager回退",
+          "oracle": "人工推导小样本结果",
+          "negative_control": "丢弃ragged最大扩展长度",
+          "scenario_id": "G1-length",
+          "identity_mode": "explicit"
+        }
+      ]
+    },
+    {
+      "task_id": "G2",
+      "next_action": "search_then_adapt_or_write",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "G2-boundary",
+          "name": "数值及页边界",
+          "inputs": "seq_len=0/1/63/64/65/255/256/257，混合batch、打乱页表与正负INT8",
+          "expected": "有效logits及合法TopK与参考一致；空行不产生有效索引",
+          "oracle": "独立PyTorch反量化点积/ReLU/加权，记录容差与tie规则",
+          "negative_control": "破坏K scale或错误页索引",
+          "scenario_id": "G2-boundary",
+          "identity_mode": "explicit"
+        },
+        {
+          "id": "G2-width",
+          "name": "入口宽度约束",
+          "inputs": "max_seq_len<=0、非64倍数以及合法64",
+          "expected": "非法值ValueError，合法值进入JIT调用；不假装mock验证内核",
+          "oracle": "公开wrapper契约+实际函数",
+          "negative_control": "删除宽度合法性判断",
+          "scenario_id": "G2-width",
+          "identity_mode": "explicit"
+        }
+      ]
+    },
+    {
+      "task_id": "G3",
+      "next_action": "design_then_write",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "G3-replay",
+          "name": "动态内容重放",
+          "inputs": "固定batch/shape；依次更换真实长度、页表、含空行输入",
+          "expected": "每次结果匹配当次输入，不沿用旧任务",
+          "oracle": "独立数值参考+eager交叉检查",
+          "negative_control": "复用上一次compact任务数或旧页表",
+          "scenario_id": "G3-replay",
+          "identity_mode": "explicit"
+        }
+      ]
+    }
+  ],
+  "authorization": "No code, CI or execution changes authorized by this check",
+  "origin_mode": "pr_ci_review",
+  "pr_context": {
+    "number": 436,
+    "url": "https://github.com/HYGON-AI/sglang-das/pull/436",
+    "base_sha": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+    "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+    "diff_base": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+    "head_repository": "dyq-w/sglang-das",
+    "captured_at": "2026-09-28T12:33:00.489051+00:00",
+    "snapshot_sha256": "8646a88fb9568778e600625c95586f5e4c080145316346727f0a52be57aef249"
+  }
+}

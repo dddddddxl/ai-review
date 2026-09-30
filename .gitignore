@@ -10,3 +10,5 @@ secrets/
 *.log
 *.tar.gz
 *.zip
+review-state/
+examples/**/private-run/

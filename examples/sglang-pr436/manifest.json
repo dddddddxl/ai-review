@@ -1,0 +1,126 @@
+{
+  "manifest_version": 1,
+  "repository": "HYGON-AI/sglang-das",
+  "pull_number": 436,
+  "base_sha": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+  "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "diff_base": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+  "rules_hash": "2b7e77082f9c6e73e8e6be5b5d685d5f514d3a21491f7e03e2f9492949b003d6",
+  "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+  "evidence_hash": "4dacd097bd8fd3346c60a008b713fff960079c945470e7420d49b500225cc92d",
+  "groups": [
+    [
+      "python/sglang/srt/environ.py",
+      "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py"
+    ],
+    [
+      "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu"
+    ]
+  ],
+  "total_files": 4,
+  "files": [
+    {
+      "path": "python/sglang/srt/environ.py",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 0,
+          "start": 0,
+          "end": 557,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+      "previous_path": null,
+      "change": "added",
+      "rule_source": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 2,
+          "start": 0,
+          "end": 9295,
+          "state": "reviewed"
+        },
+        {
+          "batch": 3,
+          "start": 9295,
+          "end": 18572,
+          "state": "reviewed"
+        },
+        {
+          "batch": 4,
+          "start": 18572,
+          "end": 21573,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 0,
+          "start": 0,
+          "end": 8689,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
+      "previous_path": null,
+      "change": "added",
+      "rule_source": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 1,
+          "start": 0,
+          "end": 1502,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    }
+  ],
+  "limitations": [],
+  "coverage": {
+    "code": "not_measured",
+    "functionality": "separate_test_review",
+    "review": "complete_within_selected_scope"
+  },
+  "complete": true,
+  "replay": {
+    "kind": "offline_historical_replay",
+    "real_model": false,
+    "tests_executed": false,
+    "network": false,
+    "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/436",
+    "source_head": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+    "captured_at": "2026-09-28T12:33:00.489051+00:00",
+    "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+    "input_hash": "45cefc65c4b2623ae3d5157f75f577277cc28b21cbf925c498de363e09710319"
+  }
+}
