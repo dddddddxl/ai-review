@@ -7,6 +7,7 @@
     "test": "node --import ./test/deny-network.mjs --test test/*.test.mjs",
     "test:acceptance": "node scripts/offline-acceptance.mjs",
     "replay:sglang": "node --import ./test/deny-network.mjs scripts/replay-sglang.mjs",
+    "dry-run:codex": "node --import ./test/deny-network.mjs scripts/dry-run-codex.mjs",
     "start": "node src/index.mjs",
     "preview:dashboard": "node scripts/preview-dashboard.mjs"
   },

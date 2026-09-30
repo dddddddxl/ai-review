@@ -1,0 +1,16 @@
+{
+  "kind": "codex_file_bridge_dry_run",
+  "model_api_called": false,
+  "scripted_answers": false,
+  "agent_context": "current_codex_conversation_not_fresh_or_blind",
+  "mode": "tests",
+  "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/436",
+  "source_head": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "source_base": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+  "ci_evidence": "fixed_historical_snapshot",
+  "captured_at": "2026-09-28T12:33:00.489051+00:00",
+  "input_hash": "0618203421ce0dfda3cb6b12349127c5ad1ee54f491ee3de745455b9b3cea23d",
+  "target_tests_executed": false,
+  "github_writes": false,
+  "model_window_ms": 1800000
+}

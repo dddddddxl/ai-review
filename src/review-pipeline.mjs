@@ -19,7 +19,8 @@ export async function runReviewPipeline(args, { config = enhancementConfig(), oc
   if (!config.enabled && !config.testEnabled) return reviewPrBatches(args);
   const empty = { reviewFindings: [], changeOverview: [], findings: 0, partial: false, failures: 0, pending: 0, batches: 0, completed: 0, reviewedFiles: 0 };
   let provider, rules, skill, snapshotBundle = captured, preparationError = null;
-  const budget = createEvidenceBudget({ maxTools: config.maxTools });
+  const budget = createEvidenceBudget({ maxTools: config.maxTools,
+    ...(config.modelWindowMs === undefined ? {} : { maxDurationMs: config.modelWindowMs }) });
   const template = config.checkouts[args.repository] || config.checkouts[args.repository.toLowerCase()];
   const repo = isSha(args.headSha) ? template?.replaceAll('{head}', args.headSha) : null;
   try {

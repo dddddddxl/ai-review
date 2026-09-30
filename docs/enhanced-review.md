@@ -79,6 +79,20 @@ Linux 使用相应绝对路径，并以 `AI_REVIEW_SKILL_REPO=/controlled/skillh
 
 `examples/sglang-pr436` 的源码/CI 来源真实且版本固定；分析是历史审查的脚本回放，不是当前模型新推理。示例的代码缺陷阶段为空结果也只是编排夹具，不能证明 PR 没有缺陷。测试报告保留 3 类行为缺口、3 项交接任务；无 HCU 测试执行，无真实行覆盖率。
 
-## 下一阶段（未执行）
+## Codex 文件桥接干跑
 
-先对同一固定 SGLang 样本做真实模型只读干跑，评价证据引用准确性、召回/误报、取证预算与报告一致性；确认后再配置独立 GitHub App 测试环境，最后按明确场景和资源预算决定是否运行 HCU 测例。本轮不包含历史 commit 自动学习或生产上线。
+没有模型 API 配置时，可让当前 Codex 读取宿主生成的 `bridge/request-NNN.json` 并提供 `bridge/reply-NNN.json`。这条路径不加载历史 `fixture.analysis`，不自动提供答案，仍经过宿主只读工具、固定版本 skill、实际 Python 分析与交接校验。脚本默认封禁网络，不创建 GitHub App，不发表评论或运行目标代码。
+
+```powershell
+npm run dry-run:codex -- --repo C:\controlled\sglang-pr436 --skill C:\controlled\skillhub --fixture examples/sglang-pr436/fixture.json --output C:\private\codex-audit --mode tests --model-window-ms 1800000
+```
+
+`tests` 仅审查测试充分性；`both` 还调用代码缺陷阶段。请求文件中含指令、输入与预算；回复使用同一 `action=tools/final` JSON 协议。每次最多 8 个工具请求、总预算 24 次。人工文件交互可显式把本次窗口放宽至最多 30 分钟；不改变服务默认 180 秒窗口。超时/非法输出保留未完成，不能记为通过。
+
+2026-09-30 已对固定 PR #436 完成一次 `tests` 干跑：5 轮、24 次取证、4 个行为、4 项交接任务，实际 Python 校验通过，未执行目标测例。分析与评估在 `examples/sglang-pr436-codex/`。它使用当前对话上下文与历史 CI 快照，不是新 agent 盲测，也不代表真实模型 API 或生产延迟验收。
+
+测试审查失败现在返回安全 `diagnostic.stage/code`，区分快照、模型、证据、分析校验与交接阶段。工具拒绝也保留受限的原因分类和安全路径；不返回 provider 原始错误、Python stderr、敏感请求或凭据。
+
+## 后续阶段（未执行）
+
+固定样本的 Codex 文件桥接已完成；下一步需对独立 PR 做新上下文盲测，并在有模型 API 配置时验证三种协议、真实延迟与共享预算。确认后再配置独立 GitHub App 测试环境，最后按明确场景和资源预算决定是否运行 HCU 测例。本轮不包含历史 commit 自动学习或生产上线。

@@ -7,14 +7,18 @@
   "skill_commit": "aaff435e1eb80e4e187b9b71bd0a39a442f6327e",
   "node_version": "v22.22.0",
   "counts": {
-    "tests": 41,
-    "pass": 41,
+    "tests": 45,
+    "pass": 45,
     "fail": 0,
     "cancelled": 0,
     "skipped": 0,
     "todo": 0
   },
   "tests": [
+    "test-review diagnostics classify failure without copying secrets/stderr",
+    "test-review bridge returns protocol/budget failures as incomplete, not all-clear",
+    "denied evidence preserves safe location/category but not sensitive request or error",
+    "evidence loop surfaces safe denied reason to next model round",
     "offline transport guards",
     "default switches preserve legacy behavior",
     "SHA-bound reads, search, paths, symlink and secrets",
@@ -58,7 +62,7 @@
     "snapshot mock preserves all terminal conclusions and rechecks identity"
   ],
   "source_sha256": {
-    "package.json": "212e8ef0abdde074b9414a270c3e5c3309330edf105ea00e4e0fd476f7bc59ae",
+    "package.json": "c4a5b10e6daa1ddc85e0d3813fea5f44ca141eec3f906e9eebe50e7b7d412a80",
     "src/ci-analysis.mjs": "8c6fc741dc91df686c7516e8b4b4bed0b5b2a2e782408631ef27a45e53803592",
     "src/ci-backfeed.mjs": "4de2ac30be99aefa6dca89b41d93d416e881a3c6c75a3f112cf400a2b5344433",
     "src/ci-evidence.mjs": "82cdcb926d74a2935811bece1cbdf53ffb6d40d8ff491a5d36f563f91f8ed259",
@@ -74,20 +78,22 @@
     "src/pr-review.mjs": "4999dfb9bcbbea5ed53a92d6f7b1752a22da7d0cb19bf30a52fdfdf2c27787ff",
     "src/retry-policy.mjs": "1d8dcb2b200bf71773f6981647a375a07145fd121f1d47bf9b6e5ae23a8810e7",
     "src/review-errors.mjs": "bc95b946c0deb7ecf7fa6ad2efdeef6eb7ec439040b05f23f80821964f46629c",
-    "src/review-evidence.mjs": "e31600c7030cf3229392e5730b019ed6358c19b45b9944530a4243dfe603a0d2",
-    "src/review-pipeline.mjs": "b078059cfd4f8bc092e4e4ea2be3f67e494652b6d77e96cf22062d6ad16427ad",
+    "src/review-evidence.mjs": "7b199ce2b558f59abb28dc7891de8b59b4ad3b7698438c89510a30603898d48d",
+    "src/review-pipeline.mjs": "f53466c6f108e0622064ffba29cc90c005cf7668245f223c2337b0f1c80779a0",
     "src/review-planning.mjs": "529c3762e5f990426a3a3de1c6ad1612615e01cb479e020bcec82d81019bca0a",
     "src/review-policy.mjs": "c0b4496133b3b7d84b990c9c3ce39bed5f86dd6799600505fd5bf491eb4a8a6d",
     "src/review-state.mjs": "19407858e58a018aa5b3cffaad48f64bd4deafacb4ca78e46d0ac70212b3d88f",
     "src/review-templates.mjs": "248acb9c47418ce9ca93215563d31e9fe3bfd8d6e698ae212cbd2cbca57b652b",
-    "src/test-review-skill.mjs": "5ac0bc8e7fab29c7c18e1d11db2ce455bc3c95612768c5888d98ac9a1d2512d7",
+    "src/test-review-skill.mjs": "0bd68e090e7a42c5008634506983ed9063f7df67ea8c4598bbddb778b4643727",
     "src/test-review-snapshot.mjs": "af7402a81321fdc31b25ecca972b6c40b77a695521fd3ca3ef60db83e6d3f9fd",
     "test/deny-network.mjs": "e68f1423df987539161247f7db7d3092286740e12f661de79a83098fdaacfa22",
+    "test/dry-run-diagnostics.test.mjs": "1b4fe4f07b2c223556124e43c974234b7510fec76cfa652b13fa98fa59080933",
     "test/enhancements.test.mjs": "dbce6b348a553c22f7ceb7a4d05d91e859501c4d0a34cbad2ace8617e9007a69",
     "test/helpers.mjs": "bc5348d179d43a56c087b60006b5ffebf24f5aa7266c64452fbce54f6f09fb9d",
     "test/regressions.test.mjs": "59c77d887706e024c47882f387b124f311eaa748c024b511fad0a9db166929e6",
-    "test/skill-bridge.test.mjs": "fb5d5c6355265aef07c6c1319faf1f01622c1008c1041e4d1a45b2680eed3070",
-    "scripts/offline-acceptance.mjs": "42b1b060c5b9b6d1b08176180200b16e1b6d9688c18f62b22eb6e49ccffc007e",
-    "scripts/replay-sglang.mjs": "10c00e6b5a84d455189260beb84148cb58c7b33f96956e2693f54216342d468a"
+    "test/skill-bridge.test.mjs": "34ced765f64b55417d23b75e27503a66603c8d8c96fc1d5518a09c76f7391043",
+    "scripts/offline-acceptance.mjs": "6b1f13b8c3f13e83f0ebc56176354d3ed5835aadb813c5fda5cf21b4157da161",
+    "scripts/replay-sglang.mjs": "10c00e6b5a84d455189260beb84148cb58c7b33f96956e2693f54216342d468a",
+    "scripts/dry-run-codex.mjs": "3788a56473cdb015a6b65cf723de7567d83f1a2f035a7842377b7733ea0b9601"
   }
 }

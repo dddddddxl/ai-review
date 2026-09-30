@@ -73,7 +73,8 @@ test('skill bridge checks source was actually read, not model asserted', integra
   const f = await setup(t); const provider = await createGitEvidence({ repo: f.repo, baseSha: f.base, headSha: f.head, files: f.files });
   const budget = createEvidenceBudget(); const common = { client: finalClient(f.analysis), provider, budget, skill: f.skill, snapshot: f.snapshot,
     artifacts: {}, repo: f.repo, outputRoot: path.join(f.directory, 'out'), isCurrent: async () => true };
-  assert.equal((await reviewTests(common)).status, 'incomplete');
+  const unread = await reviewTests(common);
+  assert.equal(unread.status, 'incomplete'); assert.equal(unread.diagnostic.code, 'source_not_read');
   for (const e of f.analysis.evidence) budget.records.push({ id: e.id, status: 'available', ...await provider.execute({ tool: 'read_file', revision: e.revision, path: e.path, start: e.start, end: e.end }) });
   assert.equal((await reviewTests(common)).status, 'validated');
 });

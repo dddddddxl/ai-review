@@ -15,7 +15,7 @@ const counts = Object.fromEntries(['tests', 'pass', 'fail', 'cancelled', 'skippe
 if (exitCode !== 0 || !counts.tests || counts.pass !== counts.tests || counts.fail || counts.skipped || counts.cancelled || counts.todo) throw new Error('Offline acceptance incomplete');
 const files = ['package.json'];
 for (const dir of ['src', 'test']) for (const file of (await fs.readdir(dir)).sort()) if (file.endsWith('.mjs')) files.push(`${dir}/${file}`);
-for (const file of ['scripts/offline-acceptance.mjs', 'scripts/replay-sglang.mjs']) files.push(file);
+for (const file of ['scripts/offline-acceptance.mjs', 'scripts/replay-sglang.mjs', 'scripts/dry-run-codex.mjs']) files.push(file);
 const hashes = {};
 for (const file of files) hashes[file] = sha256((await fs.readFile(file, 'utf8')).replace(/\r\n/g, '\n'));
 await fs.mkdir('docs', { recursive: true });
