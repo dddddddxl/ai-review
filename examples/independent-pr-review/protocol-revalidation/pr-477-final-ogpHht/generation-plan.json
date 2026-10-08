@@ -1,0 +1,335 @@
+{
+  "plan_schema_version": 1,
+  "status": "ready_for_review",
+  "repository": "https://github.com/HYGON-AI/sglang-das",
+  "source_commit": "3b7049f294910ae75265c5dc66d2a93798460afc",
+  "platform": "HCU",
+  "tasks": [
+    {
+      "id": "T-DRAFT-EXTEND",
+      "feature_id": "B-DRAFT-EXTEND",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "先确认既有断言是否命中 HCU DeepSeek MLA 草稿扩展，不预判需要新增测试。",
+      "evidence": [
+        "SRC-META",
+        "SRC-DISPATCH"
+      ],
+      "prerequisites": [
+        "取得冻结 head 候选断言和实际 PR Test (HCU) 选择配置。",
+        "准备 HCU、兼容 MLA 内核和可控 DeepSeek MLA 夹具；运行另需授权。"
+      ],
+      "acceptance": [
+        "记录草稿扩展和普通 EXTEND、skip_prefill 开关的真实分支与参考数值。",
+        "提交同一 run/attempt 的正例、负控、选择和执行身份；未知项不得记为通过。"
+      ],
+      "cases": [
+        {
+          "id": "C-DRAFT-EXTEND",
+          "name": "草稿扩展元数据及分发",
+          "inputs": "topk=1，多请求和不同接受长度，分别使用受支持的非 FP8/FP8 缓存，并以普通 EXTEND 对照。",
+          "expected": "草稿扩展使用 MLA 路径，初始化条件正确，数值符合独立参考；普通 EXTEND 保留委托。",
+          "oracle": "独立注意力参考加分支调用及缓存记录。",
+          "negative_control": "隔离测试副本恢复旧分发或去除新增元数据初始化，相关分支断言应能检测差异。"
+        }
+      ],
+      "lanes": [
+        "PR Test (HCU)"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    },
+    {
+      "id": "T-FACTORY",
+      "feature_id": "B-FACTORY",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "核验既有工厂返回约定断言，截断搜索不能证明缺测试。",
+      "evidence": [
+        "SRC-FACTORY",
+        "SRC-HCU-FACTORY"
+      ],
+      "prerequisites": [
+        "取得既有工厂测试与注册选择配置。",
+        "准备受控创建函数、父子实例夹具和 HCU 多步后端构造环境；运行另需授权。"
+      ],
+      "acceptance": [
+        "检查二元组、单实例、None 及父子名称标记的具体断言。",
+        "提供旧无条件解包行为的负控和匹配 head 的 CI 选择、执行证据；CPU mock 不证明 HCU 数值正确。"
+      ],
+      "cases": [
+        {
+          "id": "C-FACTORY-RETURN",
+          "name": "返回类型和父子名称",
+          "inputs": "创建函数返回名称与实例二元组、单实例、None；分别开启或关闭 stamps_children。",
+          "expected": "实例身份保持，非空实例按约定获得显式或配置名称；None 保持 None，HCU 多步构造不出现解包错误。",
+          "oracle": "夹具预置的实例身份和名称期望表。",
+          "negative_control": "恢复旧无条件二元组解包，单实例用例应检测错误。"
+        }
+      ],
+      "lanes": [
+        "PR Test (HCU)"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    },
+    {
+      "id": "T-CUMSUM-DTYPE",
+      "feature_id": "B-CUMSUM-DTYPE",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "需要阅读候选注意力断言，确认检查 dtype 而非仅 shape。",
+      "evidence": [
+        "SRC-DTYPE"
+      ],
+      "prerequisites": [
+        "取得候选测试有效源码区间与实际选择证据。",
+        "准备可观测前缀和的入口夹具与 HCU 运行环境；执行另需授权。"
+      ],
+      "acceptance": [
+        "精确核对 int32 输入的前导零、累加数值和结果 dtype。",
+        "负控能区分省略 dtype 的旧实现，且具备匹配 head 的 CI 选择和执行证据。"
+      ],
+      "cases": [
+        {
+          "id": "C-CUMSUM-INT32",
+          "name": "异长缓存前缀和",
+          "inputs": "int32 缓存长度 [2,5,1]，具备变长入口所需查询元数据和页表。",
+          "expected": "前缀和为 [0,2,7,8]，dtype 为 int32。",
+          "oracle": "预先计算的整数常量与 dtype 常量，不复用被测累加。",
+          "negative_control": "删除新增 dtype 参数，dtype 断言应检测差异。"
+        }
+      ],
+      "lanes": [
+        "PR Test (HCU)"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    },
+    {
+      "id": "T-COMPRESSION-CONFIG",
+      "feature_id": "B-COMPRESSION-CONFIG",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "先核验配置回退、优先级及备用识别的已有断言。",
+      "evidence": [
+        "SRC-QUANT"
+      ],
+      "prerequisites": [
+        "取得共享专家量化初始化候选测试和实际选择链。",
+        "准备仅 compression_config、空 quantization_config、双配置及普通分块配置夹具；运行另需授权。"
+      ],
+      "acceptance": [
+        "断言覆盖回退、非空 quantization_config 优先和模块名备用识别。",
+        "提供删除回退的可检测负控，并补齐目标 lane 的选择与匹配 head 的执行身份。"
+      ],
+      "cases": [
+        {
+          "id": "C-COMPRESSION-FALLBACK",
+          "name": "压缩配置回退和优先级",
+          "inputs": "FP8 共享专家，分别仅有压缩 compression_config、空 quantization_config、双配置；普通分块量化作对照。",
+          "expected": "前两种可识别压缩配置，双配置保留非空 quantization_config 优先；普通分块量化按原块大小路径处理。",
+          "oracle": "预设配置与初始化路径表，控制模块名备用识别以免掩盖回退。",
+          "negative_control": "去掉 compression_config 回退，在模块名备用识别不命中的夹具中应检测初始化路径变化。"
+        }
+      ],
+      "lanes": [
+        "PR Test (HCU)"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    }
+  ],
+  "scope": {
+    "platform": "HCU",
+    "extent": "bounded",
+    "lanes": [
+      "PR Test (HCU)"
+    ],
+    "limitations": [
+      "本轮仅据新请求复用原先 24 条真实取证记录，没有继续取证、运行目标代码、收集或运行测试、安装依赖、重跑 CI。",
+      "continued_context：本轮不是新的 fresh_context 首次审查。原首次审查及原回复全部保留；未接触预标注答案、evaluation、他人报告、GitHub 评论或业务 checkout。",
+      "E1/E2/E3/E5/E7/E23 为 line_range_invalid，不计作已读源码；E12/E18/E19/E20 搜索截断，不能据阴性结果证明不存在测试。",
+      "工作流正文 E22 和 EAGLE 候选测试正文 E24 被 content_denied 拒绝。E21 仅完整枚举限定的 test/registered/hcu/spec 路径，不是全仓覆盖清单。",
+      "selection_evidence 仅引用已读实现所确定的必要运行分支，用于说明待核验的选择条件；这些 source 引用不是 workflow、selector 或 CI 命中证明，故 selection 均保持 unknown。",
+      "快照显示 HCU run 37726043294 attempt 1 的 required-1、required-2 和 finish 失败；run 37735182751 attempt 1 尚未结束，required-1 失败，required-3 尚无结论。未取得相应逐测试失败日志和运行身份，原因及与本 PR 的因果关系未知。",
+      "输入列出的日志工件未读取，不能将 PR 状态更新、取消工作流或 gate 成功当作功能测试通过。",
+      "pull_request_target 的实际 workflow 版本、矩阵、suite/selector、外部配置和分支门禁未完整核验；head 源码不能代替实际执行配置。",
+      "没有匹配的 checkout、实际安装产物身份和逐测例结果；observations 为空，执行未核验。合并提交的发布结果不回填 PR head。",
+      "没有同版本 coverage 工件，代码行及分支覆盖率未测量；本报告不是批准合并或保证无缺陷。",
+      "元数据不能证明具体场景、checkout 或安装产物身份。",
+      "未执行测试；外部调度、不可见配置与动态选择可能无法核验。"
+    ]
+  },
+  "source_fingerprints": {
+    "python/sglang/srt/layers/attention/flashattention_interface.py": "21e270db4bc12e7099026c242c78367615daaa726076c945b9c3b830ec1f7f6b",
+    "python/sglang/srt/layers/attention/hcu_mla_backend.py": "5d46e8f5a908c19ffef6d601d672f9681facff17b6d91259dc4d7a20ad496c57",
+    "python/sglang/srt/models/deepseek_v2.py": "2aa71c708e3bc5e20ebed1f3af0ee84e0ca19da46541ad95253d735c3aa03360",
+    "python/sglang/srt/speculative/draft_utils.py": "4b85f39072f03bb658a91a134d291b5e3ece734a63c4749610fdc36b104b0c0a"
+  },
+  "evidence": [
+    {
+      "id": "SRC-DTYPE",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/flashattention_interface.py",
+      "revision": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "start": 161,
+      "end": 185,
+      "claim": "E9：变长入口条件及 cumsum 的显式 int32；只证明待测试实现和触发条件，不证明 CI 选中。",
+      "sha256": "49c56b5d1695e4b24c6c87e947111450f349965ba4a7cb597092837f657a64cd"
+    },
+    {
+      "id": "SRC-META",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/hcu_mla_backend.py",
+      "revision": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "start": 247,
+      "end": 308,
+      "claim": "E6：DRAFT_EXTEND_V2 元数据分支在非 skip_prefill 下新增 FlashAttention 初始化；不是测试运行证据。",
+      "sha256": "51abef72664ea1869d791a4a35768879cbfa41f8ce3d87531d07a75e3c3154a9"
+    },
+    {
+      "id": "SRC-DISPATCH",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/hcu_mla_backend.py",
+      "revision": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "start": 848,
+      "end": 920,
+      "claim": "E10/E14 的连续已读区间：仅普通 EXTEND 委托 FlashAttention，其他模式继续进行缓存写入和 MLA 调用；不是 CI 选择证据。",
+      "sha256": "51abef72664ea1869d791a4a35768879cbfa41f8ce3d87531d07a75e3c3154a9"
+    },
+    {
+      "id": "SRC-QUANT",
+      "kind": "source",
+      "path": "python/sglang/srt/models/deepseek_v2.py",
+      "revision": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "start": 853,
+      "end": 900,
+      "claim": "E4：FP8 共享专家先读取 quantization_config，缺失或为空时回退 compression_config，并保留模块名识别途径。",
+      "sha256": "29411a934ec36aa63add1c7b8cdc2e3014e4058f754b3611177e6c0988b0b7f4"
+    },
+    {
+      "id": "SRC-FACTORY",
+      "kind": "source",
+      "path": "python/sglang/srt/speculative/draft_utils.py",
+      "revision": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "start": 61,
+      "end": 125,
+      "claim": "E8：创建函数返回二元组或单实例均可处理，非空后端被标记名称；多步解码后端仅在步数大于 1 时继续构造。",
+      "sha256": "d304fb348d9873db405604fcf1eff389a0379118e01312540c616bf7b46ea396"
+    },
+    {
+      "id": "SRC-HCU-FACTORY",
+      "kind": "source",
+      "path": "python/sglang/srt/speculative/draft_utils.py",
+      "revision": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "start": 364,
+      "end": 376,
+      "claim": "E16：HCU 多步草稿创建函数显式返回 hcu_mla 名称和后端实例。",
+      "sha256": "d304fb348d9873db405604fcf1eff389a0379118e01312540c616bf7b46ea396"
+    }
+  ],
+  "unselected_dependencies": [],
+  "planning": [
+    {
+      "task_id": "T-DRAFT-EXTEND",
+      "next_action": "verify_existing",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "C-DRAFT-EXTEND",
+          "name": "草稿扩展元数据及分发",
+          "inputs": "topk=1，多请求和不同接受长度，分别使用受支持的非 FP8/FP8 缓存，并以普通 EXTEND 对照。",
+          "expected": "草稿扩展使用 MLA 路径，初始化条件正确，数值符合独立参考；普通 EXTEND 保留委托。",
+          "oracle": "独立注意力参考加分支调用及缓存记录。",
+          "negative_control": "隔离测试副本恢复旧分发或去除新增元数据初始化，相关分支断言应能检测差异。",
+          "scenario_id": "C-DRAFT-EXTEND",
+          "identity_mode": "explicit"
+        }
+      ]
+    },
+    {
+      "task_id": "T-FACTORY",
+      "next_action": "verify_existing",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "C-FACTORY-RETURN",
+          "name": "返回类型和父子名称",
+          "inputs": "创建函数返回名称与实例二元组、单实例、None；分别开启或关闭 stamps_children。",
+          "expected": "实例身份保持，非空实例按约定获得显式或配置名称；None 保持 None，HCU 多步构造不出现解包错误。",
+          "oracle": "夹具预置的实例身份和名称期望表。",
+          "negative_control": "恢复旧无条件二元组解包，单实例用例应检测错误。",
+          "scenario_id": "C-FACTORY-RETURN",
+          "identity_mode": "explicit"
+        }
+      ]
+    },
+    {
+      "task_id": "T-CUMSUM-DTYPE",
+      "next_action": "verify_existing",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "C-CUMSUM-INT32",
+          "name": "异长缓存前缀和",
+          "inputs": "int32 缓存长度 [2,5,1]，具备变长入口所需查询元数据和页表。",
+          "expected": "前缀和为 [0,2,7,8]，dtype 为 int32。",
+          "oracle": "预先计算的整数常量与 dtype 常量，不复用被测累加。",
+          "negative_control": "删除新增 dtype 参数，dtype 断言应检测差异。",
+          "scenario_id": "C-CUMSUM-INT32",
+          "identity_mode": "explicit"
+        }
+      ]
+    },
+    {
+      "task_id": "T-COMPRESSION-CONFIG",
+      "next_action": "verify_existing",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "C-COMPRESSION-FALLBACK",
+          "name": "压缩配置回退和优先级",
+          "inputs": "FP8 共享专家，分别仅有压缩 compression_config、空 quantization_config、双配置；普通分块量化作对照。",
+          "expected": "前两种可识别压缩配置，双配置保留非空 quantization_config 优先；普通分块量化按原块大小路径处理。",
+          "oracle": "预设配置与初始化路径表，控制模块名备用识别以免掩盖回退。",
+          "negative_control": "去掉 compression_config 回退，在模块名备用识别不命中的夹具中应检测初始化路径变化。",
+          "scenario_id": "C-COMPRESSION-FALLBACK",
+          "identity_mode": "explicit"
+        }
+      ]
+    }
+  ],
+  "authorization": "No code, CI or execution changes authorized by this check",
+  "origin_mode": "pr_ci_review",
+  "pr_context": {
+    "number": 477,
+    "url": "https://github.com/HYGON-AI/sglang-das/pull/477",
+    "base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+    "head_sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+    "diff_base": "cfa865d339c0d7191dd044e6980006be799a570a",
+    "head_repository": "zhangang1221/sglang-das-0518",
+    "captured_at": "2026-10-08T07:02:45.170Z",
+    "snapshot_sha256": "46352032e0480a3439ff82754ee287838e770e3399a20a7676afeb8e5804405e"
+  }
+}

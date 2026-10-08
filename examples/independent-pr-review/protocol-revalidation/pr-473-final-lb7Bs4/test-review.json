@@ -1,0 +1,13 @@
+{
+  "status": "incomplete",
+  "diagnostic": {
+    "stage": "evidence",
+    "code": "source_not_read"
+  },
+  "report": "测试覆盖审查未完成（阶段：evidence；原因：source_not_read）。不能据此判断没有测试缺口。",
+  "limitations": [
+    "未形成通过校验的测试审查；未执行代码或测试。"
+  ],
+  "validation_status": "incomplete",
+  "evidence_complete": false
+}

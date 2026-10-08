@@ -1,0 +1,17 @@
+{
+  "kind": "deterministic_host_EOF_repair_not_blind",
+  "original_reply_sha256": "3f79b6a94d632cfc5503dcab2799199b0efdc7975db2bf200c2ccc695b6d82b5",
+  "changes": [
+    {
+      "id": "S_TOPK_TEST_RAGGED",
+      "field": "end",
+      "before": 470,
+      "after": 469,
+      "reason": "remove_host_reported_phantom_terminal_line"
+    }
+  ],
+  "semantic_findings_changed": false,
+  "original_output_preserved": true,
+  "new_evidence_fetched_by_reviewer": false,
+  "target_tests_executed": false
+}

@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","path":"python/sglang/srt/managers/detokenizer_manager.py","start":1,"end":140},{"tool":"read_file","path":"python/sglang/srt/managers/detokenizer_manager.py","start":260,"end":349},{"tool":"read_file","path":"python/sglang/srt/managers/scheduler_components/output_streamer.py","start":560,"end":740}]}

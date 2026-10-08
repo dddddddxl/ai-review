@@ -1,0 +1,57 @@
+来源：/repos/HYGON-AI/sglang-das/actions/jobs/113150099600/logs
+run=37727766505; attempt=1; job=113150099600; head_sha=4343158c539992308a0ec9fcf9da7e4f38426f0f
+截断：false
+2026-10-08T04:31:29.0063475Z Current runner version: '2.337.0'
+2026-10-08T04:31:29.0068678Z Runner name: 'quality-nmz4'
+2026-10-08T04:31:29.0069346Z Runner group name: 'ci-quality'
+2026-10-08T04:31:29.0070124Z Machine name: 'github-nmz4'
+2026-10-08T04:31:29.0072491Z ##[group]GITHUB_TOKEN Permissions
+2026-10-08T04:31:29.0074364Z Contents: read
+2026-10-08T04:31:29.0074894Z Metadata: read
+2026-10-08T04:31:29.0075441Z ##[endgroup]
+2026-10-08T04:31:29.0077291Z Secret source: None
+2026-10-08T04:31:29.0078213Z Cache mode: write
+2026-10-08T04:31:29.0078896Z Prepare workflow directory
+2026-10-08T04:31:29.1272119Z Prepare all required actions
+2026-10-08T04:31:29.1318902Z Uses: HYGON-AI/quality-gate/.github/workflows/pr-quality-gate.yml@refs/tags/stable (11e41137c3691ea13be41aff761851f6e354ada9)
+2026-10-08T04:31:29.1322780Z ##[group] Inputs
+2026-10-08T04:31:29.1323415Z   runner_labels: ["self-hosted","linux","x64","quality"]
+2026-10-08T04:31:29.1324027Z ##[endgroup]
+2026-10-08T04:31:29.1324652Z Complete job name: Checks / All required checks
+2026-10-08T04:31:29.3365569Z ##[group]Run set -euo pipefail
+2026-10-08T04:31:29.3366260Z [36;1mset -euo pipefail[0m
+2026-10-08T04:31:29.3366752Z [36;1m[0m
+2026-10-08T04:31:29.3367225Z [36;1mif test "$CHECKS_RESULT" = "success"; then[0m
+2026-10-08T04:31:29.3367826Z [36;1m  display_result="Passed / 通过"[0m
+2026-10-08T04:31:29.3368441Z [36;1m  decision="✅ **质量门禁通过；是否可合并以仓库保护规则为准。**"[0m
+2026-10-08T04:31:29.3368990Z [36;1m  result=0[0m
+2026-10-08T04:31:29.3369421Z [36;1melse[0m
+2026-10-08T04:31:29.3369862Z [36;1m  display_result="Failed / 未通过"[0m
+2026-10-08T04:31:29.3370432Z [36;1m  decision="❌ **质量门禁未通过：至少一项检查失败、未完成或扫描无效。**"[0m
+2026-10-08T04:31:29.3370994Z [36;1m  result=1[0m
+2026-10-08T04:31:29.3371438Z [36;1mfi[0m
+2026-10-08T04:31:29.3371844Z [36;1m[0m
+2026-10-08T04:31:29.3372242Z [36;1m{[0m
+2026-10-08T04:31:29.3372700Z [36;1m  echo "# All required checks · PR 门禁汇总"[0m
+2026-10-08T04:31:29.3373250Z [36;1m  echo ""[0m
+2026-10-08T04:31:29.3373707Z [36;1m  echo "$decision"[0m
+2026-10-08T04:31:29.3374255Z [36;1m  echo ""[0m
+2026-10-08T04:31:29.3374866Z [36;1m  echo "门禁版本：${QUALITY_GATE_VERSION} · 执行 SHA：${QUALITY_GATE_SHA}"[0m
+2026-10-08T04:31:29.3375534Z [36;1m  echo ""[0m
+2026-10-08T04:31:29.3376029Z [36;1m  echo '<details><summary>汇总状态</summary>'[0m
+2026-10-08T04:31:29.3376595Z [36;1m  echo ""[0m
+2026-10-08T04:31:29.3377107Z [36;1m  echo "| Check Group / 检查组 | Status / 状态 |"[0m
+2026-10-08T04:31:29.3377696Z [36;1m  echo "| --- | --- |"[0m
+2026-10-08T04:31:29.3378333Z [36;1m  echo "| Incremental Checks / 增量检查 | $display_result |"[0m
+2026-10-08T04:31:29.3378950Z [36;1m  echo ""[0m
+2026-10-08T04:31:29.3379412Z [36;1m  echo '</details>'[0m
+2026-10-08T04:31:29.3379924Z [36;1m} >> "$GITHUB_STEP_SUMMARY"[0m
+2026-10-08T04:31:29.3380445Z [36;1m[0m
+2026-10-08T04:31:29.3380877Z [36;1mexit "$result"[0m
+2026-10-08T04:31:29.3399486Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-08T04:31:29.3400327Z env:
+2026-10-08T04:31:29.3400799Z   QUALITY_GATE_VERSION: v2.0.7
+2026-10-08T04:31:29.3401376Z   CHECKS_RESULT: success
+2026-10-08T04:31:29.3401959Z   QUALITY_GATE_SHA: 11e41137c3691ea13be41aff761851f6e354ada9
+2026-10-08T04:31:29.3402570Z ##[endgroup]
+2026-10-08T04:31:29.3654056Z Cleaning up orphan processes

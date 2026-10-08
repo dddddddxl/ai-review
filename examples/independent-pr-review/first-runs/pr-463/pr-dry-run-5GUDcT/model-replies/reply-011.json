@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_artifact","path":"artifacts/run-36663746175-attempt-1-job-109723883930.txt"},{"tool":"find_files","query":"test_hcu"},{"tool":"find_files","query":"workflow"},{"tool":"read_file","path":".github/workflows/hcu-full-enabled.yml"},{"tool":"search_code","query":"bw1100","prefix":"test/"},{"tool":"read_ci"}]}

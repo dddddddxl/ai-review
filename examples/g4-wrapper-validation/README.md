@@ -60,7 +60,7 @@
 使用用户指定镜像 `sha256:3ba7d7248f7e082e179f3b8064104232d6fcb5fa3f4398cb0e641810ee6b978f`：Python 3.10.12、PyTorch 2.11.0、HIP build 6.3.26113。
 资源限制为 1 CPU / 2 GiB / 128 PIDs；无网络、无设备映射、无 privileged、drop ALL capabilities、只读根文件系统；只读挂载必要库与任务输入。
 结果写容器 tmpfs，导出后核对原始日志/XML 哈希；未安装节点依赖、未读取模型目录、未修改或停止既有 nightly 容器。
-执行前后设备未初始化；本轮创建的 `codex-g4-cpu-20261008` 容器已删除。任务专属临时输入/工件保留，不含密码。
+执行前后设备未初始化；此前实测阶段创建的 `codex-g4-cpu-20261008` 容器已删除。本轮 v2 协议收尾未创建容器或重跑目标测试。任务专属临时输入/工件保留，不含密码。
 
 实际产品源码来自固定 Git archive，不使用镜像内未知版本的 sglang wheel。source.tar 的 SHA256：`63a5f78ae5094d7339e0060ff3d1a76a1f7b0409bf9fea07772e4713e9326bdb`。
 执行身份 `patch_sha256` 为实际包装器、新测试和注册模块的规范文件哈希清单摘要，不是 Git diff hash；原始目标 checkout 保持干净。

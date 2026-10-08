@@ -1,0 +1,46 @@
+{
+  "kind": "deterministic_format_repair_not_blind",
+  "original_reply_sha256": "56484d3ae52e9c278f4ca14652bfaaa6df6310ee674094e8e55bc91384a9b844",
+  "changed": [
+    {
+      "id": "SRC-DTYPE",
+      "field": "revision",
+      "before": "head",
+      "after": "3b7049f294910ae75265c5dc66d2a93798460afc"
+    },
+    {
+      "id": "SRC-META",
+      "field": "revision",
+      "before": "head",
+      "after": "3b7049f294910ae75265c5dc66d2a93798460afc"
+    },
+    {
+      "id": "SRC-DISPATCH",
+      "field": "revision",
+      "before": "head",
+      "after": "3b7049f294910ae75265c5dc66d2a93798460afc"
+    },
+    {
+      "id": "SRC-QUANT",
+      "field": "revision",
+      "before": "head",
+      "after": "3b7049f294910ae75265c5dc66d2a93798460afc"
+    },
+    {
+      "id": "SRC-FACTORY",
+      "field": "revision",
+      "before": "head",
+      "after": "3b7049f294910ae75265c5dc66d2a93798460afc"
+    },
+    {
+      "id": "SRC-HCU-FACTORY",
+      "field": "revision",
+      "before": "head",
+      "after": "3b7049f294910ae75265c5dc66d2a93798460afc"
+    }
+  ],
+  "semantic_findings_changed": false,
+  "original_output_preserved": true,
+  "new_evidence_fetched": false,
+  "caveat": "This only revalidates the unchanged first analysis after explicit version-field repair; it is not a new blind review or a successful CI run."
+}

@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","path":".github/workflows/nightly-test-hcu.yml","start":294},{"tool":"read_file","path":".github/workflows/nightly-test-image-hcu.yml"}]}

@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"find_files","revision":"3b7049f294910ae75265c5dc66d2a93798460afc","prefix":"test","query":"hcu"},{"tool":"search_code","revision":"3b7049f294910ae75265c5dc66d2a93798460afc","prefix":"test","query":"DraftBackendFactory"},{"tool":"find_files","revision":"3b7049f294910ae75265c5dc66d2a93798460afc","prefix":".github","query":"hcu"}]}

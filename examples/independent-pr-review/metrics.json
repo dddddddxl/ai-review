@@ -1,0 +1,73 @@
+{
+  "metrics_version": 1,
+  "annotation_source": "independent_agents_with_root_adjudication",
+  "human_certified": false,
+  "expected_samples": 6,
+  "observed_samples": 6,
+  "sample_shortfall": 0,
+  "tracks": {
+    "code": {
+      "samples": 6,
+      "completed": 0,
+      "supported": 3,
+      "unsupported": 0,
+      "incorrect": 0,
+      "unknown": 0,
+      "detected": 1,
+      "missed": 0,
+      "expected_unknown": 0,
+      "location_correct": 0,
+      "location_incorrect": 0,
+      "location_unknown": 3,
+      "location_not_applicable": 0,
+      "adjudicable_findings": 3,
+      "precision": 1,
+      "labeled_issue_recall": 1,
+      "location_accuracy": null,
+      "location_resolution_rate": 0,
+      "completion_rate": 0
+    },
+    "tests": {
+      "samples": 6,
+      "completed": 0,
+      "supported": 8,
+      "unsupported": 0,
+      "incorrect": 0,
+      "unknown": 0,
+      "detected": 2,
+      "missed": 4,
+      "expected_unknown": 7,
+      "location_correct": 0,
+      "location_incorrect": 0,
+      "location_unknown": 8,
+      "location_not_applicable": 0,
+      "adjudicable_findings": 8,
+      "precision": 1,
+      "labeled_issue_recall": 0.3333333333333333,
+      "location_accuracy": null,
+      "location_resolution_rate": 0,
+      "completion_rate": 0
+    }
+  },
+  "observability": {
+    "samples_recorded": 6,
+    "model_turns": 73,
+    "tool_request_rounds": 42,
+    "requested_tools": 123,
+    "retained_evidence_records": 122
+  },
+  "definitions": {
+    "precision": "supported / (supported + unsupported + incorrect); unknown 单列",
+    "labeled_issue_recall": "detected / (detected + missed); 仅对预先标注且可裁定的问题计算",
+    "location_accuracy": "correct / (correct + incorrect); 不适用和无法验证项单列",
+    "location_resolution_rate": "已给出可核验定位 / (已定位 + 无法定位)；防止只报已定位项准确率而隐藏大量未定位",
+    "observability": "model_turns 包含分组/候选复核；requested_tools 不是成功取证数，retained_evidence_records 是保留的成功/拒绝/截断工具记录数",
+    "completion_rate": "形成该阶段完整审查结果的样本比例；不是 CI 或硬件通过率",
+    "empty_denominator": "null，不能把没有可判定项写成 100%"
+  },
+  "limitations": [
+    "独立代理标注并由主代理复核，不是人工认证。",
+    "指标只描述冻结样本和已标注范围，不是全仓或生产召回率。",
+    "工件哈希核验不能证明业务判断正确。"
+  ]
+}

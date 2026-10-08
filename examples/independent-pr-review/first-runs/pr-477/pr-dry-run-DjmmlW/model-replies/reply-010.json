@@ -1,0 +1,180 @@
+{
+  "action": "final",
+  "result": {
+    "review_version": 1,
+    "head_sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+    "diff_base": "cfa865d339c0d7191dd044e6980006be799a570a",
+    "diff_base_reason": "使用宿主冻结快照与代码审查请求共同提供的比较基线，未用合并提交或分支最新提交替代。",
+    "platform": "HCU",
+    "summary": "已静态审阅四个变更文件的相关行为，但未取得可读的匹配测试断言及完整选择链，四项行为的设计与选择均为 unknown，执行均未核验。快照中的 HCU PR 测试存在失败及尚未结束的运行，不能视为本次行为通过，也不能仅据 job 状态归因于产品缺陷。建议补充既有测试、选择和运行身份的证据；本次没有证据支持明确缺测例或确认产品回归。",
+    "limitations": [
+      "fresh_context：本代理仅读取自身 bridge 请求和宿主返回的只读证据；未接触预标注答案、其他审查报告、GitHub 评论或业务 checkout。",
+      "未执行代码、测试、测试收集、依赖安装或 CI 重跑。",
+      "共享只读取证预算为 24 次，已用完；多次 read_file 返回 line_range_invalid，不能计为已读源码。",
+      "工作流 .github/workflows/pr-test-hcu.yml（E22）及 EAGLE 候选测试（E24）被宿主 content_denied 拒绝，未取得其正文。",
+      "E18/E20 文件搜索和 E19 DraftBackendFactory 搜索均截断；阴性结果不能证明不存在替代覆盖。E21 仅完整枚举限定的 test/registered/hcu/spec 路径，不是全仓测试清单。",
+      "快照显示 HCU run 37726043294 attempt 1 的 required-1、required-2 及 finish 失败；run 37735182751 attempt 1 尚在运行，required-1 失败，required-3 尚无结论。未取得这些 job 的逐测试日志、checkout 与实际安装产物身份，失败原因及与本 PR 的因果关系未知。",
+      "快照中的可用日志工件仅涉及关闭工作流、PR 状态更新与 PR gate；未读取这些工件，也未把它们当作功能测试证据。",
+      "pull_request_target 的实际 workflow 版本、矩阵、suite/selector、外部配置和分支门禁未完整核验；head 源码不能代替实际执行配置。",
+      "合并提交的发布运行不能证明 PR head 的测试结果；没有同版本 coverage 工件，代码行及分支覆盖率未测量。"
+    ],
+    "files": [
+      {"path":"python/sglang/srt/layers/attention/flashattention_interface.py","status":"reviewed","reason":"已核对变长缓存入口和 int32 累加改动；匹配测试及实际执行证据未知。"},
+      {"path":"python/sglang/srt/layers/attention/hcu_mla_backend.py","status":"reviewed","reason":"已核对 DRAFT_EXTEND_V2 元数据、分发、缓存写入及 MLA 调用片段；未完成完整调用图和硬件验证。"},
+      {"path":"python/sglang/srt/models/deepseek_v2.py","status":"reviewed","reason":"已核对 compression_config 回退与共享专家压缩量化识别上下文；匹配断言未知。"},
+      {"path":"python/sglang/srt/speculative/draft_utils.py","status":"reviewed","reason":"已核对工厂返回类型兼容、父子后端名称标记与 HCU 多步后端构造；匹配断言未知。"}
+    ],
+    "evidence": [
+      {"id":"SRC-DTYPE","kind":"source","path":"python/sglang/srt/layers/attention/flashattention_interface.py","revision":"head","start":161,"end":185,"claim":"E9：变长缓存入口为 cumsum 显式指定 int32；这是需验证的 dtype 行为，不是测试证据。"},
+      {"id":"SRC-META","kind":"source","path":"python/sglang/srt/layers/attention/hcu_mla_backend.py","revision":"head","start":247,"end":308,"claim":"E6：DRAFT_EXTEND_V2 创建 MLA 元数据后，在非 skip_prefill 下新增 FlashAttention 元数据初始化。"},
+      {"id":"SRC-DISPATCH","kind":"source","path":"python/sglang/srt/layers/attention/hcu_mla_backend.py","revision":"head","start":848,"end":920,"claim":"E10/E14：仅普通 EXTEND 委托 FlashAttention；草稿扩展继续经过缓存写入和 MLA 调用。"},
+      {"id":"SRC-QUANT","kind":"source","path":"python/sglang/srt/models/deepseek_v2.py","revision":"head","start":853,"end":900,"claim":"E4：quantization_config 缺失或为空时回退读取 compression_config，再识别 compressed-tensors。"},
+      {"id":"SRC-FACTORY","kind":"source","path":"python/sglang/srt/speculative/draft_utils.py","revision":"head","start":61,"end":101,"claim":"E8：工厂兼容二元组或单实例返回，并为非空后端及可选子后端写入名称。"},
+      {"id":"SRC-HCU-FACTORY","kind":"source","path":"python/sglang/srt/speculative/draft_utils.py","revision":"head","start":364,"end":376,"claim":"E16：HCU 多步草稿后端创建函数显式返回 hcu_mla 名称与后端实例。"}
+    ],
+    "behaviors": [
+      {
+        "id":"B-DRAFT-EXTEND",
+        "name":"HCU MLA 草稿扩展元数据与前向分发",
+        "changed_paths":["python/sglang/srt/layers/attention/hcu_mla_backend.py"],
+        "before":"DRAFT_EXTEND_V2 在 forward_extend 中与普通 EXTEND 一同委托 FlashAttention；相应元数据分支未调用 FlashAttention 初始化。",
+        "after":"DRAFT_EXTEND_V2 使用 MLA 前向路径，且非 skip_prefill 时补充 FlashAttention 元数据初始化；普通 EXTEND 保留原委托。",
+        "trigger":"HCU MLA 后端接收 DRAFT_EXTEND_V2，分别考虑 skip_prefill 开关、不同接受长度及非 FP8/FP8 缓存。",
+        "risk":"若元数据、缓存索引和查询布局不匹配，可能造成草稿扩展异常或数值偏差；本次未确认发生。",
+        "oracle":"与独立稠密注意力参考或非推测解码对齐数值；同时确认 DRAFT_EXTEND_V2 分支命中、缓存更新及普通 EXTEND 的委托行为。",
+        "counterevidence":"E21 找到 HCU EAGLE Qwen3 DP smoke、nextn、树构建及 ngram 候选；名称不证明 DeepSeek MLA 路径，EAGLE 正文读取被拒绝。其他通用测试尚未完整审阅。",
+        "evidence":["SRC-META","SRC-DISPATCH"],
+        "lane":"PR Test (HCU)",
+        "platform":"HCU",
+        "design":"unknown",
+        "selection":"unknown",
+        "selection_reason":"E22 拒绝提供工作流正文；缺少真实矩阵、runner、selector 及逐测试选择证据。",
+        "selection_evidence":[],
+        "tests":[],
+        "observations":[]
+      },
+      {
+        "id":"B-FACTORY",
+        "name":"草稿后端工厂返回类型兼容及 HCU 名称标记",
+        "changed_paths":["python/sglang/srt/speculative/draft_utils.py"],
+        "before":"工厂统一解包二元组，HCU 创建函数却直接返回多步草稿实例。",
+        "after":"工厂接受二元组或单实例返回；HCU 创建函数显式返回名称与实例，并保留父子名称标记。",
+        "trigger":"配置 HCU 草稿后端且 speculative_num_steps 大于 1，或任一映射创建函数返回单实例。",
+        "risk":"返回约定或父子标记错误可导致构造失败或后续分发使用不符的后端名称；本次未确认新增故障。",
+        "oracle":"受控创建函数覆盖二元组、单实例和 None，断言实例身份、父子名称；另验证 HCU 实际多步后端构造。",
+        "counterevidence":"E19 在限定预算内搜索 DraftBackendFactory 无匹配但发生截断，不能视为不存在单元测试；EAGLE 候选正文未获读取。",
+        "evidence":["SRC-FACTORY","SRC-HCU-FACTORY"],
+        "lane":"PR Test (HCU)",
+        "platform":"HCU",
+        "design":"unknown",
+        "selection":"unknown",
+        "selection_reason":"没有取得对应单元测试注册、选择参数或实际 job 配置。",
+        "selection_evidence":[],
+        "tests":[],
+        "observations":[]
+      },
+      {
+        "id":"B-CUMSUM-DTYPE",
+        "name":"变长缓存累加显式采用 int32",
+        "changed_paths":["python/sglang/srt/layers/attention/flashattention_interface.py"],
+        "before":"torch.cumsum 未显式指定结果 dtype。",
+        "after":"torch.cumsum 显式指定 torch.int32，并与前导零拼接。",
+        "trigger":"三维查询且同时提供查询前缀长度、最大查询长度、页表和缓存长度的入口。",
+        "risk":"dtype 或前缀长度错误可能使下游注意力接口拒绝输入或索引错误；未执行实际接口验证。",
+        "oracle":"对 int32 缓存长度的已知小数组独立计算精确前缀和，核对数值和 dtype，并核验实际后端输入。",
+        "counterevidence":"E18 发现 attention_reference_hcu 候选，但 E23 读取区间无效，未读到任何断言；不将名称视为覆盖。",
+        "evidence":["SRC-DTYPE"],
+        "lane":"PR Test (HCU)",
+        "platform":"HCU",
+        "design":"unknown",
+        "selection":"unknown",
+        "selection_reason":"候选断言、具体注册和 selector 未核验；工作流读取受限。",
+        "selection_evidence":[],
+        "tests":[],
+        "observations":[]
+      },
+      {
+        "id":"B-COMPRESSION-CONFIG",
+        "name":"共享专家压缩量化配置回退",
+        "changed_paths":["python/sglang/srt/models/deepseek_v2.py"],
+        "before":"仅从 config.quantization_config 获取配置，另保留量化方法模块的识别途径。",
+        "after":"前者缺失或为空时读取 config.compression_config；非空 quantization_config 仍优先。",
+        "trigger":"共享专家使用 FP8，配置仅包含 compression_config 或 quantization_config 为空。",
+        "risk":"配置识别错误可能把压缩张量路径当作普通分块量化处理；仍需验证其他量化配置不受影响。",
+        "oracle":"使用已知 compressed-tensors 配置和普通分块配置建立独立期望表，检查初始化路径及配置优先级。",
+        "counterevidence":"已读初始化实现，尚未取得覆盖仅 compression_config、双配置优先级和量化模块备用识别的断言；无法判断替代测试是否存在。",
+        "evidence":["SRC-QUANT"],
+        "lane":"PR Test (HCU)",
+        "platform":"HCU",
+        "design":"unknown",
+        "selection":"unknown",
+        "selection_reason":"未取得匹配断言、测试注册及运行选择证据。",
+        "selection_evidence":[],
+        "tests":[],
+        "observations":[]
+      }
+    ],
+    "observations":[],
+    "findings":[
+      {
+        "id":"F-EVIDENCE-CHAIN",
+        "kind":"evidence_gap",
+        "severity":"P2",
+        "confidence":"high",
+        "title":"四项变更行为尚缺可核验的断言、选择与执行证据链",
+        "impact":"当前材料无法证明 DeepSeek MLA 草稿扩展、工厂返回兼容、前缀和 dtype 和量化配置回退已被具体测试验证；失败 job 的根因同样未知。这是证据不足，不是已确认缺测例或产品故障。",
+        "recommendation":"补充冻结 head 的候选测试正文和实际 workflow/runner 选择链，并提供同一 run/attempt 的逐测例结果及 checkout、安装产物身份；优先定位 HCU required 失败的真实日志。",
+        "behavior_ids":["B-DRAFT-EXTEND","B-FACTORY","B-CUMSUM-DTYPE","B-COMPRESSION-CONFIG"],
+        "evidence":["SRC-META","SRC-DISPATCH","SRC-FACTORY","SRC-HCU-FACTORY","SRC-DTYPE","SRC-QUANT"],
+        "existing_code":"if forward_batch.forward_mode == ForwardMode.EXTEND:",
+        "evidence_ids":["E4","E6","E8","E9","E10","E14","E16","E19","E21","E22","E23","E24"]
+      }
+    ],
+    "tasks":[
+      {
+        "id":"T-DRAFT-EXTEND",
+        "feature_id":"B-DRAFT-EXTEND",
+        "route":"validate_existing",
+        "priority":"P2",
+        "reason":"先核对既有测试是否真正命中 HCU DeepSeek MLA 的草稿扩展，再判断需要新增测试还是修复选择。",
+        "evidence":["SRC-META","SRC-DISPATCH"],
+        "prerequisites":["取得冻结 head 的候选断言与实际 PR Test (HCU) 选择配置。","准备 HCU、兼容的 MLA 内核及可控 DeepSeek MLA 夹具；执行另需授权。"],
+        "acceptance":["记录普通 EXTEND 与 DRAFT_EXTEND_V2、skip_prefill 开关的实际分支及数值参考。","提供同一 run/attempt 内测试选择、正例、负控、实际 checkout 和安装产物身份；未知证据不得记为通过。"],
+        "cases":[{"id":"C-DRAFT-EXTEND","name":"核验草稿扩展分发和元数据","inputs":"topk=1，多请求及不同接受长度，分别使用非 FP8 与已支持 FP8 缓存；普通 EXTEND 作对照。","expected":"草稿扩展使用 MLA 路径，初始化条件正确，数值与独立参考一致，普通 EXTEND 保留 FlashAttention 委托。","oracle":"独立稠密注意力参考加分支调用记录。","negative_control":"在隔离测试副本恢复旧草稿分发或省略新增元数据初始化，相关分支断言应检测到差异；不得用仅启动成功作为 oracle。"}]
+      },
+      {
+        "id":"T-FACTORY",
+        "feature_id":"B-FACTORY",
+        "route":"validate_existing",
+        "priority":"P2",
+        "reason":"工厂兼容行为需要明确返回约定断言；截断搜索不能证明缺测例。",
+        "evidence":["SRC-FACTORY","SRC-HCU-FACTORY"],
+        "prerequisites":["读取既有工厂单元测试及 HCU 草稿测试。","准备受控后端创建函数、父子实例夹具，并确认测试进入目标 lane。"],
+        "acceptance":["核验二元组、单实例、None 和子后端名称标记的具体断言。","提供可检测旧无条件解包行为的负控及匹配 head 的实际选择和执行证据；CPU mock 不替代 HCU 数值验证。"],
+        "cases":[{"id":"C-FACTORY-RETURN","name":"工厂返回类型与父子标记","inputs":"创建函数分别返回名称与实例二元组、单实例、None；stamps_children 分别开关。","expected":"非空实例身份保持，显式名称或配置名称按约定写入父子后端；None 保持 None；HCU 多步创建不触发返回值解包错误。","oracle":"夹具预置的实例身份与名称期望表。","negative_control":"恢复旧无条件二元组解包，单实例分支应被断言检测。"}]
+      },
+      {
+        "id":"T-CUMSUM-DTYPE",
+        "feature_id":"B-CUMSUM-DTYPE",
+        "route":"validate_existing",
+        "priority":"P2",
+        "reason":"候选注意力测试未能读取，需要确认其验证 dtype 而非只比较最终 shape。",
+        "evidence":["SRC-DTYPE"],
+        "prerequisites":["重新取得候选注意力测试的有效行区间与实际运行选择证据。","准备可观测前缀和的夹具与 HCU 注意力入口；执行另需授权。"],
+        "acceptance":["精确核对 int32 输入的前导零、累加数值及结果 dtype。","负控必须能区分省略 dtype 的旧实现，且补齐匹配 head 的 CI 选择和执行证据。"],
+        "cases":[{"id":"C-CUMSUM-INT32","name":"异长缓存的前缀和 dtype","inputs":"int32 缓存长度 [2,5,1]，满足变长缓存入口的查询和页表。","expected":"构造的前缀和数值为 [0,2,7,8]，dtype 为 int32。","oracle":"人工确定的整数前缀和与 dtype 常量，不复用被测 cumsum。","negative_control":"删除新增 dtype 参数，dtype 断言应检测到变化。"}]
+      },
+      {
+        "id":"T-COMPRESSION-CONFIG",
+        "feature_id":"B-COMPRESSION-CONFIG",
+        "route":"validate_existing",
+        "priority":"P2",
+        "reason":"需核对配置回退与优先级的既有断言，避免把候选搜索未完成写成缺测。",
+        "evidence":["SRC-QUANT"],
+        "prerequisites":["获取共享专家量化初始化的实际候选测试。","提供仅 compression_config、空 quantization_config、双配置及普通分块量化夹具；单元测试执行另需授权。"],
+        "acceptance":["具体断言覆盖回退、非空 quantization_config 优先和原模块名识别路径。","提供可检测删除回退的负控，以及目标 lane 的选择和匹配 head 的执行身份。"],
+        "cases":[{"id":"C-COMPRESSION-FALLBACK","name":"压缩配置回退与优先级","inputs":"FP8 共享专家；分别仅有 compressed-tensors compression_config、空 quantization_config，以及非空 quantization_config 与 compression_config 共存。","expected":"前两种进入压缩配置识别；双配置保留非空 quantization_config 优先规则；普通分块量化仍按其块大小路径处理。","oracle":"预设配置与初始化路径期望表，同时控制量化方法模块名以免备用识别掩盖回退。","negative_control":"移除 compression_config 回退，在模块名备用识别不命中的夹具中，测试应检测到初始化路径差异。"}]
+      }
+    ]
+  }
+}

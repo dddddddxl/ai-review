@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { reviewPrBatches } from './pr-review.mjs';
-import { createGitEvidence, createEvidenceBudget, gitRead, sha256, isSha } from './review-evidence.mjs';
+import { createGitEvidence, createEvidenceBudget, evidenceBudgetState, gitRead, sha256, isSha } from './review-evidence.mjs';
 import { loadRules } from './review-planning.mjs';
 import { loadTestSkill, reviewTests } from './test-review-skill.mjs';
 import { collectTestSnapshot } from './test-review-snapshot.mjs';
@@ -58,6 +58,9 @@ export async function runReviewPipeline(args, { config = enhancementConfig(), oc
       files: args.files.map(f => ({ path: f.filename, state: 'deferred', reason: 'enhancement_unavailable' })), limitations: [preparationError], coverage: { code: 'not_measured', review: 'partial' } };
     result.body = (result.body || '') + '\n\n> 增强审查未完成：' + preparationError;
   }
+  // Preserve code-phase completion independently: later test evidence limits
+  // make the whole review partial without rewriting the code manifest.
+  result.codeReviewPartial = result.partial;
   if (config.testEnabled) {
     result.testReview = provider && skill && !preparationError ? await reviewTests({ client: args.client, provider, budget, skill,
       snapshot: snapshotBundle.snapshot, artifacts: snapshotBundle.artifacts, repo, outputRoot: config.outputRoot,
@@ -65,9 +68,18 @@ export async function runReviewPipeline(args, { config = enhancementConfig(), oc
       status: 'incomplete', report: '测试覆盖审查未完成：固定版本 skill 或审查证据不可用。不能据此判断没有缺口。' };
   }
   result.evidence = budget.records;
+  result.evidenceBudget = evidenceBudgetState(budget);
+  if (result.evidenceBudget.exhausted) {
+    result.partial = true;
+    if (result.testReview) {
+      result.testReview = { ...result.testReview, validation_status: result.testReview.status, status: 'incomplete', evidence_complete: false,
+        report: '> 取证预算已耗尽；以下报告仅基于已取得证据，校验成功不等于证据完整，未完成项不能视为通过。\n\n' + (result.testReview.report || '') };
+    }
+  }
   if (args.state) await args.state.write(sha256({ kind: 'enhanced_report', repository: args.repository, pr: args.pullNumber,
     head: args.headSha, base: args.baseSha, rules: rules?.hash, skill: skill?.hash, evidence: provider?.identity }),
   { repository: args.repository, pullNumber: args.pullNumber, baseSha: args.baseSha, headSha: args.headSha,
-    manifest: result.manifest, testReview: result.testReview, evidence: budget.records });
+    manifest: result.manifest, testReview: result.testReview, evidence: budget.records, evidenceBudget: result.evidenceBudget,
+    partial: result.partial, codeReviewPartial: result.codeReviewPartial });
   return result;
 }

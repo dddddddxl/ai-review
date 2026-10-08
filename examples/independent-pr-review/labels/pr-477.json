@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-477",
+  "repository": "HYGON-AI/sglang-das",
+  "head_sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+  "base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+  "input_sha256": "59e3509894969c793129bd930f3f8ba19e942ce094b6d8dd0c78d0a54fe6537b",
+  "input_path": "../inputs/pr-477.json",
+  "label_origin": "independent_agent_not_human",
+  "labels": [
+    {
+      "id": "477-code-factory-contract",
+      "track": "code",
+      "kind": "supported",
+      "certainty": "confirmed",
+      "description": "HCU draft backend 创建器现在返回 (stamp, backend)，且通用 factory 保留对裸 backend 的兼容分支；静态上可消除该创建路径返回值解包契约不一致。",
+      "evidence": [
+        {
+          "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+          "path": "python/sglang/srt/speculative/draft_utils.py",
+          "start": 76,
+          "end": 103
+        },
+        {
+          "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+          "path": "python/sglang/srt/speculative/draft_utils.py",
+          "start": 364,
+          "end": 377
+        }
+      ],
+      "reason": "返回值使用前先区分 tuple，HCU 创建器明确 stamp=hcu_mla。该局部结论不证明 HCU EAGLE 算法或运行结果正确；没有确认新增 defect。"
+    },
+    {
+      "id": "477-tests-hcu-branch-gap",
+      "track": "tests",
+      "kind": "coverage_gap",
+      "certainty": "confirmed",
+      "description": "现有 factory 单测验证 tuple 返回和 stamp 传播，但使用 triton/trtllm 等替身；已审 worker 单测替换整个 DraftBackendFactory，不能检测真实 HCU 构造器返回契约、DRAFT_EXTEND_V2 路由或 int32 KV 累计长度 ABI。",
+      "evidence": [
+        {
+          "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+          "path": "test/registered/unit/test_split_attention_backend_decisions.py",
+          "start": 232,
+          "end": 295
+        },
+        {
+          "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+          "path": "test/registered/unit/spec/test_eagle_worker_v2_topk1_fastpath.py",
+          "start": 80,
+          "end": 91
+        },
+        {
+          "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+          "path": "test/registered/unit/spec/test_eagle_worker_v2_topk1_fastpath.py",
+          "start": 246,
+          "end": 291
+        },
+        {
+          "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+          "path": "python/sglang/srt/layers/attention/hcu_mla_backend.py",
+          "start": 297,
+          "end": 306
+        },
+        {
+          "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+          "path": "python/sglang/srt/layers/attention/hcu_mla_backend.py",
+          "start": 860,
+          "end": 895
+        },
+        {
+          "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+          "path": "python/sglang/srt/layers/attention/flashattention_interface.py",
+          "start": 177,
+          "end": 183
+        }
+      ],
+      "reason": "PR 四个生产文件均有语义修改但没有测试变更。上述 assertion 有效覆盖通用 wiring，却不覆盖新增 HCU 具体分支；这不是宣称所有端到端测试都不存在。"
+    },
+    {
+      "id": "477-ci-coverage-unknown",
+      "track": "tests",
+      "kind": "evidence_gap",
+      "certainty": "unknown",
+      "description": "固定 head 有 HCU Stage B 失败和未完成分区，且后续关闭取消任务；现有 capture 没有提供相关分区的 assertion/模型启动参数，不能用 smoke 成功或 PR 已关闭来证明 DeepSeek MLA EAGLE 路径通过。",
+      "evidence": [
+        {
+          "path": "../inputs/pr-477.json",
+          "json_pointer": "/snapshot/checks",
+          "check_ids": [
+            113174662066,
+            113174662058,
+            113149325053,
+            113149325066
+          ],
+          "head_sha": "3b7049f294910ae75265c5dc66d2a93798460afc"
+        },
+        {
+          "path": "../inputs/pr-477.json",
+          "json_pointer": "/snapshot/runs",
+          "run_ids": [
+            37735182751,
+            37726043294,
+            37735956674
+          ]
+        },
+        {
+          "path": "../inputs/pr-477.json",
+          "json_pointer": "/artifacts"
+        }
+      ],
+      "reason": "不同运行/attempt 的状态不能混合当作一次全绿验证；缺少定向执行和失败日志仅支持 unknown，不支持代码缺陷归因。"
+    }
+  ],
+  "reviewed_scope": {
+    "code": [
+      "完整4文件diff",
+      "HCUMLABackend metadata与forward_extend路由、FP8/非FP8 decode调用",
+      "DraftBackendFactory创建/child stamping",
+      "DeepseekV2MoE压缩配置分支"
+    ],
+    "tests": [
+      "test_split_attention_backend_decisions.py相关factory assertions",
+      "test_eagle_worker_v2_topk1_fastpath.py factory替身与backend wiring assertions",
+      "DeepSeek HCU cookbook smoke用例和hcu/unit/spec关键词搜索"
+    ],
+    "ci": [
+      "fixture各head对应checks/runs/jobs概要；未读取PR评论与PR正文artifact"
+    ]
+  },
+  "limitations": [
+    "静态审查；未运行目标代码或GPU",
+    "HCU第三方attention内核 ABI 与实际graph capture运行未验证",
+    "未穷举全部模型/量化组合",
+    "没有确认新增代码缺陷；supported只限具体局部契约",
+    "未读取其他reviewer输出"
+  ],
+  "frozen_at": "2026-10-08 07:10:57 UTC"
+}

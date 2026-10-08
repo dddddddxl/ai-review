@@ -1,0 +1,851 @@
+{
+  "provenance": {
+    "kind": "codex_file_bridge_dry_run",
+    "model_api_called": false,
+    "scripted_answers": false,
+    "agent_context": "context_not_independently_verified_not_blind",
+    "blind": false,
+    "mode": "both",
+    "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/463",
+    "repository": "HYGON-AI/sglang-das",
+    "source_head": "bd01fc60d46266c47710784dd7051320edbbe002",
+    "source_base": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+    "diff_base": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+    "history_shallow": true,
+    "ancestry_verified": true,
+    "ci_evidence": "frozen_snapshot_not_current_live_ci",
+    "captured_at": "2026-10-08T07:03:20.285Z",
+    "input_hash": "2880e9e2cc5dda739767a907b14a7b350d58ca87c0fc6f31122dbb24a9448fe5",
+    "skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+    "required_skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_status": "available",
+    "target_tests_executed": false,
+    "github_writes": false,
+    "network": false,
+    "model_window_ms": 1800000,
+    "max_tools": 24
+  },
+  "records": [
+    {
+      "id": "E2",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": ".github/workflows/nightly-test-hcu.yml",
+      "start": 294,
+      "end": 493,
+      "sha256": "e14886d95dccffcc8829ffc5c6c509db91c00199a4635573d782fa836199c38d",
+      "truncated": false
+    },
+    {
+      "id": "E3",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": ".github/workflows/nightly-test-image-hcu.yml",
+      "start": 1,
+      "end": 84,
+      "sha256": "54c0bc7526917abdd4b06753b83a32047e571c84fa510707bf20c9170fdeff91",
+      "truncated": false
+    },
+    {
+      "id": "E1",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": ".github/workflows/hcu-full-enabled.yml",
+          "line": 11,
+          "text": "      runner_label:"
+        },
+        {
+          "path": ".github/workflows/hcu-manual-model-test.yml",
+          "line": 86,
+          "text": "      runner_label:"
+        },
+        {
+          "path": ".github/workflows/hcu-manual-model-test.yml",
+          "line": 437,
+          "text": "          echo \"runner_label=${SELECTED_RUNNER_LABEL}\""
+        },
+        {
+          "path": ".github/workflows/hcu-pd-1p1d.yml",
+          "line": 120,
+          "text": "            runner_label: ${{ vars.HCU_PD_PREFILL_RUNNER_LABEL }}"
+        },
+        {
+          "path": ".github/workflows/hcu-pd-1p1d.yml",
+          "line": 126,
+          "text": "            runner_label: ${{ vars.HCU_PD_DECODE_RUNNER_LABEL }}"
+        },
+        {
+          "path": ".github/workflows/hcu-pd-1p1d.yml",
+          "line": 131,
+          "text": "    runs-on: ${{ matrix.runner_label }}"
+        },
+        {
+          "path": ".github/workflows/nightly-test-hcu.yml",
+          "line": 13,
+          "text": "      runner_label:"
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 57,
+          "text": "      runner_label:"
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 89,
+          "text": "      runner_label:"
+        }
+      ],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E4",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": ".github/workflows/lint-hcu.yml",
+      "start": 1,
+      "end": 58,
+      "sha256": "339efcf53fd9feb5e1ba9da86600361218c49f2aa1b670df1b20c556bb659bfe",
+      "truncated": false
+    },
+    {
+      "id": "E5",
+      "status": "unavailable",
+      "reason": "content_denied",
+      "tool": "read_file",
+      "path": ".github/workflows/hcu-manual-model-test.yml"
+    },
+    {
+      "id": "E6",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": ".github/workflows/release-docker-hcu.yml",
+      "start": 1,
+      "end": 90,
+      "sha256": "b6ec9485e3e33a61657e9ce83947409075fea3fcc3c3a9d893b1d4257fd76001",
+      "truncated": false
+    },
+    {
+      "id": "E7",
+      "status": "unavailable",
+      "reason": "content_denied",
+      "tool": "read_file",
+      "path": ".github/workflows/pr-test-hcu.yml"
+    },
+    {
+      "id": "E9",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "find_files",
+      "matches": [
+        ".github/workflows/runner-utilization.yml",
+        "benchmark/simulator/bench_runner.py",
+        "docs/docs/developer_guide/setup_github_runner.mdx",
+        "python/sglang/kernels/aot/kernel-runner-setup.sh",
+        "python/sglang/kernels/ops/moe/trtllm_lora_temp/data/csrc/trtllm_fused_moe_runner.cu",
+        "python/sglang/kernels/ops/moe/trtllm_lora_temp/data/include/flashinfer/trtllm/fused_moe/runner.h",
+        "python/sglang/multimodal_gen/runtime/breakable_cuda_graph/runner.py",
+        "python/sglang/multimodal_gen/test/runner/PERFORMANCE.md",
+        "python/sglang/multimodal_gen/test/runner/__init__.py",
+        "python/sglang/multimodal_gen/test/runner/diffusion_suite_runner.py",
+        "python/sglang/multimodal_gen/test/runner/pytest_runner.py",
+        "python/sglang/multimodal_gen/test/unit/fixtures/offline_script_runner.py",
+        "python/sglang/multimodal_gen/test/unit/test_runner_perf_baselines.py",
+        "python/sglang/srt/hardware_backend/mlx/model_runner.py",
+        "python/sglang/srt/hardware_backend/mlx/model_runner_stub.py",
+        "python/sglang/srt/hardware_backend/npu/graph_runner/eagle_draft_extend_npu_graph_runner.py",
+        "python/sglang/srt/hardware_backend/npu/graph_runner/eagle_draft_npu_graph_runner.py",
+        "python/sglang/srt/hardware_backend/npu/graph_runner/multi_layer_eagle_draft_extend_npu_graph_runner.py",
+        "python/sglang/srt/hardware_backend/npu/graph_runner/npu_cudagraph_backend.py",
+        "python/sglang/srt/hardware_backend/npu/graph_runner/npu_graph_runner.py",
+        "python/sglang/srt/hardware_backend/npu/graph_runner/vit_npu_graph_runner.py",
+        "python/sglang/srt/hardware_backend/xpu/graph_runner/__init__.py",
+        "python/sglang/srt/hardware_backend/xpu/graph_runner/xpu_full_graph_backend.py",
+        "python/sglang/srt/hardware_backend/xpu/graph_runner/xpu_graph_runner.py",
+        "python/sglang/srt/kv_canary/runner/__init__.py",
+        "python/sglang/srt/kv_canary/runner/canary_manager.py",
+        "python/sglang/srt/kv_canary/runner/enable_warner.py",
+        "python/sglang/srt/kv_canary/runner/future_tensor.py",
+        "python/sglang/srt/kv_canary/runner/health_checker.py",
+        "python/sglang/srt/kv_canary/runner/kernel_launcher.py",
+        "python/sglang/srt/kv_canary/runner/stats_logger.py",
+        "python/sglang/srt/kv_canary/runner/swa_divergence.py",
+        "python/sglang/srt/kv_canary/runner/sweep.py",
+        "python/sglang/srt/kv_canary/runner/violation_manager.py",
+        "python/sglang/srt/kv_canary/runner/violation_reporter.py",
+        "python/sglang/srt/layers/moe/moe_runner/__init__.py",
+        "python/sglang/srt/layers/moe/moe_runner/aiter.py",
+        "python/sglang/srt/layers/moe/moe_runner/ascend.py",
+        "python/sglang/srt/layers/moe/moe_runner/base.py",
+        "python/sglang/srt/layers/moe/moe_runner/deep_gemm.py",
+        "python/sglang/srt/layers/moe/moe_runner/deep_gemm_sm120.py",
+        "python/sglang/srt/layers/moe/moe_runner/flashinfer_cutedsl.py",
+        "python/sglang/srt/layers/moe/moe_runner/flashinfer_cutlass.py",
+        "python/sglang/srt/layers/moe/moe_runner/flashinfer_trtllm.py",
+        "python/sglang/srt/layers/moe/moe_runner/hpc_ops.py",
+        "python/sglang/srt/layers/moe/moe_runner/humming.py",
+        "python/sglang/srt/layers/moe/moe_runner/lightop.py",
+        "python/sglang/srt/layers/moe/moe_runner/marlin.py",
+        "python/sglang/srt/layers/moe/moe_runner/runner.py",
+        "python/sglang/srt/layers/moe/moe_runner/triton.py",
+        "python/sglang/srt/layers/moe/moe_runner/triton_kernels.py",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/__init__.py",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/README.md",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/causal_conv1d_fwd_sm_100.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/causal_conv1d_fwd_sm_90.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/causal_conv1d_fwd_sm_95.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/causal_conv1d_fwd_with_prefix_sm_100.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/causal_conv1d_fwd_with_prefix_sm_90.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/causal_conv1d_fwd_with_prefix_sm_95.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/minimax_m3_gfx950_mxfp8_compact_moe.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=14336,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=14336,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=1792,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=1792,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=3072,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=3072,device_name=NVIDIA_H100_80GB_HBM3,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=3072,device_name=NVIDIA_H100_80GB_HBM3.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=3584,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=3584,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=7168,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=1,N=7168,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=144,N=512,device_name=NVIDIA_H100_80GB_HBM3.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=1024,device_name=NVIDIA_H100_80GB_HBM3.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=1024,device_name=NVIDIA_H200.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=1344,device_name=NVIDIA_A100-SXM4-40GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=1344,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=1344,device_name=NVIDIA_H100_80GB_HBM3.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=14336,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=14336,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=1792,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=1792,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=2048,device_name=NVIDIA_H100_80GB_HBM3.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=2688,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=2688,device_name=NVIDIA_H100_80GB_HBM3.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=3072,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=3072,device_name=NVIDIA_H100_80GB_HBM3,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=3200,device_name=NVIDIA_H100_80GB_HBM3,dtype=fp8_w8a8.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=3584,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=3584,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=6400,device_name=NVIDIA_H100_80GB_HBM3,dtype=fp8_w8a8.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=7168,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=7168,device_name=NVIDIA_A100-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=7168,device_name=NVIDIA_H100_80GB_HBM3,dtype=int8_w8a16.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=16,N=800,device_name=NVIDIA_H100_80GB_HBM3,dtype=fp8_w8a8.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=160,N=192,device_name=NVIDIA_A800-SXM4-80GB.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=20,N=2048,device_name=NVIDIA_H100_80GB_HBM3.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=24,N=1024,device_name=NVIDIA_H100_80GB_HBM3.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=256,N=128,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a8,block_shape=[128, 128].json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=256,N=128,device_name=NVIDIA_A100-SXM4-80GB,dtype=int8_w8a8.json",
+        "python/sglang/srt/layers/moe/moe_runner/triton_utils/configs/triton_3_1_0/E=256,N=128,device_name=NVIDIA_A800-SXM4-80GB,dtype=int8_w8a8,block_shape=[128, 128].json"
+      ],
+      "truncated": true
+    },
+    {
+      "id": "E8",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": ".github/workflows/release-pr-hcu.yml",
+      "start": 1,
+      "end": 200,
+      "sha256": "80b36fa7d702b8021e1071c4bec517d27d73e5856ee2d68980d9f25d417682cc",
+      "truncated": false
+    },
+    {
+      "id": "E10",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": ".github/workflows/release-pypi-nightly-hcu.yml",
+      "start": 1,
+      "end": 200,
+      "sha256": "1f330b9573d6e4c5d5bf9aaaf7969bcff1cf40bdc81b1a4f54da40ef2dfc3fc9",
+      "truncated": false
+    },
+    {
+      "id": "E11",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_artifact",
+      "path": "artifacts/run-36663746175-attempt-1-job-109723883930.txt",
+      "sha256": "1ead16d31852698efd1aea01d84b9ea1d919116148e8ec7ec25560a8469bdacc",
+      "truncated": false
+    },
+    {
+      "id": "E12",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "find_files",
+      "matches": [
+        "scripts/ci/hcu/test_hcu_build_alignment.py",
+        "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+        "scripts/ci/hcu/test_hcu_ci_pd.py",
+        "scripts/ci/hcu/test_hcu_ci_publish_reasoning_code.py",
+        "scripts/ci/hcu/test_hcu_server_guard.py",
+        "scripts/ci/hcu/test_hcu_wheel_version.py",
+        "test/manual/test_hcu_delta_rule_cuda.py",
+        "test/registered/hcu/infra/test_hcu_server_guard_failures_hcu.py",
+        "test/registered/hcu/interface/test_hcu_smoke.py",
+        "test/registered/hcu/interface/test_hcu_stage_b_flow_0.py",
+        "test/registered/hcu/interface/test_hcu_stage_b_flow_1.py"
+      ],
+      "truncated": false
+    },
+    {
+      "id": "E13",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "find_files",
+      "matches": [
+        ".claude/skills/ci-workflow-guide/SKILL.md",
+        ".github/workflows/_docker-build-and-publish.yml",
+        ".github/workflows/_docker-cleanup-nightly.yml",
+        ".github/workflows/_npu-analyze-failure.yml",
+        ".github/workflows/_npu-pr-test-stage.yml",
+        ".github/workflows/_npu-single-node-test-stage.yml",
+        ".github/workflows/_pr-test-check-changes.yml",
+        ".github/workflows/_pr-test-rust-ext-build.yml",
+        ".github/workflows/_pr-test-sgl-kernel-build.yml",
+        ".github/workflows/_pr-test-simulator-cpu.yml",
+        ".github/workflows/_pr-test-stage-cpu.yml",
+        ".github/workflows/_pr-test-stage.yml",
+        ".github/workflows/amd-aiter-scout.yml",
+        ".github/workflows/amd-ci-job-monitor.yml",
+        ".github/workflows/auto-tune.yml",
+        ".github/workflows/bot-bump-docs-version.yml",
+        ".github/workflows/bot-bump-flashinfer-version.yml",
+        ".github/workflows/bot-bump-kernel-version-to-sglang.yml",
+        ".github/workflows/bot-bump-kernel-version.yml",
+        ".github/workflows/bot-bump-sglang-version.yml",
+        ".github/workflows/bot-cherry-pick.yml",
+        ".github/workflows/cancel-pr-workflows-on-close.yml",
+        ".github/workflows/cancel-unfinished-pr-tests.yml",
+        ".github/workflows/ci-auto-bisect.yml",
+        ".github/workflows/ci-coverage-overview.yml",
+        ".github/workflows/ci-failure-monitor.yml",
+        ".github/workflows/ci-lark-notify.yml",
+        ".github/workflows/ci-model-inventory.yml",
+        ".github/workflows/close-inactive-issues.yml",
+        ".github/workflows/close-stale-prs.yml",
+        ".github/workflows/coverage-collection-npu.yml",
+        ".github/workflows/diffusion-ci-gt-gen-npu.yml",
+        ".github/workflows/diffusion-ci-gt-gen.yml",
+        ".github/workflows/full-test-npu.yml",
+        ".github/workflows/hcu-feishu-notify-preview.yml",
+        ".github/workflows/hcu-full-enabled.yml",
+        ".github/workflows/hcu-manual-model-test.yml",
+        ".github/workflows/hcu-pd-1p1d.yml",
+        ".github/workflows/labeler.yml",
+        ".github/workflows/lint-hcu.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/list-active-pr-runs.yml",
+        ".github/workflows/nightly-72-gpu-gb200.yml",
+        ".github/workflows/nightly-amd-mi355x-disagg.yml",
+        ".github/workflows/nightly-experimental-sgl-router-docker.yml",
+        ".github/workflows/nightly-link-check.yml",
+        ".github/workflows/nightly-release-gateway.yml",
+        ".github/workflows/nightly-test-amd-miles-rocm10.yml",
+        ".github/workflows/nightly-test-amd.yml",
+        ".github/workflows/nightly-test-hcu.yml",
+        ".github/workflows/nightly-test-image-hcu.yml",
+        ".github/workflows/nightly-test-intel.yml",
+        ".github/workflows/nightly-test-musa.yml",
+        ".github/workflows/nightly-test-npu-e2e-multi-node.yml",
+        ".github/workflows/nightly-test-npu.yml",
+        ".github/workflows/nightly-test-nvidia.yml",
+        ".github/workflows/open-pr-copy-from-oss.yml",
+        ".github/workflows/open-pr-copy-to-oss.yml",
+        ".github/workflows/open-source-compliance-baseline.yml",
+        ".github/workflows/patch-docker-dev.yml",
+        ".github/workflows/pr-benchmark-rust.yml",
+        ".github/workflows/pr-gate.yml",
+        ".github/workflows/pr-states.yml",
+        ".github/workflows/pr-test-amd-extra.yml",
+        ".github/workflows/pr-test-amd-mori.yml",
+        ".github/workflows/pr-test-amd.yml",
+        ".github/workflows/pr-test-arm64.yml",
+        ".github/workflows/pr-test-extra.yml",
+        ".github/workflows/pr-test-hcu.yml",
+        ".github/workflows/pr-test-jit-kernel.yml",
+        ".github/workflows/pr-test-mlx.yml",
+        ".github/workflows/pr-test-multimodal-gen.yml",
+        ".github/workflows/pr-test-musa.yml",
+        ".github/workflows/pr-test-npu.yml",
+        ".github/workflows/pr-test-rust-exts.yml",
+        ".github/workflows/pr-test-rust.yml",
+        ".github/workflows/pr-test-sgl-kernel.yml",
+        ".github/workflows/pr-test-sgl-router.yml",
+        ".github/workflows/pr-test-xeon.yml",
+        ".github/workflows/pr-test-xpu.yml",
+        ".github/workflows/pr-test.yml",
+        ".github/workflows/quality-gate.yml",
+        ".github/workflows/release-branch-cut.yml",
+        ".github/workflows/release-docker-amd-gfx1151-nightly.yml",
+        ".github/workflows/release-docker-amd-miles-rocm10-nightly.yml",
+        ".github/workflows/release-docker-amd-miles-rocm724-nightly.yml",
+        ".github/workflows/release-docker-amd-rocm10.yml",
+        ".github/workflows/release-docker-amd-rocm720-nightly.yml",
+        ".github/workflows/release-docker-amd.yml",
+        ".github/workflows/release-docker-cu134-nightly.yml",
+        ".github/workflows/release-docker-dev.yml",
+        ".github/workflows/release-docker-gateway.yml",
+        ".github/workflows/release-docker-hcu.yml",
+        ".github/workflows/release-docker-intel-xpu-nightly.yml",
+        ".github/workflows/release-docker-intel-xpu.yml",
+        ".github/workflows/release-docker-npu-nightly.yml",
+        ".github/workflows/release-docker-npu.yml",
+        ".github/workflows/release-docker-renderer.yml",
+        ".github/workflows/release-docker-runtime.yml",
+        ".github/workflows/release-docker-xeon.yml"
+      ],
+      "truncated": true
+    },
+    {
+      "id": "E14",
+      "status": "unavailable",
+      "reason": "content_denied",
+      "tool": "read_file",
+      "path": ".github/workflows/hcu-full-enabled.yml"
+    },
+    {
+      "id": "E15",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "search_code",
+      "matches": [],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E16",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_ci",
+      "truncated": true,
+      "execution": "not_verified"
+    },
+    {
+      "id": "E17",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+      "start": 1,
+      "end": 200,
+      "sha256": "7c4e9f1576456aa2f8356aa43589a75d41fc233bf74d84e58e20c372b4fc73e6",
+      "truncated": false
+    },
+    {
+      "id": "E18",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "scripts/ci/hcu/hcu_ci_cleanup_container.sh",
+          "line": 20,
+          "text": "# bind-mounted checkout can otherwise poison the self-hosted runner workspace"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_judge_humaneval.sh",
+          "line": 40,
+          "text": "  echo \"Missing HumanEval problem file on the runner: ${PROBLEMS}\" >&2"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 88,
+          "text": "    runner_name: str"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 215,
+          "text": "        \"runner_name\","
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 231,
+          "text": "        runner_name=required_strings[\"runner_name\"],"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 336,
+          "text": "            runner_name=\"notification-preview\","
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 196,
+          "text": "    runner_name: str"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 258,
+          "text": "            runner_name=_require_env(\"RUNNER_NAME\"),"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 346,
+          "text": "            \"runner_name\": self.runner_name,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 378,
+          "text": "                \"runner_name\": self.context.runner_name,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 511,
+          "text": "        if peer.get(\"runner_name\") == self.context.runner_name:"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 512,
+          "text": "            mismatches[\"runner_name\"] = {"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 513,
+          "text": "                \"expected\": \"different runners\","
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 514,
+          "text": "                \"actual\": peer.get(\"runner_name\"),"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 1143,
+          "text": "                \"runner_name\": self.context.runner_name,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_pd.py",
+          "line": 1188,
+          "text": "            \"runner_name\": self.context.runner_name,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_publish_accuracy.py",
+          "line": 95,
+          "text": "    runner_name: str,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_publish_accuracy.py",
+          "line": 155,
+          "text": "                    \"runner_name\": runner_name,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_publish_accuracy.py",
+          "line": 185,
+          "text": "    parser.add_argument(\"--runner-name\", required=True)"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_publish_accuracy.py",
+          "line": 203,
+          "text": "        runner_name=args.runner_name,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_publish_reasoning_code.py",
+          "line": 132,
+          "text": "    runner_name: str,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_publish_reasoning_code.py",
+          "line": 189,
+          "text": "                    \"runner_name\": runner_name,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_publish_reasoning_code.py",
+          "line": 220,
+          "text": "    parser.add_argument(\"--runner-name\", required=True)"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_publish_reasoning_code.py",
+          "line": 239,
+          "text": "        runner_name=args.runner_name,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_start_container.sh",
+          "line": 130,
+          "text": "CACHE_HOST=\"${HCU_CACHE_HOST:-${HCU_CI_CACHE_HOST:-/home/runner/sgl-data}}\""
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 3,
+          "text": "\"\"\"Exercise the actual workflow scripts without runners, credentials or HCU.\"\"\""
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 91,
+          "text": "            \"runner_name\": \"nmz4-ci-pr\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 492,
+          "text": "                runner_name=\"nmz4-ci-pr\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 523,
+          "text": "                \"runner_name\": \"nmz4-ci-pr\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_pd.py",
+          "line": 55,
+          "text": "        runner_name=f\"runner-{role}\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_pd.py",
+          "line": 201,
+          "text": "                \"runner_name\": \"runner-decode\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_pd.py",
+          "line": 216,
+          "text": "                \"runner_name\": \"runner-decode\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_publish_reasoning_code.py",
+          "line": 51,
+          "text": "                runner_name=\"runner-1\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_publish_reasoning_code.py",
+          "line": 86,
+          "text": "                runner_name=\"runner\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_publish_reasoning_code.py",
+          "line": 107,
+          "text": "                runner_name=\"runner\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_publish_reasoning_code.py",
+          "line": 130,
+          "text": "                runner_name=\"runner\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_publish_reasoning_code.py",
+          "line": 170,
+          "text": "                    runner_name=\"runner\","
+        }
+      ],
+      "searchedFiles": 24,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E19",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "scripts/ci/hcu/check_hcu_runtime_text.py",
+          "line": 140,
+          "text": "    if path.startswith(\".github/workflows/\"):"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 388,
+          "text": "    collected: CollectedResults, _workflow_result: str"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 412,
+          "text": "    workflow_result: str,"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 416,
+          "text": "    color, _, _ = _overall_status(collected, workflow_result)"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 700,
+          "text": "    parser.add_argument(\"--workflow-result\", required=True)"
+        },
+        {
+          "path": "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+          "line": 736,
+          "text": "        workflow_result=args.workflow_result,"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 3,
+          "text": "\"\"\"Exercise the actual workflow scripts without runners, credentials or HCU.\"\"\""
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 22,
+          "text": "WORKFLOWS = ROOT / \".github/workflows\""
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 25,
+          "text": "def workflow(name):"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 53,
+          "text": "        build = workflow(\"release-pr-hcu.yml\")[\"jobs\"][\"compile\"]"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 97,
+          "text": "        build = workflow(\"release-pr-hcu.yml\")[\"jobs\"][\"compile\"]"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 98,
+          "text": "        wait = workflow(\"pr-test-hcu.yml\")[\"jobs\"][\"wait-hcu-wheels\"]"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 127,
+          "text": "            data = workflow(filename)"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 133,
+          "text": "        check = workflow(\"pr-test-hcu.yml\")[\"jobs\"][\"check-changes\"]"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 146,
+          "text": "        pr = workflow(\"release-pr-hcu.yml\")[\"jobs\"][\"compile\"]"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 147,
+          "text": "        nightly = workflow(\"nightly-test-hcu.yml\")[\"jobs\"][\"build-hcu-wheels\"]"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 183,
+          "text": "            for job in workflow(filename)[\"jobs\"].values():"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 188,
+          "text": "                    with self.subTest(workflow=filename, step=item.get(\"name\")):"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 206,
+          "text": "        job = workflow(\"nightly-test-hcu.yml\")[\"jobs\"][\"wait-hcu-wheels\"]"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+          "line": 256,
+          "text": "        job = workflow(\"nightly-test-hcu.yml\")[\"jobs\"][\"probe-hcu-wheels\"]"
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 183,
+          "text": "                workflow_result=\"success\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 269,
+          "text": "                workflow_result=\"failure\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 306,
+          "text": "                workflow_result=\"failure\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 341,
+          "text": "                workflow_result=\"failure\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 366,
+          "text": "                workflow_result=\"success\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+          "line": 390,
+          "text": "            workflow_result=\"success\","
+        },
+        {
+          "path": "scripts/ci/hcu/test_hcu_wheel_version.py",
+          "line": 14,
+          "text": "WORKFLOW = Path(__file__).resolve().parents[3] / \".github/workflows/release-pr-hcu.yml\""
+        },
+        {
+          "path": "scripts/ci/hcu/tests/test_check_hcu_runtime_text.py",
+          "line": 27,
+          "text": "        self.assertTrue(CHECKER.is_hcu_owned_path(\".github/workflows/pr-test-hcu.yml\"))"
+        }
+      ],
+      "searchedFiles": 24,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E20",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": ".github/workflows/nightly-test-hcu.yml",
+      "start": 1,
+      "end": 120,
+      "sha256": "e14886d95dccffcc8829ffc5c6c509db91c00199a4635573d782fa836199c38d",
+      "truncated": false
+    },
+    {
+      "id": "E21",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+      "start": 201,
+      "end": 362,
+      "sha256": "7c4e9f1576456aa2f8356aa43589a75d41fc233bf74d84e58e20c372b4fc73e6",
+      "truncated": false
+    },
+    {
+      "id": "E22",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "search_code",
+      "matches": [],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E23",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": ".github/workflows/nightly-test-hcu.yml",
+      "start": 640,
+      "end": 839,
+      "sha256": "e14886d95dccffcc8829ffc5c6c509db91c00199a4635573d782fa836199c38d",
+      "truncated": false
+    },
+    {
+      "id": "E24",
+      "status": "available",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "tool": "read_file",
+      "path": "test/registered/hcu/interface/test_hcu_smoke.py",
+      "start": 1,
+      "end": 56,
+      "sha256": "07368e26bb81d2b5bdc1383bbdd6371eb18c108aabac976a5e6acacca059e954",
+      "truncated": false
+    }
+  ]
+}

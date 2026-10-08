@@ -1,0 +1,9 @@
+{
+  "overall": "partial",
+  "code": "not_rerun",
+  "tests": "incomplete",
+  "validation_status": "validated",
+  "kind": "deterministic_protocol_revalidation_only",
+  "evidence_complete": false,
+  "target_tests_executed": false
+}

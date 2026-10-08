@@ -100,5 +100,22 @@ export function locateFinding(finding, files) {
     const range = s.slice(i, i + expected.length);
     if (range.some(x => x.added) && expected.every((v, n) => v === range[n].text)) hits.push(range.find(x => x.added).line);
   }
+  // Models often omit the enclosing block's indentation. Only remove a
+  // uniform leading prefix from each whole snippet; never normalize tokens,
+  // interior whitespace or relative indentation. All matches stay ambiguous.
+  if (!hits.length) {
+    const dedent = lines => {
+      const prefixes = lines.filter(v => v.trim()).map(v => /^[\t ]*/.exec(v)[0]);
+      let prefix = prefixes[0] || '';
+      for (const value of prefixes) while (!value.startsWith(prefix)) prefix = prefix.slice(0, -1);
+      return lines.map(v => v.trim() ? v.slice(prefix.length) : '');
+    };
+    const normalized = dedent(expected);
+    for (const s of segments) for (let i = 0; i <= s.length - expected.length; i++) {
+      const range = s.slice(i, i + expected.length), actual = dedent(range.map(x => x.text));
+      if (range.some(x => x.added) && normalized.every((v, n) => v === actual[n])) hits.push(range.find(x => x.added).line);
+    }
+    if (hits.length === 1) return { ...finding, line: hits[0], location_status: 'anchored', location_match: 'uniform_indentation_only' };
+  }
   return { ...finding, line: hits.length === 1 ? hits[0] : null, location_status: hits.length === 1 ? 'anchored' : hits.length ? 'ambiguous' : 'not_in_added_diff' };
 }

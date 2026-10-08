@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "repository": "HYGON-AI/sglang-das",
+  "captured_at": "2026-10-08 06:57:08 UTC",
+  "blindness": {
+    "comments_read": false,
+    "reviews_read": false,
+    "prior_ai_answers_read": false,
+    "labels_included": false,
+    "selection_based_on": "recent PR metadata, changed paths/counts and implementation shape only; no correctness labels"
+  },
+  "scan_count": 60,
+  "excluded_prs": [
+    436
+  ],
+  "samples": [
+    {
+      "category": "ordinary_logic",
+      "reason": "单个生产逻辑文件修改，37 行变化；不以已知缺陷或评论作为入选依据。",
+      "number": 478,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/478",
+      "title": "fix: remove alt_stream overlap copy when writing KV cache",
+      "state": "open",
+      "draft": false,
+      "created_at": "2026-10-08T04:29:54Z",
+      "updated_at": "2026-10-08T05:45:42Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head": {
+        "sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+        "ref": "fix/remove-alt-stream-kv-cache-write",
+        "repo": "Zhuwenbopro/sglang-das"
+      },
+      "base": {
+        "sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "changed_files": 1,
+      "additions": 8,
+      "deletions": 29,
+      "commits": 1
+    },
+    {
+      "category": "cross_file",
+      "reason": "4 个生产文件跨 attention、model 和 speculative 层，33 行变化。",
+      "number": 477,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/477",
+      "title": "fix(hcu): enable EAGLE draft decoding for DeepSeek MLA",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-10-08T04:08:24Z",
+      "updated_at": "2026-10-08T06:07:58Z",
+      "closed_at": "2026-10-08T06:07:58Z",
+      "merged_at": "2026-10-08T06:07:58Z",
+      "head": {
+        "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+        "ref": "fix-deepseek-r1-fp8",
+        "repo": "zhangang1221/sglang-das-0518"
+      },
+      "base": {
+        "sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "changed_files": 4,
+      "additions": 23,
+      "deletions": 10,
+      "commits": 1
+    },
+    {
+      "category": "switch_fallback",
+      "reason": "单文件 15 行变化，融合算子路径替换为分步路径，覆盖实现回退。",
+      "number": 467,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/467",
+      "title": "[DSV4.1] 绕开topk_transform_ragged_v2融合,解决TP8报错问题",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T07:03:53Z",
+      "updated_at": "2026-09-30T07:59:53Z",
+      "closed_at": "2026-09-30T07:59:53Z",
+      "merged_at": "2026-09-30T07:59:53Z",
+      "head": {
+        "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+        "ref": "DSV4.1_1M",
+        "repo": "liucong521/sglang-das"
+      },
+      "base": {
+        "sha": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "changed_files": 1,
+      "additions": 5,
+      "deletions": 10,
+      "commits": 1
+    },
+    {
+      "category": "test_changes",
+      "reason": "2 文件、273 行变化，包含 168 行增量 detokenizer 单元测试变更。",
+      "number": 473,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/473",
+      "title": "FIX(detokenizer): stream through genuine U+FFFD instead of holding until finish",
+      "state": "open",
+      "draft": false,
+      "created_at": "2026-10-02T13:19:32Z",
+      "updated_at": "2026-10-02T14:53:12Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head": {
+        "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "ref": "fix/detok-fffd-stream-holdback",
+        "repo": "Peng416/sglang-das"
+      },
+      "base": {
+        "sha": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "changed_files": 2,
+      "additions": 260,
+      "deletions": 13,
+      "commits": 2
+    },
+    {
+      "category": "ci_selection",
+      "reason": "12 个 GitHub workflow、114 行变化，涉及 runner 选择。",
+      "number": 463,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/463",
+      "title": "ci(hcu): migrate main workflows to organization runners",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T03:07:43Z",
+      "updated_at": "2026-09-30T03:17:41Z",
+      "closed_at": "2026-09-30T03:17:41Z",
+      "merged_at": "2026-09-30T03:17:40Z",
+      "head": {
+        "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+        "ref": "hcu/org-runners-main-0930",
+        "repo": "dddddddxl/sglang-das"
+      },
+      "base": {
+        "sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "changed_files": 12,
+      "additions": 38,
+      "deletions": 76,
+      "commits": 1
+    },
+    {
+      "category": "large_diff",
+      "reason": "31 文件、1850 行变化，覆盖多个模块及单元测试；规模高于其余5份。",
+      "number": 475,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/475",
+      "title": "修复 GLM-5.1/5.2 DSA 服务兼容性并优化 CP decode FlashMLA",
+      "state": "open",
+      "draft": false,
+      "created_at": "2026-10-07T13:17:07Z",
+      "updated_at": "2026-10-08T06:13:05Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head": {
+        "sha": "cbb0073c5e5c943a01050d5f9e297822fe919570",
+        "ref": "shiaichun/glm51-glm52-hcu-dsa-flashmla-h16-cp-decode",
+        "repo": "qieshiniao/sglang-das"
+      },
+      "base": {
+        "sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "changed_files": 31,
+      "additions": 1764,
+      "deletions": 86,
+      "commits": 2
+    }
+  ],
+  "reserve": {
+    "large_diff": {
+      "number": 470,
+      "reason": "313 文件、40986 行变化的上游同步，作为超大 diff 的备选；未选以控制盲测总量。",
+      "head_sha": "9593da41d92ea700594c939f56debe9f5e8c9a9a"
+    }
+  }
+}

@@ -1,0 +1,530 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-10-08T07:03:37.646Z",
+  "repository": "HYGON-AI/sglang-das",
+  "source_method": "Independent --no-hardlinks bare clone, read-only fetch of real refs/pull/{number}/head at depth 5, detached worktrees; no synthetic commits.",
+  "shallow": true,
+  "shallow_note": "Each sample has its real head and base/merge-base trees plus enough ancestry to compute git merge-base. Full unrelated history was not fetched.",
+  "all_verified": true,
+  "inputs": [
+    {
+      "file": "sample-candidates.json",
+      "sha256": "f5f89dcd2a21d66dd3e43b508a0262226f2652992111b1a90ba5d3c60ddd39bf"
+    },
+    {
+      "file": "recent60.sanitized.json",
+      "sha256": "61eeb3a5b7100905e611e0446bd98c2cae822b57252282144e3a674bf80b3dd6"
+    },
+    {
+      "file": "merge-base-api-evidence.json",
+      "sha256": "607bd385caf72983869495f99f29d9730f5c64318d6b94170457b4eda3507b62"
+    },
+    {
+      "file": "verify-preparation.mjs",
+      "sha256": "0e2bea5d0135450de6d86636e59a2bbf1ea1ce3d146ee329d3f3a37d6f46cae4"
+    }
+  ],
+  "records": [
+    {
+      "pr": 478,
+      "category": "ordinary_logic",
+      "checkout": "<LOCAL_PATH>",
+      "api_input": "<LOCAL_PATH>",
+      "api_input_sha256": "802687577f70918e14000980c69c3953ea67665435e2f339154d51bd8a833651",
+      "head_sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "merge_base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "head_tree_sha": "f18c1cf3037e7ab09fdfec2d335d7dc8b2458120",
+      "base_tree_sha": "2bef42bbd9e86f6c1ad1af5f40346bed3e7d3d91",
+      "diff_sha256": "0f593a2bd111d127b59b4948e99e80f3a52f4572e9e108d6769de5932392b656",
+      "head_matches_frozen": true,
+      "base_matches_api": true,
+      "merge_base_matches_api": true,
+      "paths_match": true,
+      "clean": true,
+      "changed_files": 1,
+      "additions": 8,
+      "deletions": 29,
+      "file_checks": [
+        {
+          "filename": "python/sglang/srt/mem_cache/memory_pool.py",
+          "api_blob_sha": "712d153b5ab76c3350965b64bfa22a1f31e84b56",
+          "git_blob_sha": "712d153b5ab76c3350965b64bfa22a1f31e84b56",
+          "stats_match": true,
+          "blob_match": true
+        }
+      ],
+      "verified": true
+    },
+    {
+      "pr": 477,
+      "category": "cross_file",
+      "checkout": "<LOCAL_PATH>",
+      "api_input": "<LOCAL_PATH>",
+      "api_input_sha256": "dfd64e0300bc0e25d04b1eb31edad63deaf85f3a49bd6958de5355ed7621a3b8",
+      "head_sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "merge_base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "head_tree_sha": "085729e5c2f193f8f72ec7bdfbf086d877486e74",
+      "base_tree_sha": "2bef42bbd9e86f6c1ad1af5f40346bed3e7d3d91",
+      "diff_sha256": "6ec58a870e4cf68e2fa6ffa96c43cadbe512e1fd12cdd283305763c78ac984f0",
+      "head_matches_frozen": true,
+      "base_matches_api": true,
+      "merge_base_matches_api": true,
+      "paths_match": true,
+      "clean": true,
+      "changed_files": 4,
+      "additions": 23,
+      "deletions": 10,
+      "file_checks": [
+        {
+          "filename": "python/sglang/srt/layers/attention/flashattention_interface.py",
+          "api_blob_sha": "64df15540b918d26a017162adb401666b5ddcce8",
+          "git_blob_sha": "64df15540b918d26a017162adb401666b5ddcce8",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/attention/hcu_mla_backend.py",
+          "api_blob_sha": "108b2c77996c620359621845ba7fe086a3c20d69",
+          "git_blob_sha": "108b2c77996c620359621845ba7fe086a3c20d69",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/models/deepseek_v2.py",
+          "api_blob_sha": "72ddaa7d08acf92e0f984936ab7b58331f07fc9f",
+          "git_blob_sha": "72ddaa7d08acf92e0f984936ab7b58331f07fc9f",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/speculative/draft_utils.py",
+          "api_blob_sha": "4dd34cd0a9a25282e49a20c784579e3f27e1082d",
+          "git_blob_sha": "4dd34cd0a9a25282e49a20c784579e3f27e1082d",
+          "stats_match": true,
+          "blob_match": true
+        }
+      ],
+      "verified": true
+    },
+    {
+      "pr": 467,
+      "category": "switch_fallback",
+      "checkout": "<LOCAL_PATH>",
+      "api_input": "<LOCAL_PATH>",
+      "api_input_sha256": "4293468f1249cdcfd19de6bfd21305effb2f64f16d3013f6616393353712a395",
+      "head_sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "base_sha": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+      "merge_base_sha": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+      "head_tree_sha": "a916841cca81dff7e2757110e1d7a7f7d752aea0",
+      "base_tree_sha": "aaae2e5523a45b3b6268b10557c21020527c21d7",
+      "diff_sha256": "4cd6e091646273dc90b4578b5529b6b6533ab9b5d859c44abfdcc234a8008dbf",
+      "head_matches_frozen": true,
+      "base_matches_api": true,
+      "merge_base_matches_api": true,
+      "paths_match": true,
+      "clean": true,
+      "changed_files": 1,
+      "additions": 5,
+      "deletions": 10,
+      "file_checks": [
+        {
+          "filename": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+          "api_blob_sha": "cdb353dde1abd0f21116178369c0dbb0af9aa9c6",
+          "git_blob_sha": "cdb353dde1abd0f21116178369c0dbb0af9aa9c6",
+          "stats_match": true,
+          "blob_match": true
+        }
+      ],
+      "verified": true
+    },
+    {
+      "pr": 473,
+      "category": "test_changes",
+      "checkout": "<LOCAL_PATH>",
+      "api_input": "<LOCAL_PATH>",
+      "api_input_sha256": "dce2c367c9d77b9dd121385c41c641bddf565999ec4e6b93aece4c314530a4e5",
+      "head_sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "base_sha": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "merge_base_sha": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "head_tree_sha": "8b4ea7e306809ed3e1a123d62e6004390b5a2404",
+      "base_tree_sha": "035cf9d4132b2b4b4409e5334713091be68800cc",
+      "diff_sha256": "34eececcb933faa50983d824946601dcec9b859179881b5344c16da0b74d0d1a",
+      "head_matches_frozen": true,
+      "base_matches_api": true,
+      "merge_base_matches_api": true,
+      "paths_match": true,
+      "clean": true,
+      "changed_files": 2,
+      "additions": 260,
+      "deletions": 13,
+      "file_checks": [
+        {
+          "filename": "python/sglang/srt/managers/detokenizer_manager.py",
+          "api_blob_sha": "145c8c2bed2e2e0024d1cbf281b7bffd3a962911",
+          "git_blob_sha": "145c8c2bed2e2e0024d1cbf281b7bffd3a962911",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/unit/managers/test_detokenizer_incremental.py",
+          "api_blob_sha": "c39b6bdedad36a8eb1ca28ce4177ba8da5a06118",
+          "git_blob_sha": "c39b6bdedad36a8eb1ca28ce4177ba8da5a06118",
+          "stats_match": true,
+          "blob_match": true
+        }
+      ],
+      "verified": true
+    },
+    {
+      "pr": 463,
+      "category": "ci_selection",
+      "checkout": "<LOCAL_PATH>",
+      "api_input": "<LOCAL_PATH>",
+      "api_input_sha256": "1ea6ee9f096dba7c703d78bf9d108cde0cc77148e410bda9d34b623078dd5593",
+      "head_sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "base_sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "merge_base_sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "head_tree_sha": "f8f78c978bdac584b384336daaeaa3cf6f08a431",
+      "base_tree_sha": "e58ad2befa77376afd17e0b0fa54a4f800d0728b",
+      "diff_sha256": "17cdb6311543b1e500503181a92626eeeb199b5c1b887b9f212869d3ae4b952c",
+      "head_matches_frozen": true,
+      "base_matches_api": true,
+      "merge_base_matches_api": true,
+      "paths_match": true,
+      "clean": true,
+      "changed_files": 12,
+      "additions": 38,
+      "deletions": 76,
+      "file_checks": [
+        {
+          "filename": ".github/workflows/hcu-feishu-notify-preview.yml",
+          "api_blob_sha": "d687c312da966d22565a8a84670ad3989c765b24",
+          "git_blob_sha": "d687c312da966d22565a8a84670ad3989c765b24",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/hcu-full-enabled.yml",
+          "api_blob_sha": "6aefc2ad00d67a314d60cc528469b4df3d3d091f",
+          "git_blob_sha": "6aefc2ad00d67a314d60cc528469b4df3d3d091f",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/hcu-manual-model-test.yml",
+          "api_blob_sha": "845491d8bf1ff51a33298039b70fbc51a98fcc89",
+          "git_blob_sha": "845491d8bf1ff51a33298039b70fbc51a98fcc89",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/labeler.yml",
+          "api_blob_sha": "2306a2b168bb9592f241ff6155dd93be689920ee",
+          "git_blob_sha": "2306a2b168bb9592f241ff6155dd93be689920ee",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/lint-hcu.yml",
+          "api_blob_sha": "06ac9c624e072a96064ac0a3316f51c69850a82f",
+          "git_blob_sha": "06ac9c624e072a96064ac0a3316f51c69850a82f",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/nightly-test-hcu.yml",
+          "api_blob_sha": "b82cc3742022ab87cc2c789b883238712928e4fc",
+          "git_blob_sha": "b82cc3742022ab87cc2c789b883238712928e4fc",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/nightly-test-image-hcu.yml",
+          "api_blob_sha": "f16f3118cc21c3157cfb296684bfe57aac6a1181",
+          "git_blob_sha": "f16f3118cc21c3157cfb296684bfe57aac6a1181",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/pr-states.yml",
+          "api_blob_sha": "94ee953544758c3c22423b05905a8e35acf87c55",
+          "git_blob_sha": "94ee953544758c3c22423b05905a8e35acf87c55",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/pr-test-hcu.yml",
+          "api_blob_sha": "ca3a014d4ca84cc4ee15e0ff1a7904faf7bb48cf",
+          "git_blob_sha": "ca3a014d4ca84cc4ee15e0ff1a7904faf7bb48cf",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/release-docker-hcu.yml",
+          "api_blob_sha": "3e20ec67e0dcc864fffc24c746ee094f287dd451",
+          "git_blob_sha": "3e20ec67e0dcc864fffc24c746ee094f287dd451",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/release-pr-hcu.yml",
+          "api_blob_sha": "a18271649d195dabb4951470c96c17400e206713",
+          "git_blob_sha": "a18271649d195dabb4951470c96c17400e206713",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": ".github/workflows/release-pypi-nightly-hcu.yml",
+          "api_blob_sha": "534f5708b8fcebd739d2ba81d4ec15dea57d4b40",
+          "git_blob_sha": "534f5708b8fcebd739d2ba81d4ec15dea57d4b40",
+          "stats_match": true,
+          "blob_match": true
+        }
+      ],
+      "verified": true
+    },
+    {
+      "pr": 475,
+      "category": "large_diff",
+      "checkout": "<LOCAL_PATH>",
+      "api_input": "<LOCAL_PATH>",
+      "api_input_sha256": "8c5c7611404ff20c1c510460a8071129a1e60b475e502861ca63d6a82b1b9622",
+      "head_sha": "cbb0073c5e5c943a01050d5f9e297822fe919570",
+      "base_sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+      "merge_base_sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+      "head_tree_sha": "923725a858658964f3c22e9a009253bada9c3d6b",
+      "base_tree_sha": "469913280cc151c96671b30f9bfbd9095c96bbd5",
+      "diff_sha256": "9907883fc48f8ec0c8e04d80fec6e7eb3c378f839a04ad2c004558d0c67f53e3",
+      "head_matches_frozen": true,
+      "base_matches_api": true,
+      "merge_base_matches_api": true,
+      "paths_match": true,
+      "clean": true,
+      "changed_files": 31,
+      "additions": 1764,
+      "deletions": 86,
+      "file_checks": [
+        {
+          "filename": "python/sglang/srt/distributed/device_communicators/custom_all_reduce.py",
+          "api_blob_sha": "48e7281f3596e4df140ce5ab6403525a1afc9c88",
+          "git_blob_sha": "48e7281f3596e4df140ce5ab6403525a1afc9c88",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/distributed/device_communicators/triton_symm_mem_ag.py",
+          "api_blob_sha": "dfcab03f49675537b699c03786bc34678e48af73",
+          "git_blob_sha": "dfcab03f49675537b699c03786bc34678e48af73",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/environ.py",
+          "api_blob_sha": "214fa7c15d134deeb650d0e63a3adba58a4d14c1",
+          "git_blob_sha": "214fa7c15d134deeb650d0e63a3adba58a4d14c1",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/attention/dsa/dsa_topk_backend.py",
+          "api_blob_sha": "ed4c8dec7036f0397b618991a2fbe3e74fe093c8",
+          "git_blob_sha": "ed4c8dec7036f0397b618991a2fbe3e74fe093c8",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/attention/dsa/utils.py",
+          "api_blob_sha": "29b46a7143fb81c2969a87fcfbbbc50c18f8eab0",
+          "git_blob_sha": "29b46a7143fb81c2969a87fcfbbbc50c18f8eab0",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "api_blob_sha": "b99f1a3422503275d4eec882efd6a262ad566c73",
+          "git_blob_sha": "b99f1a3422503275d4eec882efd6a262ad566c73",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/cp/cp_decode_attn_tp.py",
+          "api_blob_sha": "1cc27995b095ae19512230c3d0061eb635e56845",
+          "git_blob_sha": "1cc27995b095ae19512230c3d0061eb635e56845",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/cp/interleave.py",
+          "api_blob_sha": "80f2e84787479135cfa22aabdc2ec2abe0195cef",
+          "git_blob_sha": "80f2e84787479135cfa22aabdc2ec2abe0195cef",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/cp/utils.py",
+          "api_blob_sha": "66c9bbac7f9c9d6fbd18c87af0d325472632db6d",
+          "git_blob_sha": "66c9bbac7f9c9d6fbd18c87af0d325472632db6d",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/moe/moe_runner/triton_utils/moe_align_block_size.py",
+          "api_blob_sha": "8863d0e24ffe2f8b49c4069314c9759e310d78bd",
+          "git_blob_sha": "8863d0e24ffe2f8b49c4069314c9759e310d78bd",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/layers/quantization/compressed_tensors/schemes/compressed_tensors_w8a8_fp8_moe.py",
+          "api_blob_sha": "83708227ea07d7604f7a5add56f2d1482de3c821",
+          "git_blob_sha": "83708227ea07d7604f7a5add56f2d1482de3c821",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/model_executor/forward_batch_info.py",
+          "api_blob_sha": "c131c76a846b9f5780d332adf8664d8194eaaae5",
+          "git_blob_sha": "c131c76a846b9f5780d332adf8664d8194eaaae5",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/model_executor/model_runner_components/cuda_graph_setup.py",
+          "api_blob_sha": "30edf83cd5eed6e2ddfaf375f994ce3ee40ecb0d",
+          "git_blob_sha": "30edf83cd5eed6e2ddfaf375f994ce3ee40ecb0d",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/server_args.py",
+          "api_blob_sha": "5c51d0dc3aa8e54aa74d5a1b6f377ba67c61efe1",
+          "git_blob_sha": "5c51d0dc3aa8e54aa74d5a1b6f377ba67c61efe1",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/speculative/eagle_utils.py",
+          "api_blob_sha": "38b6c7d67f0433005d885bbf5015ec5839be4aec",
+          "git_blob_sha": "38b6c7d67f0433005d885bbf5015ec5839be4aec",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/speculative/eagle_worker_v2.py",
+          "api_blob_sha": "c0f34a21a04f9c34f05317466e19b120e9a9e374",
+          "git_blob_sha": "c0f34a21a04f9c34f05317466e19b120e9a9e374",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/speculative/frozen_kv_mtp_worker_v2.py",
+          "api_blob_sha": "51fe68f2aff0b308c0bf205deab4651e1cc883f6",
+          "git_blob_sha": "51fe68f2aff0b308c0bf205deab4651e1cc883f6",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "python/sglang/srt/speculative/multi_layer_eagle_worker_v2.py",
+          "api_blob_sha": "4580f94eb4f182de93ed229862acc26ba63a864f",
+          "git_blob_sha": "4580f94eb4f182de93ed229862acc26ba63a864f",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_cp_decode_attn_tp_scale.py",
+          "api_blob_sha": "30f48e2d33e83b195e5197a0664ce809eb70a51f",
+          "git_blob_sha": "30f48e2d33e83b195e5197a0664ce809eb70a51f",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_dsa_cp_alignment.py",
+          "api_blob_sha": "cf16bf01a395a5cb905a26b4daa57670cc37bd32",
+          "git_blob_sha": "cf16bf01a395a5cb905a26b4daa57670cc37bd32",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_eagle_sampling_compat.py",
+          "api_blob_sha": "6c2489c761ff51d61bad04b1eb92e687a60a21d2",
+          "git_blob_sha": "6c2489c761ff51d61bad04b1eb92e687a60a21d2",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_eagle_verify_sync.py",
+          "api_blob_sha": "9aeef2abbebbf015dd68e9e6f6897c5f12c3d728",
+          "git_blob_sha": "9aeef2abbebbf015dd68e9e6f6897c5f12c3d728",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_flashmla_decode_h16.py",
+          "api_blob_sha": "3c67d6b12bf6cd529f9f5aff9ff35c0c52a7fda9",
+          "git_blob_sha": "3c67d6b12bf6cd529f9f5aff9ff35c0c52a7fda9",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_flashmla_decode_h16_memory.py",
+          "api_blob_sha": "31c0c187b1fc74e53df6d66ea056e5f517b2f492",
+          "git_blob_sha": "31c0c187b1fc74e53df6d66ea056e5f517b2f492",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_lightop_moe_routing_api.py",
+          "api_blob_sha": "5474c5c39710c75c0daf5fe95c5ab73772ba6b4d",
+          "git_blob_sha": "5474c5c39710c75c0daf5fe95c5ab73772ba6b4d",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_multimem_all_gather_guard.py",
+          "api_blob_sha": "021a268d56a19db34c967916ab8f530facb60cc9",
+          "git_blob_sha": "021a268d56a19db34c967916ab8f530facb60cc9",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_speculative_w8a8_moe_backend.py",
+          "api_blob_sha": "ab48503f126928ba26e7d09d16ef99d019827d4a",
+          "git_blob_sha": "ab48503f126928ba26e7d09d16ef99d019827d4a",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/hcu/unit/test_hcu_topk_v2_ragged_stride.py",
+          "api_blob_sha": "49eb322ad5703bdaa2dd6da895033cf1770a6bd2",
+          "git_blob_sha": "49eb322ad5703bdaa2dd6da895033cf1770a6bd2",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/unit/distributed/test_aiter_custom_all_reduce_config.py",
+          "api_blob_sha": "34cd2e5cb2f7804f593f130adae2d4058b9c143e",
+          "git_blob_sha": "34cd2e5cb2f7804f593f130adae2d4058b9c143e",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/unit/layers/test_dp_attention_cp.py",
+          "api_blob_sha": "2690828c6aced0265cd57954d84ffab2bb60fb78",
+          "git_blob_sha": "2690828c6aced0265cd57954d84ffab2bb60fb78",
+          "stats_match": true,
+          "blob_match": true
+        },
+        {
+          "filename": "test/registered/unit/spec/test_eagle_worker_v2_topk1_fastpath.py",
+          "api_blob_sha": "df204c326ecc31d32025d0ed804fd62b2dfec189",
+          "git_blob_sha": "df204c326ecc31d32025d0ed804fd62b2dfec189",
+          "stats_match": true,
+          "blob_match": true
+        }
+      ],
+      "verified": true
+    }
+  ]
+}

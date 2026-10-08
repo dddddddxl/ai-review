@@ -1,0 +1,544 @@
+{
+  "provenance": {
+    "kind": "codex_file_bridge_dry_run",
+    "model_api_called": false,
+    "scripted_answers": false,
+    "agent_context": "context_not_independently_verified_not_blind",
+    "blind": false,
+    "mode": "both",
+    "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/475",
+    "repository": "HYGON-AI/sglang-das",
+    "source_head": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+    "source_base": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+    "diff_base": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+    "history_shallow": true,
+    "ancestry_verified": true,
+    "ci_evidence": "frozen_snapshot_not_current_live_ci",
+    "captured_at": "2026-10-08T07:03:20.621Z",
+    "input_hash": "827f11646025d5838661447e81739069408ad95a1a3e8fcfdbe4beca904a8e9c",
+    "skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+    "required_skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_status": "available",
+    "target_tests_executed": false,
+    "github_writes": false,
+    "network": false,
+    "model_window_ms": 1800000,
+    "max_tools": 24
+  },
+  "records": [
+    {
+      "id": "E1",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsa/utils.py",
+      "start": 140,
+      "end": 320,
+      "sha256": "faf9d03cad713de9fbdbbddcd8fea6e6bf2daa4930bd531956f2a1c1ec86b6fe",
+      "truncated": false
+    },
+    {
+      "id": "E2",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/layers/cp/utils.py",
+          "line": 162,
+          "text": "def is_cp_v2_active(forward_batch) -> bool:"
+        }
+      ],
+      "searchedFiles": 8,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E3",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+      "start": 3020,
+      "end": 3210,
+      "sha256": "f637caf7fa2a5ac774d496e86b50ecdfcf1415714d60f84a25f3cbf116f5e77d",
+      "truncated": false
+    },
+    {
+      "id": "E4",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 1196,
+          "text": "                self._compute_flashmla_metadata("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 1386,
+          "text": "                self._compute_flashmla_metadata("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 1442,
+          "text": "                    self._compute_flashmla_metadata("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 1504,
+          "text": "                    self._compute_flashmla_metadata("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 1861,
+          "text": "                self._compute_flashmla_metadata("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 2019,
+          "text": "                self._compute_flashmla_metadata("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 3129,
+          "text": "                flashmla_metadata = self._compute_flashmla_metadata("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 3739,
+          "text": "    def _compute_flashmla_metadata("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 3950,
+          "text": "                            backend._compute_flashmla_metadata("
+        }
+      ],
+      "searchedFiles": 1,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E5",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/cp/utils.py",
+      "start": 140,
+      "end": 220,
+      "sha256": "1423206ff5636c03d4b9298a647a846039dff8d81dfcac78f7ccaef18e4ed171",
+      "truncated": false
+    },
+    {
+      "id": "E7",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/cp/utils.py",
+      "start": 220,
+      "end": 330,
+      "sha256": "1423206ff5636c03d4b9298a647a846039dff8d81dfcac78f7ccaef18e4ed171",
+      "truncated": false
+    },
+    {
+      "id": "E6",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/layers/attention/dsa/utils.py",
+          "line": 159,
+          "text": "def can_dsa_prefill_cp_round_robin_split(forward_batch: \"ForwardBatch\"):"
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa/utils.py",
+          "line": 244,
+          "text": "    if can_dsa_prefill_cp_round_robin_split(forward_batch):"
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa/utils.py",
+          "line": 251,
+          "text": "    needs_cp_pad = attn_cp_size > 1 and can_dsa_prefill_cp_round_robin_split("
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 1073,
+          "text": "            if can_dsa_prefill_cp_round_robin_split(forward_batch):"
+        },
+        {
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "line": 1294,
+          "text": "            assert can_dsa_prefill_cp_round_robin_split(forward_batch)"
+        }
+      ],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E8",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/layers/cp/cp_decode_attn_tp.py",
+          "line": 15,
+          "text": "from sglang.srt.layers.attention.dsa.utils import dsa_use_prefill_cp"
+        },
+        {
+          "path": "python/sglang/srt/layers/cp/cp_decode_attn_tp.py",
+          "line": 80,
+          "text": "        ) and not dsa_use_prefill_cp(forward_batch)"
+        }
+      ],
+      "searchedFiles": 8,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E9",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsa/utils.py",
+      "start": 1,
+      "end": 139,
+      "sha256": "faf9d03cad713de9fbdbbddcd8fea6e6bf2daa4930bd531956f2a1c1ec86b6fe",
+      "truncated": false
+    },
+    {
+      "id": "E10",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+      "start": 1020,
+      "end": 1120,
+      "sha256": "f637caf7fa2a5ac774d496e86b50ecdfcf1415714d60f84a25f3cbf116f5e77d",
+      "truncated": false
+    },
+    {
+      "id": "E11",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_diff",
+      "diffBase": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+      "path": "python/sglang/srt/layers/cp/interleave.py",
+      "truncated": false
+    },
+    {
+      "id": "E12",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/layers/attention/dsa/utils.py",
+          "line": 346,
+          "text": "def dsa_use_prefill_cp(forward_batch, dsa_enable_prefill_cp=None):"
+        }
+      ],
+      "searchedFiles": 1,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E13",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/models/deepseek_nextn.py",
+          "line": 393,
+          "text": "                if can_dsa_cp_split("
+        },
+        {
+          "path": "python/sglang/srt/models/deepseek_v2.py",
+          "line": 3220,
+          "text": "                if can_dsa_cp_split("
+        },
+        {
+          "path": "python/sglang/srt/models/deepseek_v4.py",
+          "line": 622,
+          "text": "    if can_dsa_cp_split(input_ids_len, cp_size, use_dsa, forward_batch):"
+        },
+        {
+          "path": "python/sglang/srt/models/deepseek_v4_nextn.py",
+          "line": 265,
+          "text": "            if can_dsa_cp_split(len(input_ids), self.cp_size, True, forward_batch):"
+        },
+        {
+          "path": "python/sglang/srt/models/hunyuan_v4.py",
+          "line": 678,
+          "text": "        if not can_dsa_cp_split(len(input_ids), self.cp_size, True, forward_batch):"
+        }
+      ],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E14",
+      "status": "unavailable",
+      "reason": "line_range_invalid",
+      "tool": "read_file",
+      "path": "python/sglang/srt/layers/attention/dsa/utils.py"
+    },
+    {
+      "id": "E15",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "python/sglang/srt/models/deepseek_v2.py",
+      "start": 3170,
+      "end": 3260,
+      "sha256": "2ebb1f8f291cfcead9810f845e7a54c10032dcd1b4a17620451cdbb806cd49cb",
+      "truncated": false
+    },
+    {
+      "id": "E16",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_ci",
+      "truncated": true,
+      "execution": "not_verified"
+    },
+    {
+      "id": "E17",
+      "status": "unavailable",
+      "reason": "content_denied",
+      "tool": "read_file",
+      "revision": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+      "path": ".github/workflows/pr-test-hcu.yml"
+    },
+    {
+      "id": "E18",
+      "status": "available",
+      "revision": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": ".github/workflows/hcu-full-enabled.yml",
+          "line": 311,
+          "text": "            suite: stage-b-test-1-hcu-small"
+        },
+        {
+          "path": ".github/workflows/hcu-full-enabled.yml",
+          "line": 318,
+          "text": "            suite: stage-b-test-1-hcu-small"
+        },
+        {
+          "path": ".github/workflows/hcu-full-enabled.yml",
+          "line": 325,
+          "text": "            suite: stage-b-test-1-hcu-small"
+        },
+        {
+          "path": ".github/workflows/hcu-full-enabled.yml",
+          "line": 332,
+          "text": "            suite: stage-b-test-1-hcu-small"
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 39,
+          "text": "          - stage-b-test-1-hcu-small"
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 215,
+          "text": "          if [[ \"${requested}\" == *\",stage-b-test-1-hcu-small,\"* ]]; then"
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 662,
+          "text": "  stage-b-test-1-hcu-small:"
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 749,
+          "text": "      - name: Run stage-b-test-1-hcu-small required partition"
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 751,
+          "text": "          echo \"Running stage-b-test-1-hcu-small required partition ${{ matrix.part }}/${{ matrix.parts }}\""
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 759,
+          "text": "              --suite stage-b-test-1-hcu-small \\"
+        },
+        {
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "line": 822,
+          "text": "      - stage-b-test-1-hcu-small"
+        }
+      ],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E19",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "find_files",
+      "matches": [
+        "benchmark/glm53/README.md",
+        "docs/cards/logos/glm.png",
+        "docs/docs/hardware-platforms/ascend-npus/model-deployment/best-practices/glm_5_1.mdx",
+        "docs/docs/hardware-platforms/ascend-npus/model-deployment/tutorials/glm_5_1.mdx",
+        "docs/docs/hardware-platforms/ascend-npus/model-deployment/tutorials/glm_5_2.mdx",
+        "docs/src/snippets/autoregressive/glm-45-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-45v-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-46-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-46v-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-47-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-47-flash-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-5-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-51-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-glyph-deployment.jsx",
+        "docs/src/snippets/autoregressive/glm-ocr-deployment.jsx",
+        "docs/src/snippets/configs/zai-org/glm-5.2-benchmarks.jsx",
+        "docs/src/snippets/configs/zai-org/glm-5.2.jsx",
+        "python/sglang/multimodal_gen/configs/models/dits/glmimage.py",
+        "python/sglang/multimodal_gen/configs/models/vaes/glmimage.py",
+        "python/sglang/multimodal_gen/configs/pipeline_configs/glm_image.py",
+        "python/sglang/multimodal_gen/configs/sample/glmimage.py",
+        "python/sglang/multimodal_gen/runtime/models/dits/glm_image.py",
+        "python/sglang/multimodal_gen/runtime/pipelines/glm_image.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/stages/model_specific_stages/glm_image.py",
+        "python/sglang/multimodal_gen/test/unit/test_glm_image_ar.py",
+        "python/sglang/multimodal_gen/test/unit/test_glm_image_multi_output.py",
+        "python/sglang/srt/configs/chatglm.py",
+        "python/sglang/srt/entrypoints/openai/transcription_adapters/glmasr.py",
+        "python/sglang/srt/function_call/glm47_moe_detector.py",
+        "python/sglang/srt/function_call/glm4_moe_detector.py",
+        "python/sglang/srt/hardware_backend/npu/modules/glm46v_processor.py",
+        "python/sglang/srt/models/chatglm.py",
+        "python/sglang/srt/models/glm4.py",
+        "python/sglang/srt/models/glm4_moe.py",
+        "python/sglang/srt/models/glm4_moe_lite.py",
+        "python/sglang/srt/models/glm4_moe_lite_nextn.py",
+        "python/sglang/srt/models/glm4_moe_nextn.py",
+        "python/sglang/srt/models/glm4v.py",
+        "python/sglang/srt/models/glm4v_moe.py",
+        "python/sglang/srt/models/glm_image_vl.py",
+        "python/sglang/srt/models/glm_ocr.py",
+        "python/sglang/srt/models/glm_ocr_nextn.py",
+        "python/sglang/srt/models/glmasr.py",
+        "python/sglang/srt/models/midashenglm.py",
+        "python/sglang/srt/multimodal/processors/glm4v.py",
+        "python/sglang/srt/multimodal/processors/glm_image.py",
+        "python/sglang/srt/multimodal/processors/glmasr.py",
+        "python/sglang/srt/multimodal/processors/midashenglm.py",
+        "scripts/ci/slurm/recipes/mi355x-fp4/glm52/1k1k/1p1d-dp8ep8-mtp.yaml",
+        "scripts/ci/slurm/recipes/mi355x-fp4/glm52/1k1k/1p1d-dp8ep8.yaml",
+        "scripts/ci/slurm/recipes/mi355x-fp4/glm52/1k1k/1p1d-mtp.yaml",
+        "scripts/ci/slurm/recipes/mi355x-fp4/glm52/1k1k/1p1d.yaml",
+        "scripts/ci/slurm/recipes/mi355x-fp4/glm52/1k1k/2p1d-ep16-mtp.yaml",
+        "scripts/ci/slurm/recipes/mi355x-fp4/glm52/1k1k/2p1d-ep16.yaml",
+        "test/manual/test_glm_46_fp8.py",
+        "test/registered/8-gpu-models/test_glm52_fp8.py",
+        "test/registered/8-gpu-models/test_glm_46.py",
+        "test/registered/amd/accuracy/mi30x/test_glm51_eval_amd.py",
+        "test/registered/amd/accuracy/mi30x/test_glm51_hisparse_eval_mi30x.py",
+        "test/registered/amd/accuracy/mi30x/test_glm5_eval_amd.py",
+        "test/registered/amd/accuracy/mi35x/test_glm47_fp8_eval_mi35x.py",
+        "test/registered/amd/accuracy/mi35x/test_glm51_eval_mi35x.py",
+        "test/registered/amd/accuracy/mi35x/test_glm51_hisparse_eval_mi35x.py",
+        "test/registered/amd/accuracy/mi35x/test_glm51_mxfp4_tp2_gsm8k_mi35x.py",
+        "test/registered/amd/accuracy/mi35x/test_glm52_fp8_eval_mi35x.py",
+        "test/registered/amd/accuracy/mi35x/test_glm5_eval_mi35x.py",
+        "test/registered/amd/accuracy/mi35x/test_glm5_mxfp4_eval_mi35x.py",
+        "test/registered/amd/perf/mi30x/test_glm51_perf_amd.py",
+        "test/registered/amd/perf/mi30x/test_glm5_perf_amd.py",
+        "test/registered/amd/perf/mi35x/test_glm51_perf_mi35x.py",
+        "test/registered/amd/perf/mi35x/test_glm52_fp8_perf_mi35x.py",
+        "test/registered/amd/perf/mi35x/test_glm5_mxfp4_perf_mi35x.py",
+        "test/registered/amd/perf/mi35x/test_glm5_perf_mi35x.py",
+        "test/registered/attention/test_glm4_moe_lite_deterministic.py",
+        "test/registered/gb300/test_glm52_nvfp4.py",
+        "test/registered/hcu/accuracy/bw1100/test_glm51_int8_eval_hcu.py",
+        "test/registered/hcu/large_models/bw1100/test_glm51_cookbook_8gpu_server_hcu.py",
+        "test/registered/hcu/large_models/bw1100/test_glm51_int8_cookbook_8gpu_server_hcu.py",
+        "test/registered/hcu/perf/bw1100/test_glm51_cookbook_8gpu_serving_perf_hcu.py",
+        "test/registered/models_e2e/test_dsa_glm52_dp_mtp.py",
+        "test/registered/models_e2e/test_dsa_glm52_hisparse.py",
+        "test/registered/models_e2e/test_dsa_glm52_nvfp4_dp_mtp.py",
+        "test/registered/models_e2e/test_dsa_glm52_nvfp4_tp_mtp.py",
+        "test/registered/models_e2e/test_dsa_glm52_pd_mtp_cp_layersplit.py",
+        "test/registered/models_e2e/test_dsa_glm52_tp_mtp.py",
+        "test/registered/moe/test_glm4_moe_models.py",
+        "test/registered/npu/accuracy/glm4_6v_flash/test_npu_glm4_6v_flash_1p_mmmu.py",
+        "test/registered/npu/accuracy/glm4_7_flash/test_npu_glm4_7_flash_1p_aime25.py",
+        "test/registered/npu/accuracy/glm4_7_flash/test_npu_glm4_7_flash_1p_gsm8k.py",
+        "test/registered/npu/accuracy/glm5_1/test_npu_glm5_1_w4a8_1p1d_32p_in64k_out1k_50ms_aime26.py",
+        "test/registered/npu/accuracy/glm5_2/test_npu_glm_5_2_w4a8_16p_gpqa.py",
+        "test/registered/npu/accuracy/glm5_top64_pruned/test_npu_glm5_top64_pruned_bf16_8p_gsm8k.py",
+        "test/registered/npu/llm_models/test_npu_chatglm2_6b.py",
+        "test/registered/npu/llm_models/test_npu_glm4_9b_chat.py",
+        "test/registered/npu/performance/glm5_1/test_npu_glm5_1_w4a8_1p1d_32p_in64k_out1k_50ms.py",
+        "test/registered/npu/vlm_models/test_ascend_glm_4_5v.py",
+        "test/registered/radix_cache/unified_radix_tree/linker/test_unified_cache_linker_kl_glm52.py",
+        "test/registered/stress/test_stress_glm_4_6.py"
+      ],
+      "truncated": false
+    },
+    {
+      "id": "E20",
+      "status": "unavailable",
+      "reason": "content_denied",
+      "tool": "read_file",
+      "revision": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+      "path": ".github/workflows/pr-test-hcu.yml"
+    },
+    {
+      "id": "E21",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "test/registered/hcu/large_models/bw1100/test_glm51_cookbook_8gpu_server_hcu.py",
+      "start": 1,
+      "end": 46,
+      "sha256": "8d7629ad811e9e59786193a2470fcd05dafab014d0c962b2bad992dfa5cfe068",
+      "truncated": false
+    },
+    {
+      "id": "E22",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "test/registered/models_e2e/test_dsa_glm52_dp_mtp.py",
+      "start": 1,
+      "end": 29,
+      "sha256": "945cd442e15503a5a36415907bfe2803138ae7761a580d01a90a82c48f89f432",
+      "truncated": false
+    },
+    {
+      "id": "E23",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_artifact",
+      "path": "artifacts/run-37740760594-attempt-1-job-113190696180.txt",
+      "sha256": "0a505bd4c5d38812fa7b59a32e3810d7519549760f388cecd463742dcff617c5",
+      "truncated": false
+    },
+    {
+      "id": "E24",
+      "status": "available",
+      "revision": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "tool": "read_file",
+      "path": "python/sglang/test/kits/spec_decoding_kit.py",
+      "start": 1,
+      "end": 33,
+      "sha256": "76d3ba7b58e2bc616146dd4088707047601f42a7ae6a27c48c4cfeb688ad9dde",
+      "truncated": false
+    }
+  ]
+}

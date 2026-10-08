@@ -13,3 +13,4 @@ secrets/
 review-state/
 examples/**/private-run/
 !examples/g4-wrapper-validation/artifacts/*.log
+!examples/independent-pr-review/**/*.log

@@ -58,8 +58,8 @@ export async function dryRunPr(args, { client, notify, legacy = false } = {}) {
     skillRepo: skill?.repo, maxTools: 24, modelWindowMs, python: args.python || 'python', outputRoot: path.join(run, 'skill-output') },
     testsOnly: mode === 'tests', captured: { snapshot, artifacts } });
   const current = await isCurrent();
-  const evidencePartial = (result.evidence || []).some(e => e.status !== 'available' || e.truncated);
-  const codeStatus = mode === 'tests' ? 'not_requested' : !result.partial && result.manifest?.complete && current && snapshot.files_complete ? 'complete' : 'partial';
+  const evidencePartial = Boolean(result.evidenceBudget?.exhausted) || (result.evidence || []).some(e => e.status !== 'available' || e.truncated);
+  const codeStatus = mode === 'tests' ? 'not_requested' : !(result.codeReviewPartial ?? result.partial) && result.manifest?.complete && current && snapshot.files_complete ? 'complete' : 'partial';
   const testStatus = mode === 'code' ? 'not_requested' : result.testReview?.status === 'validated' && current && snapshot.files_complete && !evidencePartial ? 'validated' : 'incomplete';
   const complete = ['complete', 'not_requested'].includes(codeStatus) && ['validated', 'not_requested'].includes(testStatus);
   const status = { overall: complete ? 'complete' : 'partial', code: codeStatus, tests: testStatus, checkout_current: current,
@@ -70,12 +70,13 @@ export async function dryRunPr(args, { client, notify, legacy = false } = {}) {
     coverage: { review: 'not_requested', functionality: 'separate_test_review', code: 'not_measured' } };
   const codeReview = { status: codeStatus, findings: result.reviewFindings || [], overview: result.changeOverview || [],
     findings_count: result.findings || 0, report: mode === 'tests' ? '未请求代码缺陷审查。' : result.body || '代码缺陷审查未完成。' };
-  const testReview = { ...result.testReview, status: testStatus, validation_status: result.testReview?.status || 'not_requested' };
+  const testReview = { ...result.testReview, status: testStatus, validation_status: result.testReview?.validation_status || result.testReview?.status || 'not_requested' };
   const report = `# PR 只读审查报告\n\n> ${status.caveat}\n\n仓库：${repository}；PR #${pullNumber}；head：${snapshot.pr.head_sha}\n\n` +
     `| 阶段 | 状态 |\n| --- | --- |\n| 代码缺陷审查 | ${codeStatus} |\n| 测试充分性审查 | ${testStatus} |\n| 总体 | ${status.overall} |\n\n` +
     (complete ? '' : '> 本轮存在未完成或截断项，不能据此声称没有缺陷、没有测试缺口或已经完成全部覆盖。\n\n') +
     `## 代码缺陷审查\n\n${codeReview.report}\n\n## 测试充分性审查\n\n${result.testReview?.report || '未请求测试充分性审查。'}\n`;
   for (const [name, value] of Object.entries({ 'status.json': status, 'manifest.json': manifest, 'code-review.json': codeReview,
+    'evidence-budget.json': result.evidenceBudget,
     'test-review.json': testReview, 'evidence-index.json': { provenance, records: (result.evidence || []).map(({ content, ...entry }) => entry) },
     'pipeline-result.json': { provenance, status, result }, 'report.md': report })) await writePrivate(run, name, value);
   if (result.testReview?.review) await writePrivate(run, 'review.json', result.testReview.review);

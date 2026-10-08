@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-475",
+  "repository": "HYGON-AI/sglang-das",
+  "head_sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+  "base_sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+  "input_sha256": "e8a3cea6fc83e416fce0f282264e41ed428a44426a3649c47fb15a6075020bed",
+  "input_path": "../inputs/pr-475.json",
+  "label_origin": "independent_agent_not_human",
+  "snapshot_note": "Use preparation/snapshots/pr-475-captured and pr-475-captured.freeze.json. Initial cbb0073c preparation remains archived evidence and is NOT this evaluated input.",
+  "labels": [
+    {
+      "id": "475-code-explicit-guards",
+      "track": "code",
+      "kind": "supported",
+      "certainty": "confirmed",
+      "description": "H16与top-k路径是有明确guard的局部选择：H16默认关闭、限制HCU/GLM/TP8/CP decode并探测metadata ABI；paged top-k可独立回退，ragged保留dtype/stride检查。静态范围内没有确认这些guard本身产生的新功能缺陷。",
+      "evidence": [
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "start": 111,
+          "end": 137
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+          "start": 411,
+          "end": 446
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "python/sglang/srt/layers/attention/dsa/dsa_topk_backend.py",
+          "start": 20,
+          "end": 28
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "python/sglang/srt/layers/attention/dsa/dsa_topk_backend.py",
+          "start": 61,
+          "end": 65
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "python/sglang/srt/layers/attention/dsa/dsa_topk_backend.py",
+          "start": 149,
+          "end": 165
+        }
+      ],
+      "reason": "只支持代码中存在这些选择条件及默认回退，不证明真实FlashMLA/LightOp ABI、H16精度、CP张量布局或多rank同步正确；大diff不应根据局部guard直接标全局安全。"
+    },
+    {
+      "id": "475-tests-local-assertions-supported",
+      "track": "tests",
+      "kind": "supported",
+      "certainty": "confirmed",
+      "description": "新增CP scale测试确实调用生产helper并断言singleton不切分、数值切片、恢复identity、转置权重stride；CP admission和DP buffer测试也检查具体返回/调用参数，而非仅存在性。",
+      "evidence": [
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_cp_decode_attn_tp_scale.py",
+          "start": 20,
+          "end": 65
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_cp_decode_attn_tp_scale.py",
+          "start": 112,
+          "end": 144
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_dsa_cp_alignment.py",
+          "start": 45,
+          "end": 75
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/unit/layers/test_dp_attention_cp.py",
+          "start": 151,
+          "end": 232
+        }
+      ],
+      "reason": "这些assertion可以捕捉对应局部shape、stride、恢复和admission回归；它们在CPU/替身上检查局部逻辑，不能等同于完整FP8模型或多卡正确性。"
+    },
+    {
+      "id": "475-tests-ast-does-not-prove-runtime",
+      "track": "tests",
+      "kind": "coverage_gap",
+      "certainty": "confirmed",
+      "description": "EAGLE verifier同步/packed-buffer、LightOp采样filter与MoE路由的部分新测试只检查AST或源码字符串；H16 probe测试替换外部op，并未验证真实分布式broadcast后各rank状态相同、真实kernel数值或runtime ABI调用成功。",
+      "evidence": [
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_eagle_verify_sync.py",
+          "start": 37,
+          "end": 83
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_eagle_sampling_compat.py",
+          "start": 28,
+          "end": 46
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_lightop_moe_routing_api.py",
+          "start": 35,
+          "end": 66
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_flashmla_decode_h16.py",
+          "start": 48,
+          "end": 67
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_flashmla_decode_h16_memory.py",
+          "start": 190,
+          "end": 202
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "python/sglang/srt/speculative/eagle_utils.py",
+          "start": 77,
+          "end": 125
+        }
+      ],
+      "reason": "字符串出现、调用顺序文本和函数签名替身证明结构契约，不会发现wrong-rank/root、collective deadlock、buffer别名数值错误或已安装LightOp行为不兼容。需要在相应行为层补验证，不能把这些测试一概称为无效或全无覆盖。"
+    },
+    {
+      "id": "475-tests-new-hcu-files-filtered-out",
+      "track": "tests",
+      "kind": "selection_gap",
+      "certainty": "confirmed",
+      "description": "新版提交给10个新增HCU unit文件注册了stage-b-test-1-hcu-small，但固定源码的PR必跑Stage B命令还有显式--include-file白名单，名单不含这些新文件；注册不会使它们进入该命令的实际执行集。",
+      "evidence": [
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_cp_decode_attn_tp_scale.py",
+          "start": 8,
+          "end": 9
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_flashmla_decode_h16.py",
+          "start": 21,
+          "end": 22
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/registered/hcu/unit/test_hcu_eagle_verify_sync.py",
+          "start": 19,
+          "end": 20
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "start": 749,
+          "end": 805
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/run_suite.py",
+          "start": 382,
+          "end": 400
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/run_suite.py",
+          "start": 527,
+          "end": 535
+        },
+        {
+          "sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+          "path": "test/run_suite.py",
+          "start": 665,
+          "end": 669
+        }
+      ],
+      "reason": "run_suite先按hw/suite收集，再以include_file做交集。已完整核对该必跑命令白名单及两个flow用例，未发现对新增10文件的间接调用；新注册只能通过发现/注册校验，不能突破白名单。此结论限定PR required Stage B；不排除手工或其他workflow单独执行。"
+    },
+    {
+      "id": "475-ci-still-in-progress",
+      "track": "tests",
+      "kind": "evidence_gap",
+      "certainty": "unknown",
+      "description": "新版head采集时PR Test(HCU)、wheel compile及质量门禁仍未完成，artifact也没有新增测试执行日志，无法断言新版回归已通过或失败。",
+      "evidence": [
+        {
+          "path": "../inputs/pr-475.json",
+          "json_pointer": "/snapshot/checks",
+          "head_sha": "821fca935ddf628fb26eaf99cfa9592835006b0a"
+        },
+        {
+          "path": "../inputs/pr-475.json",
+          "json_pointer": "/snapshot/runs",
+          "run_ids": [
+            37740764957,
+            37740760563,
+            37740760621
+          ]
+        },
+        {
+          "path": "../inputs/pr-475.json",
+          "json_pointer": "/artifacts"
+        }
+      ],
+      "reason": "必须使用821fca93这份capture；旧cbb0073c的状态不能替代新提交。进行中/日志缺失是unknown，不等于缺测试或功能失败。"
+    }
+  ],
+  "reviewed_scope": {
+    "code": [
+      "新版31文件完整diff：18生产文件及13测试文件",
+      "CP分片/scale/stride、top-k guard、H16 metadata selector、memory-budget与capture cleanup",
+      "EAGLE packed state/sync、MoE选择、AITER与multimem guard"
+    ],
+    "tests": [
+      "10个新增HCU unit文件全文",
+      "3个已有unit文件全部新增断言",
+      "PR required Stage B白名单→run_suite suite/filter_include_files选择链",
+      "两个Stage B flow smoke全文排除间接新测试调用"
+    ],
+    "ci": [
+      "绑定新版fixture的checks/runs概要及artifact清单",
+      "原preparation旧SHA与新版capture分开验证"
+    ]
+  },
+  "limitations": [
+    "仅静态审查，未执行目标代码、CPU测试或GPU任务",
+    "没有确认新增生产code defect；supported仅为局部可直接证明的行为",
+    "未验证实际多卡数值、通信根rank及外部FlashMLA/LightOp/AITER运行",
+    "未穷举18生产文件的全部下游调用者",
+    "HCU新用例不在required白名单是源码静态选择结论，不外推到所有外部CI",
+    "未读取评论、历史AI答案或其他reviewer输出"
+  ],
+  "frozen_at": "2026-10-08 07:30:10 UTC"
+}

@@ -1,0 +1,76 @@
+{
+  "provenance": {
+    "kind": "codex_file_bridge_dry_run",
+    "model_api_called": false,
+    "scripted_answers": false,
+    "agent_context": "context_not_independently_verified_not_blind",
+    "blind": false,
+    "mode": "both",
+    "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/478",
+    "repository": "HYGON-AI/sglang-das",
+    "source_head": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+    "source_base": "cfa865d339c0d7191dd044e6980006be799a570a",
+    "diff_base": "cfa865d339c0d7191dd044e6980006be799a570a",
+    "history_shallow": true,
+    "ancestry_verified": true,
+    "ci_evidence": "frozen_snapshot_not_current_live_ci",
+    "captured_at": "2026-10-08T07:02:45.119Z",
+    "input_hash": "30f26d971aae87f7aa37e4f9d93b80cda58629a743ad7294e44a4febaf21d2e2",
+    "skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+    "required_skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_status": "available",
+    "target_tests_executed": false,
+    "github_writes": false,
+    "network": false,
+    "model_window_ms": 1800000,
+    "max_tools": 24
+  },
+  "records": [
+    {
+      "id": "E1",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "python/sglang/srt/mem_cache/memory_pool.py",
+      "start": 130,
+      "end": 220,
+      "sha256": "f9ce1fae60660d406553c3c87e5ea1a9020664d652c33098077eb7d908722649",
+      "truncated": false
+    },
+    {
+      "id": "E2",
+      "status": "unavailable",
+      "reason": "line_range_invalid",
+      "tool": "read_file",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "path": "python/sglang/srt/mem_cache/memory_pool.py"
+    },
+    {
+      "id": "E3",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "search_code",
+      "matches": [],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E4",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "test/manual/attention/test_flashattn_backend.py",
+          "line": 308,
+          "text": "        self.model_runner.token_to_kv_pool.set_kv_buffer("
+        }
+      ],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    }
+  ]
+}

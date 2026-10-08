@@ -1,0 +1,63 @@
+{
+  "status": "partial",
+  "findings": [
+    {
+      "priority": "P2",
+      "title": "停滞上限会提交刚开始的不完整字符",
+      "file": "python/sglang/srt/managers/detokenizer_manager.py",
+      "line": null,
+      "trigger": "字节回退 tokenizer 在流式步骤中先连续收到 8 个 0x80，再分步收到字符中的 E4、B8、AD 字节。",
+      "evidence": "第 9 步只有 E4，最近边界均以替换字符结尾，阈值分支却提交整个 new_text 并将 read_offset 推到 E4 后。B8、AD 补齐后，read_text 与 surr_text 都长 9，按上下文长度切片得到空串，无法恢复中。停滞时长不能证明新到的尾字节已完整。",
+      "impact": "有效多字节字符被永久替换为 U+FFFD，流式输出及最终已提交文本发生内容损坏；旧路径保留偏移直到字节补齐。",
+      "suggestion": "达到上限时也保留仍可能未完成的 UTF-8 尾部，只提交确定稳定的前缀；增加连续替换字节后紧接分步多字节字符的回归用例。",
+      "existing_code": "if s.stalled_steps >= MAX_STALLED_DECODE_STEPS:",
+      "evidence_ids": [
+        "E1",
+        "E2",
+        "E5",
+        "E9",
+        "E10"
+      ],
+      "location_status": "not_in_added_diff",
+      "rules_applied": []
+    },
+    {
+      "priority": "P2",
+      "title": "不完整字符测试一次发送了全部字节",
+      "file": "test/registered/unit/managers/test_detokenizer_incremental.py",
+      "line": null,
+      "trigger": "增量解码错误地提交不完整 UTF-8 字符，或连续停滞计数未在干净步骤复位时。",
+      "evidence": "_stream 每个 chunk 只调用一次解码；[list(CJK_BYTES)] 将完整字符一次送入，复位测试也每次发送完整的中加 a，两者没有任何不完整字符步骤。错误地每步提交或不复位计数仍可满足现有断言。",
+      "impact": "所声明的保留不完整字符与停滞计数复位回归保护实际未生效。",
+      "suggestion": "把 CJK 各字节分成独立 chunk，断言前两步不输出替换字符、第三步输出中；复位用例重复交错这些停滞与干净步骤。",
+      "existing_code": "s, text = _stream(manager, \"rid\", [TEXT_TOKEN], [list(CJK_BYTES)])",
+      "evidence_ids": [
+        "E1"
+      ],
+      "location_status": "not_in_added_diff",
+      "rules_applied": []
+    },
+    {
+      "priority": "P2",
+      "title": "干净边界用例没有进入回溯提交分支",
+      "file": "test/registered/unit/managers/test_detokenizer_incremental.py",
+      "line": null,
+      "trigger": "_find_clean_commit 失效或始终返回 None 时。",
+      "evidence": "steps 的每项为 [STRAY_BYTE, TEXT_TOKEN]，伪 tokenizer 解码后以 a 结尾，因此每次都走普通干净文本提交；该测试不会验证其描述的末尾 U+FFFD 回溯提交，现有文本断言也不能区分该分支是否工作。",
+      "impact": "回溯提交这一新增核心路径退化时该回归测试仍可通过。",
+      "suggestion": "使用末尾为 STRAY_BYTE、此前存在干净 token 边界的 chunk，并逐步断言已提交偏移和即时输出，避免仅检查最终拼接文本。",
+      "existing_code": "steps = [[STRAY_BYTE, TEXT_TOKEN]] * 12",
+      "evidence_ids": [
+        "E1"
+      ],
+      "location_status": "not_in_added_diff",
+      "rules_applied": []
+    }
+  ],
+  "overview": [
+    "对以 U+FFFD 结尾的流式解码新增干净 token 边界回溯提交，并在连续停滞达到上限后强制提交当前尾部。",
+    "新增字节级伪 tokenizer 的 CPU 单测，直接驱动增量解码并检查输出文本与重解码窗口。"
+  ],
+  "findings_count": 3,
+  "report": "## AI Review\n\n发现 3 个问题。\n\n### [P2] 停滞上限会提交刚开始的不完整字符\n\n- 位置：python/sglang/srt/managers/detokenizer\\_manager.py（行号未确定）\n- 触发条件：字节回退 tokenizer 在流式步骤中先连续收到 8 个 0x80，再分步收到字符中的 E4、B8、AD 字节。\n- 证据与影响：第 9 步只有 E4，最近边界均以替换字符结尾，阈值分支却提交整个 new\\_text 并将 read\\_offset 推到 E4 后。B8、AD 补齐后，read\\_text 与 surr\\_text 都长 9，按上下文长度切片得到空串，无法恢复中。停滞时长不能证明新到的尾字节已完整。 有效多字节字符被永久替换为 U+FFFD，流式输出及最终已提交文本发生内容损坏；旧路径保留偏移直到字节补齐。\n- 修改建议：达到上限时也保留仍可能未完成的 UTF-8 尾部，只提交确定稳定的前缀；增加连续替换字节后紧接分步多字节字符的回归用例。\n\n### [P2] 不完整字符测试一次发送了全部字节\n\n- 位置：test/registered/unit/managers/test\\_detokenizer\\_incremental.py（行号未确定）\n- 触发条件：增量解码错误地提交不完整 UTF-8 字符，或连续停滞计数未在干净步骤复位时。\n- 证据与影响：\\_stream 每个 chunk 只调用一次解码；\\[list\\(CJK\\_BYTES\\)\\] 将完整字符一次送入，复位测试也每次发送完整的中加 a，两者没有任何不完整字符步骤。错误地每步提交或不复位计数仍可满足现有断言。 所声明的保留不完整字符与停滞计数复位回归保护实际未生效。\n- 修改建议：把 CJK 各字节分成独立 chunk，断言前两步不输出替换字符、第三步输出中；复位用例重复交错这些停滞与干净步骤。\n\n### [P2] 干净边界用例没有进入回溯提交分支\n\n- 位置：test/registered/unit/managers/test\\_detokenizer\\_incremental.py（行号未确定）\n- 触发条件：\\_find\\_clean\\_commit 失效或始终返回 None 时。\n- 证据与影响：steps 的每项为 \\[STRAY\\_BYTE, TEXT\\_TOKEN\\]，伪 tokenizer 解码后以 a 结尾，因此每次都走普通干净文本提交；该测试不会验证其描述的末尾 U+FFFD 回溯提交，现有文本断言也不能区分该分支是否工作。 回溯提交这一新增核心路径退化时该回归测试仍可通过。\n- 修改建议：使用末尾为 STRAY\\_BYTE、此前存在干净 token 边界的 chunk，并逐步断言已提交偏移和即时输出，避免仅检查最终拼接文本。\n\n> 审查未完整完成：以 GitHub 返回的 PR diff 为主体，关联上下文仅用于核验，未运行代码。\n\n> 覆盖情况：共 2 个文件，已审查 2 个。"
+}

@@ -1,0 +1,220 @@
+{
+  "plan_schema_version": 1,
+  "status": "ready_for_review",
+  "repository": "https://github.com/HYGON-AI/sglang-das",
+  "source_commit": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+  "platform": "hcu",
+  "tasks": [
+    {
+      "id": "T_VALIDATE_HCU_DISPATCH",
+      "feature_id": "B_HCU_DISPATCH",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "现有可见候选未证明普通池和 LayerSplit 均命中 HCU 回退，真实 HCU/TP8 执行未核验。先定位替代覆盖，再决定补测。",
+      "evidence": [
+        "S_BACKEND",
+        "S_LOGITS",
+        "S_ATTENTION_CANDIDATE",
+        "A_GATE"
+      ],
+      "prerequisites": [
+        "取得实际 HCU workflow revision、矩阵、suite、selector 及失败 job 日志，核对固定 head 的 checkout 与安装产物。",
+        "准备 HCU 与 LightOp 兼容环境、普通池/LayerSplit 夹具；TP8 集成另需八卡资源和实际模型配置。运行与补丁需另行授权。"
+      ],
+      "acceptance": [
+        "已有或新增测例分别断言普通池和 LayerSplit 在 HCU 上不调用融合 TopK，非 HCU 对照仍保留原入口。",
+        "负控恢复旧的 LayerSplit 限制后普通池测例失败；保存固定 head 同一次 run/attempt 的选择及逐测例结果，CPU mock 不作为硬件通过证据。"
+      ],
+      "cases": [
+        {
+          "id": "C_HCU_POOL_DISPATCH",
+          "name": "普通池与 LayerSplit 的 HCU 分发及非 HCU 对照",
+          "inputs": "HCU dense extend；分别使用普通池与 LayerSplit，确保至少一条可见压缩 KV；另设非 HCU 对照。",
+          "expected": "两个 HCU 场景都完成回退且不调用融合入口，非 HCU 继续调用融合入口。",
+          "oracle": "入口调用观测与显式失败桩验证分发；真实 HCU 集成核对实际算子执行，不能仅看服务启动。",
+          "negative_control": "把条件恢复成 HCU 且 LayerSplit，普通池场景必须因误入融合入口而失败。"
+        }
+      ],
+      "lanes": [
+        "PR Test (HCU)"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    },
+    {
+      "id": "T_VALIDATE_LOCAL_OFFSETS",
+      "feature_id": "B_LOCAL_TO_FLAT",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "融合算子测试只提供相关合同支持，尚未验证实际 HCU 回退的非零 ks、可见长度和 page/raw 输出组合。",
+      "evidence": [
+        "S_BACKEND",
+        "S_TOPK_TEST_COMMON",
+        "S_TOPK_TEST_RAGGED"
+      ],
+      "prerequisites": [
+        "定位直接调用 backend dense 回退的现有测例；如没有，先确认可用池与 logits 夹具再补最小测例。",
+        "目标为 PR Test (HCU) lane；使用可追踪的固定 head 与 LightOp 版本，并独立记录测试选择和执行身份。"
+      ],
+      "acceptance": [
+        "采用互异有限分数和不同请求 KV 映射，精确验证非零 ks、零可见行、少于 topk、超过 topk、补齐列及 -1 填充。",
+        "删除加 ks 或恢复旧有效区间后相应测例必须失败；真实 HCU 结果与独立逐请求参考一致，并取得同次 run/attempt 的逐测例记录。"
+      ],
+      "cases": [
+        {
+          "id": "C_MULTI_REQUEST_LOCAL_OFFSETS",
+          "name": "多请求局部 TopK 与扁平 KV 映射",
+          "inputs": "至少两个请求，后者 ks 非零；请求 KV 映射互不相同，局部有限分数互异，补齐列放高分；覆盖可见长度为零、短于 topk 和长于 topk。",
+          "expected": "只选每行可见的本请求 KV，page/raw 索引按预期排序，有效项数正确且剩余项为 -1，补齐高分不被选中。",
+          "oracle": "逐请求人工小矩阵的排名及独立 KV 字典映射，不使用被测实现产生期望值。",
+          "negative_control": "分别去掉 ranked 加 ks、恢复 columns 大于等于 ks 的旧掩码；非零偏移请求的精确输出断言必须失败。"
+        }
+      ],
+      "lanes": [
+        "PR Test (HCU)"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    }
+  ],
+  "scope": {
+    "platform": "hcu",
+    "extent": "bounded",
+    "lanes": [
+      "PR Test (HCU)"
+    ],
+    "limitations": [
+      "只读审查，未执行代码、测试、collection 或 CI 重跑，未安装依赖。",
+      "base 的 HCU workflow 读取返回 content_denied；未绕过限制，实际 workflow revision、矩阵、runner、suite 和 selector 链未完整核验。",
+      "两次较宽源码搜索截断；deepseek_v4 文件发现也截断。已完成若干局部替代测试检索，不代表全仓不存在其他覆盖。",
+      "LightOp 底层实现未提供；不能仅凭包装函数或 CPU/mock 验证硬件数值正确性。",
+      "未取得失败 job 的原始日志，初始化容器及等待 wheel 的具体原因未知，不能归因于本 PR。read_ci 工具输出被截断，CI 概况另依据宿主完整输入快照。",
+      "未取得与固定 head 匹配的 coverage 工件；行/分支覆盖率未测量，不填写百分比。PR head 与合并提交未混用。",
+      "元数据不能证明具体场景、checkout 或安装产物身份。",
+      "未执行测试；外部调度、不可见配置与动态选择可能无法核验。"
+    ]
+  },
+  "source_fingerprints": {
+    "python/sglang/srt/layers/attention/deepseek_v4_backend.py": "d4f0eae3157a3f7c44581bbd3b384cf3a37f7700da62dbfc4224e7802e00866e",
+    "test/registered/kernels/ops/attention/test_topk_v2.py": "4feb803185b5c4499b6d00821cfdda88e4b5e58fc3fd01ad422e4f2cede922e7",
+    "test/registered/attention/unittests/dsv4/test_deepseek_v4.py": "c496f332eedc9c45676489e76dac8fba823434731da18257943f792ecf210507"
+  },
+  "evidence": [
+    {
+      "id": "S_BACKEND",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 3290,
+      "end": 3488,
+      "claim": "E1：extend 条件、每请求偏移与局部可见长度、HCU 回退及排序后的 page/raw 输出映射。",
+      "sha256": "68d8ad0961267e0118b5a35a8b79672a40c8954fc03ee2cdabb15e6329eb77da"
+    },
+    {
+      "id": "S_LOGITS",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 350,
+      "end": 460,
+      "claim": "E7：dense 索引器可用性探测及 LightOp 包装调用；未给出 LightOp 内核实现。",
+      "sha256": "68d8ad0961267e0118b5a35a8b79672a40c8954fc03ee2cdabb15e6329eb77da"
+    },
+    {
+      "id": "S_TOPK_TEST_COMMON",
+      "kind": "source",
+      "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 1,
+      "end": 200,
+      "claim": "E17：注册 CUDA/AMD 测试；参考结果检查索引集合及有效数量，允许有限边界误差；此段没有 HCU 注册。",
+      "sha256": "d8951ca67d1302cca6ed1d465669b662dfe1f7e4769c64fc16eb421cf05c2fbe"
+    },
+    {
+      "id": "S_TOPK_TEST_RAGGED",
+      "kind": "source",
+      "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 309,
+      "end": 469,
+      "claim": "E22：窗口外高分、非零偏移、负无穷和省略 row_starts 的断言均直接调用融合 TopK，不经过 backend 的 HCU PyTorch 回退。",
+      "sha256": "d8951ca67d1302cca6ed1d465669b662dfe1f7e4769c64fc16eb421cf05c2fbe"
+    },
+    {
+      "id": "S_ATTENTION_CANDIDATE",
+      "kind": "source",
+      "path": "test/registered/attention/unittests/dsv4/test_deepseek_v4.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 1,
+      "end": 200,
+      "claim": "E21：候选 attention 测试注册为 CUDA，文件说明压缩 attention 场景预置稀疏页索引并绕过生产索引器；已读片段不足以证明 HCU dense TopK 覆盖。",
+      "sha256": "668c0886453c02382159954935ab2070c9a5d91e0d07db93336f528489d91178"
+    },
+    {
+      "id": "A_GATE",
+      "kind": "artifact",
+      "path": "artifacts/run-36681595281-attempt-1-job-109778168182.txt",
+      "claim": "E23：run 36681595281 attempt 1 的 PR gate 因 HCU 相关路径自动放行；日志不是硬件测试结果，也没有 checkout/wheel 的测试身份闭环。",
+      "sha256": "34144faf2a9cd8d467b9197cf715bc317cea11957d38edba136d773aba643329"
+    }
+  ],
+  "unselected_dependencies": [],
+  "planning": [
+    {
+      "task_id": "T_VALIDATE_HCU_DISPATCH",
+      "next_action": "verify_existing",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "C_HCU_POOL_DISPATCH",
+          "name": "普通池与 LayerSplit 的 HCU 分发及非 HCU 对照",
+          "inputs": "HCU dense extend；分别使用普通池与 LayerSplit，确保至少一条可见压缩 KV；另设非 HCU 对照。",
+          "expected": "两个 HCU 场景都完成回退且不调用融合入口，非 HCU 继续调用融合入口。",
+          "oracle": "入口调用观测与显式失败桩验证分发；真实 HCU 集成核对实际算子执行，不能仅看服务启动。",
+          "negative_control": "把条件恢复成 HCU 且 LayerSplit，普通池场景必须因误入融合入口而失败。",
+          "scenario_id": "C_HCU_POOL_DISPATCH",
+          "identity_mode": "explicit"
+        }
+      ]
+    },
+    {
+      "task_id": "T_VALIDATE_LOCAL_OFFSETS",
+      "next_action": "verify_existing",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "C_MULTI_REQUEST_LOCAL_OFFSETS",
+          "name": "多请求局部 TopK 与扁平 KV 映射",
+          "inputs": "至少两个请求，后者 ks 非零；请求 KV 映射互不相同，局部有限分数互异，补齐列放高分；覆盖可见长度为零、短于 topk 和长于 topk。",
+          "expected": "只选每行可见的本请求 KV，page/raw 索引按预期排序，有效项数正确且剩余项为 -1，补齐高分不被选中。",
+          "oracle": "逐请求人工小矩阵的排名及独立 KV 字典映射，不使用被测实现产生期望值。",
+          "negative_control": "分别去掉 ranked 加 ks、恢复 columns 大于等于 ks 的旧掩码；非零偏移请求的精确输出断言必须失败。",
+          "scenario_id": "C_MULTI_REQUEST_LOCAL_OFFSETS",
+          "identity_mode": "explicit"
+        }
+      ]
+    }
+  ],
+  "authorization": "No code, CI or execution changes authorized by this check",
+  "origin_mode": "pr_ci_review",
+  "pr_context": {
+    "number": 467,
+    "url": "https://github.com/HYGON-AI/sglang-das/pull/467",
+    "base_sha": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+    "head_sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+    "diff_base": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+    "head_repository": "liucong521/sglang-das",
+    "captured_at": "2026-10-08T07:03:02.652Z",
+    "snapshot_sha256": "2f1383c84871112891c631aa39b32dff546d2e0ba73ed2eee11bb69348406252"
+  }
+}

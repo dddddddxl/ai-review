@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","revision":"756ae5b4fe26cf9ad666d46cda6c45b14b3abc60","path":".github/workflows/pr-test.yml","start":324},{"tool":"read_file","path":"test/run_suite.py"},{"tool":"read_file","path":"python/sglang/test/ci/ci_register.py"},{"tool":"find_files","query":"test_stream"}]}

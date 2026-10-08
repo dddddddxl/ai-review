@@ -1,0 +1,687 @@
+{
+  "provenance": {
+    "kind": "codex_file_bridge_dry_run",
+    "model_api_called": false,
+    "scripted_answers": false,
+    "agent_context": "context_not_independently_verified_not_blind",
+    "blind": false,
+    "mode": "both",
+    "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/478",
+    "repository": "HYGON-AI/sglang-das",
+    "source_head": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+    "source_base": "cfa865d339c0d7191dd044e6980006be799a570a",
+    "diff_base": "cfa865d339c0d7191dd044e6980006be799a570a",
+    "history_shallow": true,
+    "ancestry_verified": true,
+    "ci_evidence": "frozen_snapshot_not_current_live_ci",
+    "captured_at": "2026-10-08T07:02:45.119Z",
+    "input_hash": "30f26d971aae87f7aa37e4f9d93b80cda58629a743ad7294e44a4febaf21d2e2",
+    "skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+    "required_skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_status": "available",
+    "target_tests_executed": false,
+    "github_writes": false,
+    "network": false,
+    "model_window_ms": 1800000,
+    "max_tools": 24
+  },
+  "records": [
+    {
+      "id": "E1",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "python/sglang/srt/mem_cache/memory_pool.py",
+      "start": 130,
+      "end": 220,
+      "sha256": "f9ce1fae60660d406553c3c87e5ea1a9020664d652c33098077eb7d908722649",
+      "truncated": false
+    },
+    {
+      "id": "E2",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "python/sglang/srt/mem_cache/memory_pool.py",
+      "start": 2590,
+      "end": 2740,
+      "sha256": "f9ce1fae60660d406553c3c87e5ea1a9020664d652c33098077eb7d908722649",
+      "truncated": false
+    },
+    {
+      "id": "E3",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 156,
+          "text": "def _set_kv_buffer_impl("
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 2775,
+          "text": "        _set_kv_buffer_impl("
+        }
+      ],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E4",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "python/sglang/srt/mem_cache/memory_pool.py",
+      "start": 2741,
+      "end": 2820,
+      "sha256": "f9ce1fae60660d406553c3c87e5ea1a9020664d652c33098077eb7d908722649",
+      "truncated": false
+    },
+    {
+      "id": "E5",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 166,
+          "text": "    alt_stream: Optional[torch.cuda.Stream] = None,"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 2014,
+          "text": "        enable_alt_stream: bool = True,"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 2101,
+          "text": "        _use_alt_stream = _is_cuda or current_platform.is_cuda_alike()"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 2102,
+          "text": "        self.alt_stream = ("
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 2104,
+          "text": "            if _use_alt_stream and enable_alt_stream"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 2787,
+          "text": "            alt_stream=self.alt_stream,"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 3488,
+          "text": "        if get_is_capture_mode() and self.alt_stream is not None:"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 3491,
+          "text": "            self.alt_stream.wait_stream(current_stream)"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 3495,
+          "text": "            with self.device_module.stream(self.alt_stream):"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 3499,
+          "text": "            current_stream.wait_stream(self.alt_stream)"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 3839,
+          "text": "        if get_is_capture_mode() and self.alt_stream is not None:"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 3841,
+          "text": "            self.alt_stream.wait_stream(current_stream)"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 3844,
+          "text": "            with self.device_module.stream(self.alt_stream):"
+        },
+        {
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "line": 3846,
+          "text": "            current_stream.wait_stream(self.alt_stream)"
+        }
+      ],
+      "searchedFiles": 1,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E6",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_ci",
+      "truncated": true,
+      "execution": "not_verified"
+    },
+    {
+      "id": "E7",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "find_files",
+      "matches": [
+        "python/sglang/srt/hardware_backend/npu/dsv4/dsv4_memory_pool.py",
+        "python/sglang/srt/hardware_backend/npu/memory_pool_npu.py",
+        "python/sglang/srt/mem_cache/base_swa_memory_pool.py",
+        "python/sglang/srt/mem_cache/deepseek_v4_memory_pool.py",
+        "python/sglang/srt/mem_cache/hisparse_memory_pool.py",
+        "python/sglang/srt/mem_cache/memory_pool.py",
+        "python/sglang/srt/mem_cache/memory_pool_host.py",
+        "python/sglang/srt/mem_cache/swa_memory_pool.py",
+        "python/sglang/srt/mem_cache/unified_memory_pool.py",
+        "python/sglang/srt/multimodal/transport/memory_pool.py",
+        "test/manual/minimax_m3/test_npu_memory_pool.py"
+      ],
+      "truncated": false
+    },
+    {
+      "id": "E8",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "find_files",
+      "matches": [
+        "docs/docs/advanced_features/quantized_kv_cache.mdx",
+        "python/sglang/kernels/jit/csrc/attention/fused_fp8_qkv_kv_cache.cuh",
+        "python/sglang/kernels/ops/kvcache/fused_fp8_qkv_kv_cache.py",
+        "python/sglang/srt/hardware_backend/mlx/kv_cache/__init__.py",
+        "python/sglang/srt/hardware_backend/mlx/kv_cache/attention_contract.py",
+        "python/sglang/srt/hardware_backend/mlx/kv_cache/attention_kv_cache.py",
+        "python/sglang/srt/hardware_backend/mlx/kv_cache/attention_kv_pool.py",
+        "python/sglang/srt/hardware_backend/mlx/kv_cache/attention_wrapper.py",
+        "python/sglang/srt/hardware_backend/mlx/kv_cache/auxiliary_state.py",
+        "python/sglang/srt/hardware_backend/mlx/kv_cache/layout.py",
+        "python/sglang/srt/hardware_backend/mlx/kv_cache/model_patching.py",
+        "python/sglang/srt/layers/quantization/fp4_kv_cache_quant_method.py",
+        "python/sglang/srt/layers/quantization/kv_cache.py",
+        "python/sglang/srt/mem_cache/kv_cache_builder.py",
+        "python/sglang/srt/mem_cache/kv_cache_configurator.py",
+        "python/sglang/srt/mem_cache/kv_cache_dtype.py",
+        "test/manual/quant/kv_cache_scales_llama3_1_8b.json",
+        "test/manual/quant/kv_cache_scales_llama3_8b.json",
+        "test/manual/quant/kv_cache_scales_qwen2_1_5b.json",
+        "test/registered/kernels/benchmark/kvcache/bench_fused_fp8_qkv_kv_cache.py",
+        "test/registered/kernels/ops/kvcache/test_fused_fp8_qkv_kv_cache.py",
+        "test/registered/quant/test_llama8b_nvfp4_kv_cache_sm120.py",
+        "test/registered/unit/hardware_backend/mlx/test_windowed_kv_cache.py",
+        "test/registered/unit/layers/quantization/test_compressed_tensors_kv_cache.py",
+        "test/registered/unit/layers/quantization/test_fp4_kv_cache_quant_method.py"
+      ],
+      "truncated": false
+    },
+    {
+      "id": "E9",
+      "status": "unavailable",
+      "reason": "content_denied",
+      "tool": "read_file",
+      "revision": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "path": ".github/workflows/pr-test-hcu.yml"
+    },
+    {
+      "id": "E10",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "find_files",
+      "matches": [
+        "python/sglang/kernels/ops/kvcache/triton_store_cache.py",
+        "test/registered/cpu/test_store_cache.py",
+        "test/registered/kernels/benchmark/kvcache/bench_store_cache.py",
+        "test/registered/kernels/ops/kvcache/test_store_cache.py",
+        "test/registered/unit/mem_cache/test_store_cache_4d.py"
+      ],
+      "truncated": false
+    },
+    {
+      "id": "E11",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+      "start": 1,
+      "end": 200,
+      "sha256": "304742e35f9be93990b699b120cfe6db5da18673b4bcd8d457f5ee32db6e2ca5",
+      "truncated": false
+    },
+    {
+      "id": "E12",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "test/registered/kernels/ops/kvcache/test_store_cache.py",
+      "start": 1,
+      "end": 200,
+      "sha256": "a4a0431e7512264872d8917c485973a77cda55c85919a3c3faebdf9cab5bcdec",
+      "truncated": false
+    },
+    {
+      "id": "E13",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "find_files",
+      "matches": [
+        ".github/workflows/hcu-feishu-notify-preview.yml",
+        ".github/workflows/hcu-full-enabled.yml",
+        ".github/workflows/hcu-manual-model-test.yml",
+        ".github/workflows/hcu-pd-1p1d.yml",
+        ".github/workflows/lint-hcu.yml",
+        ".github/workflows/nightly-test-hcu.yml",
+        ".github/workflows/pr-test-hcu.yml",
+        ".github/workflows/release-docker-hcu.yml",
+        ".github/workflows/release-pr-hcu.yml",
+        ".github/workflows/release-pypi-nightly-hcu.yml",
+        "benchmark/kernels/elementwise/benchmark_concat_mla_absorb_q_hcu.py",
+        "docker/hcu.Dockerfile",
+        "docs/hcu-pr-ci-visual-guide.html",
+        "python/pyproject_hcu.toml",
+        "python/sglang/kernels/aot/csrc/elementwise/concat_mla_absorb_q_hcu.cu",
+        "python/sglang/kernels/ops/attention/dsv4/hcu_linear_bf16_fp32.py",
+        "python/sglang/srt/layers/attention/dsa/hcu_int8_index_k_cache.py",
+        "python/sglang/srt/layers/attention/dsa/hcu_sparse_mqa.py",
+        "python/sglang/srt/layers/attention/dsv4/hcu_int8_index_k_cache.py",
+        "python/sglang/srt/layers/attention/hcu_mla_backend.py",
+        "python/sglang/srt/layers/attention/hcu_native_swa.py",
+        "python/sglang/srt/layers/moe/hcu_dspark_aiter_moe_fallback.py",
+        "python/sglang/srt/layers/moe/hcu_int4_megamoe.py",
+        "python/sglang/test/hcu_accuracy_report.py",
+        "python/sglang/test/hcu_cookbook_utils.py",
+        "python/sglang/test/hcu_pd_utils.py",
+        "python/sglang/test/hcu_reasoning_code_utils.py",
+        "python/sglang/test/hcu_server_guard.py",
+        "python/sglang/test/hcu_utils.py",
+        "requirements_hcu.txt",
+        "scripts/ci/hcu/check_hcu_external_api_compat.py",
+        "scripts/ci/hcu/check_hcu_runtime_text.py",
+        "scripts/ci/hcu/check_sensitive_diff_text.py",
+        "scripts/ci/hcu/hcu_ci_build_shared_wheels.sh",
+        "scripts/ci/hcu/hcu_ci_cleanup_container.sh",
+        "scripts/ci/hcu/hcu_ci_exec.sh",
+        "scripts/ci/hcu/hcu_ci_install_dependency.sh",
+        "scripts/ci/hcu/hcu_ci_install_reasoning_code_deps.sh",
+        "scripts/ci/hcu/hcu_ci_judge_humaneval.sh",
+        "scripts/ci/hcu/hcu_ci_notify_feishu.py",
+        "scripts/ci/hcu/hcu_ci_pd.py",
+        "scripts/ci/hcu/hcu_ci_pd_controller.sh",
+        "scripts/ci/hcu/hcu_ci_publish_accuracy.py",
+        "scripts/ci/hcu/hcu_ci_publish_reasoning_code.py",
+        "scripts/ci/hcu/hcu_ci_start_container.sh",
+        "scripts/ci/hcu/hcu_rename_allowlist.txt",
+        "scripts/ci/hcu/test_hcu_ci_notify_feishu.py",
+        "scripts/ci/hcu/test_hcu_ci_pd.py",
+        "scripts/ci/hcu/test_hcu_ci_publish_reasoning_code.py",
+        "scripts/ci/hcu/test_hcu_server_guard.py",
+        "scripts/ci/hcu/tests/test_check_hcu_runtime_text.py",
+        "scripts/ci/hcu/verify_hcu_registration.py",
+        "scripts/code_sync/hcu_main_migration.py",
+        "test/manual/test_hcu_dflash_native_block16.py",
+        "test/manual/test_hcu_native_swa.py",
+        "test/registered/hcu/4-gpu-models/test_qwen3_next_80b_server_hcu.py",
+        "test/registered/hcu/README.md",
+        "test/registered/hcu/accuracy/bw1100/test_cookbook_text_gsm8k_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_cookbook_text_mmlu_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_deepseek_v32_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_glm51_int8_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_gsm8k_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_kimi_k26_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_mimo_v2_flash_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_minimax_m25_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_mmlu_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_mmmu_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_qwen35_eval_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_reasoning_code_qwen35_397b_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_reasoning_code_qwen36_35b_a3b_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_reasoning_code_qwen3_30b_a3b_hcu.py",
+        "test/registered/hcu/accuracy/bw1100/test_reasoning_code_qwen3_32b_hcu.py",
+        "test/registered/hcu/attention/test_fa3_text_smoke_hcu.py",
+        "test/registered/hcu/backends/bw1100/test_torch_compile_cuda_graph_hcu.py",
+        "test/registered/hcu/core/bw1100/test_hidden_states_hcu.py",
+        "test/registered/hcu/core/test_score_api_hcu.py",
+        "test/registered/hcu/disaggregation/bw1100/test_minimax_m27_pd_hcu.py",
+        "test/registered/hcu/disaggregation/pd_hcu_utils.py",
+        "test/registered/hcu/disaggregation/test_pd_basic_hcu.py",
+        "test/registered/hcu/disaggregation/test_pd_environment_hcu.py",
+        "test/registered/hcu/disaggregation/test_pd_hcu_utils.py",
+        "test/registered/hcu/disaggregation/test_pd_pp_hcu.py",
+        "test/registered/hcu/disaggregation/test_pd_transfer_backends_hcu.py",
+        "test/registered/hcu/distributed/bw1100/test_collectives_reference_hcu.py",
+        "test/registered/hcu/distributed/bw1100/test_dp_attention_consistency_hcu.py",
+        "test/registered/hcu/distributed/bw1100/test_hicache_pp_hcu.py",
+        "test/registered/hcu/distributed/bw1100/test_pp_consistency_hcu.py",
+        "test/registered/hcu/distributed/bw1100/test_tp_dp_consistency_hcu.py",
+        "test/registered/hcu/embedding/bw1100/test_gte_qwen2_embedding_hcu.py",
+        "test/registered/hcu/infra/test_hcu_server_guard_failures_hcu.py",
+        "test/registered/hcu/interface/test_hcu_smoke.py",
+        "test/registered/hcu/interface/test_hcu_stage_b_flow_0.py",
+        "test/registered/hcu/interface/test_hcu_stage_b_flow_1.py",
+        "test/registered/hcu/kernels/test_attention_reference_hcu.py",
+        "test/registered/hcu/kernels/test_concat_mla_absorb_q_hcu.py",
+        "test/registered/hcu/kernels/test_fp8_quant_reference_hcu.py",
+        "test/registered/hcu/kernels/test_int8_w8a8_reference_hcu.py",
+        "test/registered/hcu/kernels/test_linear_bf16_fp32_hcu.py",
+        "test/registered/hcu/kernels/test_moe_topk_reference_hcu.py",
+        "test/registered/hcu/kernels/test_sgl_kernel_smoke_hcu.py"
+      ],
+      "truncated": true
+    },
+    {
+      "id": "E14",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "search_code",
+      "matches": [],
+      "searchedFiles": 76,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E15",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "search_code",
+      "matches": [],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E16",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "test/registered/hcu/backends/bw1100/test_torch_compile_cuda_graph_hcu.py",
+      "start": 1,
+      "end": 100,
+      "sha256": "3a31c047da235b328b86ad4ac601adda57c4bec38c8b5fbf1776e9afd490fc86",
+      "truncated": false
+    },
+    {
+      "id": "E17",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "test/registered/hcu/attention/test_fa3_text_smoke_hcu.py",
+      "start": 1,
+      "end": 70,
+      "sha256": "3fe3f408f92b4345964071e716c3c3792d888ad5b58738eef79426bfbf2a9f0e",
+      "truncated": false
+    },
+    {
+      "id": "E18",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "test/registered/hcu/README.md",
+      "start": 1,
+      "end": 148,
+      "sha256": "0983aeec77167a09737fcbf15f409c113d4e2c9707f089cefc6a18e8c833cf44",
+      "truncated": false
+    },
+    {
+      "id": "E19",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "python/sglang/srt/mem_cache/memory_pool.py",
+      "start": 1,
+      "end": 129,
+      "sha256": "f9ce1fae60660d406553c3c87e5ea1a9020664d652c33098077eb7d908722649",
+      "truncated": false
+    },
+    {
+      "id": "E20",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "test/registered/unit/mem_cache/test_asymmetric_mha_pool.py",
+          "line": 111,
+          "text": "    \"\"\"set_kv_buffer round-trip through the fused kernel, per dim pair.\"\"\""
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_asymmetric_mha_pool.py",
+          "line": 141,
+          "text": "        pool.set_kv_buffer(SimpleNamespace(layer_id=0), loc, cache_k, cache_v)"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_asymmetric_mha_pool.py",
+          "line": 168,
+          "text": "    \"\"\"set_kv_buffer_prefix_valid's tiled kernel takes one row width for both"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_asymmetric_mha_pool.py",
+          "line": 177,
+          "text": "        pool.set_kv_buffer_prefix_valid("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 18,
+          "text": "pools hold none and never translate — the write loc reaching `set_kv_buffer` is"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 52,
+          "text": "    \"\"\"Stub sub-pool that records the `loc` and kwargs passed to `set_kv_buffer`.\"\"\""
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 57,
+          "text": "    def set_kv_buffer(self, layer, loc, cache_k, cache_v, *args, **kwargs):"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 62,
+          "text": "    \"\"\"`UnifiedSWAKVPool.set_kv_buffer` routing: full layers write the full-physical"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 69,
+          "text": "        # Bypass the heavy __init__; set only the attributes set_kv_buffer reads."
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 84,
+          "text": "        pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 108,
+          "text": "            pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 121,
+          "text": "        pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 144,
+          "text": "            pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 153,
+          "text": "    \"\"\"`HybridLinearKVPool.set_kv_buffer` (non-MLA) writes the full-physical"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 172,
+          "text": "        pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 192,
+          "text": "        pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 224,
+          "text": "    - `set_kv_buffer` (MLA branch) mirrors the MHA branch — write the"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 246,
+          "text": "        pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_full_loc_fast_path.py",
+          "line": 263,
+          "text": "        pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_layout_compat.py",
+          "line": 23,
+          "text": "3. ``set_kv_buffer`` round-trips correctly for both page sizes."
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_multi_ended_allocator.py",
+          "line": 475,
+          "text": "    # The captured cuda-graph paths (full-layer set_kv_buffer elif,"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_quantized_kv_pool.py",
+          "line": 107,
+          "text": "        pool.set_kv_buffer("
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 27,
+          "text": "# The set_kv_buffer integration test needs UnifiedMHATokenToKVPool, which only"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 298,
+          "text": "    ``UnifiedMHATokenToKVPool.set_kv_buffer`` path (the direct PHYSICAL write +"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 305,
+          "text": "        directly (no allocator / v2p translate), so `set_kv_buffer` receives the"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 351,
+          "text": "    def _run_set_kv_buffer_and_compare(self, page_size: int):"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 357,
+          "text": "        # `set_kv_buffer` reads: `.layer_id`."
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 372,
+          "text": "        # Production path: the Triton `store_cache_4d` kernel via set_kv_buffer."
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 373,
+          "text": "        kv_pool.set_kv_buffer(layer, loc, cache_k.clone(), cache_v.clone())"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 397,
+          "text": "            f\"K view mismatch through set_kv_buffer at ps={page_size}\","
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 401,
+          "text": "            f\"V view mismatch through set_kv_buffer at ps={page_size}\","
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 405,
+          "text": "        self._run_set_kv_buffer_and_compare(page_size=1)"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "line": 408,
+          "text": "        self._run_set_kv_buffer_and_compare(page_size=64)"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_unified_mla_gpu_parity.py",
+          "line": 25,
+          "text": "  - `set_kv_buffer` (combined pre-concatenated write, the Triton-backend path);"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_unified_mla_gpu_parity.py",
+          "line": 150,
+          "text": "    def test_set_kv_buffer_combined_write(self):"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_unified_mla_gpu_parity.py",
+          "line": 159,
+          "text": "                unified.set_kv_buffer(layer, _dense(locs, ps), k, None)"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_unified_mla_gpu_parity.py",
+          "line": 160,
+          "text": "                ref.set_kv_buffer(layer, locs, k, None)"
+        },
+        {
+          "path": "test/registered/unit/mem_cache/test_unified_mla_gpu_parity.py",
+          "line": 191,
+          "text": "                unified.set_kv_buffer(layer, _dense(src_t, ps), k, None)"
+        }
+      ],
+      "searchedFiles": 76,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E21",
+      "status": "available",
+      "revision": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "tool": "read_file",
+      "path": "test/run_suite.py",
+      "start": 1,
+      "end": 200,
+      "sha256": "c7b9ca795455da167ac77b568b1311c1127986e8fe6d2b98b4c3904eadc8d87b",
+      "truncated": false
+    },
+    {
+      "id": "E22",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "test/registered/unit/mem_cache/test_asymmetric_mha_pool.py",
+      "start": 1,
+      "end": 200,
+      "sha256": "436af1087d94d0b7b67a26d256e3aff4d9d6b1f2feeb247e048c4f968b029fe5",
+      "truncated": false
+    },
+    {
+      "id": "E23",
+      "status": "available",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "tool": "read_file",
+      "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+      "start": 292,
+      "end": 413,
+      "sha256": "304742e35f9be93990b699b120cfe6db5da18673b4bcd8d457f5ee32db6e2ca5",
+      "truncated": false
+    },
+    {
+      "id": "E24",
+      "status": "unavailable",
+      "reason": "content_denied",
+      "tool": "read_file",
+      "revision": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "path": "python/sglang/test/hcu_utils.py"
+    }
+  ]
+}

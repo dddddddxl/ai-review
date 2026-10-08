@@ -1,0 +1,9 @@
+{
+  "overall": "partial",
+  "code": "partial",
+  "tests": "incomplete",
+  "checkout_current": true,
+  "files_complete": true,
+  "evidence_partial": true,
+  "caveat": "只读文件桥接；不是独立盲测或真实模型 API 验收；未执行目标测试。validated 仅指测试审查与交接校验。"
+}

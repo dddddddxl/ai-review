@@ -24,9 +24,21 @@ test('benchmark: unknown and empty denominators never become a perfect score', (
   assert.equal(scored.tracks.code.precision, 0.5);
   assert.equal(scored.tracks.code.labeled_issue_recall, 0.5);
   assert.equal(scored.tracks.code.unknown, 1);
+  assert.equal(scored.tracks.code.location_resolution_rate, 2 / 3);
   assert.equal(scored.tracks.tests.precision, null);
   assert.equal(scored.tracks.tests.labeled_issue_recall, null);
   assert.equal(scored.human_certified, false);
+});
+
+test('benchmark: tool observability separates requested calls from retained evidence', () => {
+  const data = fixture();
+  data.samples[0].observability = { model_turns: 10, tool_request_rounds: 6, requested_tools: 24, retained_evidence_records: 23 };
+  const scored = scoreEvaluation(data);
+  assert.equal(scored.observability.requested_tools, 24);
+  assert.equal(scored.observability.retained_evidence_records, 23);
+  assert.equal(scored.observability.samples_recorded, 1);
+  data.samples[0].observability.requested_tools = -1;
+  assert.throws(() => scoreEvaluation(data), /invalid_observability/);
 });
 
 test('benchmark: reject duplicate judgments, missing tracks and unbound identities', () => {

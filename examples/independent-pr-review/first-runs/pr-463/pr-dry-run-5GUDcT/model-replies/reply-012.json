@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","path":"scripts/ci/hcu/test_hcu_build_alignment.py"},{"tool":"search_code","query":"runner","prefix":"scripts/ci/hcu/"},{"tool":"search_code","query":"workflow","prefix":"scripts/ci/hcu/"},{"tool":"read_file","path":".github/workflows/nightly-test-hcu.yml","start":1,"end":120}]}

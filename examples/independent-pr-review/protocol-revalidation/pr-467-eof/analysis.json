@@ -1,0 +1,242 @@
+{
+  "review_version": 1,
+  "head_sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+  "diff_base": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+  "diff_base_reason": "采用宿主冻结快照明确提供的 PR 比较基线，未用合并提交或最新分支替代。",
+  "platform": "hcu",
+  "summary": "本次变更将 HCU dense prefill TopK 回退扩展到普通缓存池，并改为局部列筛选后加扁平 KV 偏移。已读融合 TopK 的窗口、偏移及边界断言，但它们不直接调用本次回退。快照中 PR Test (HCU) run 36681595281 attempt 1 的 Stage A/B 为 cancelled，Wait HCU wheels 和汇总 job 为 failure；wheel run 36681595245 的初始化容器步骤失败。门禁日志仅证明自动调度获准，未获得固定 head 对应的逐测例执行、checkout 与安装产物身份，不能认定产品回归或测试通过。",
+  "limitations": [
+    "只读审查，未执行代码、测试、collection 或 CI 重跑，未安装依赖。",
+    "base 的 HCU workflow 读取返回 content_denied；未绕过限制，实际 workflow revision、矩阵、runner、suite 和 selector 链未完整核验。",
+    "两次较宽源码搜索截断；deepseek_v4 文件发现也截断。已完成若干局部替代测试检索，不代表全仓不存在其他覆盖。",
+    "LightOp 底层实现未提供；不能仅凭包装函数或 CPU/mock 验证硬件数值正确性。",
+    "未取得失败 job 的原始日志，初始化容器及等待 wheel 的具体原因未知，不能归因于本 PR。read_ci 工具输出被截断，CI 概况另依据宿主完整输入快照。",
+    "未取得与固定 head 匹配的 coverage 工件；行/分支覆盖率未测量，不填写百分比。PR head 与合并提交未混用。"
+  ],
+  "files": [
+    {
+      "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+      "status": "reviewed",
+      "reason": "已审全部提供的 diff，沿 dense prefill 调度、ks/compress_lens 构造、候选掩码及 page/raw 输出映射检查；底层算子和实际执行保留未知。"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "S_BACKEND",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 3290,
+      "end": 3488,
+      "claim": "E1：extend 条件、每请求偏移与局部可见长度、HCU 回退及排序后的 page/raw 输出映射。"
+    },
+    {
+      "id": "S_LOGITS",
+      "kind": "source",
+      "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 350,
+      "end": 460,
+      "claim": "E7：dense 索引器可用性探测及 LightOp 包装调用；未给出 LightOp 内核实现。"
+    },
+    {
+      "id": "S_TOPK_TEST_COMMON",
+      "kind": "source",
+      "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 1,
+      "end": 200,
+      "claim": "E17：注册 CUDA/AMD 测试；参考结果检查索引集合及有效数量，允许有限边界误差；此段没有 HCU 注册。"
+    },
+    {
+      "id": "S_TOPK_TEST_RAGGED",
+      "kind": "source",
+      "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 309,
+      "end": 469,
+      "claim": "E22：窗口外高分、非零偏移、负无穷和省略 row_starts 的断言均直接调用融合 TopK，不经过 backend 的 HCU PyTorch 回退。"
+    },
+    {
+      "id": "S_ATTENTION_CANDIDATE",
+      "kind": "source",
+      "path": "test/registered/attention/unittests/dsv4/test_deepseek_v4.py",
+      "revision": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "start": 1,
+      "end": 200,
+      "claim": "E21：候选 attention 测试注册为 CUDA，文件说明压缩 attention 场景预置稀疏页索引并绕过生产索引器；已读片段不足以证明 HCU dense TopK 覆盖。"
+    },
+    {
+      "id": "A_GATE",
+      "kind": "artifact",
+      "path": "artifacts/run-36681595281-attempt-1-job-109778168182.txt",
+      "claim": "E23：run 36681595281 attempt 1 的 PR gate 因 HCU 相关路径自动放行；日志不是硬件测试结果，也没有 checkout/wheel 的测试身份闭环。"
+    }
+  ],
+  "behaviors": [
+    {
+      "id": "B_HCU_DISPATCH",
+      "name": "普通与 LayerSplit 缓存池统一进入 HCU TopK 回退",
+      "changed_paths": [
+        "python/sglang/srt/layers/attention/deepseek_v4_backend.py"
+      ],
+      "before": "只有 HCU 且 LayerSplit 缓存池进入 PyTorch 回退，其他情况调用融合 TopK。",
+      "after": "所有 HCU 缓存池进入 PyTorch 回退，非 HCU 仍调用融合 TopK。",
+      "trigger": "HCU、dense FP4 索引器可用、extend 模式且提供序列长度元数据，并有可见压缩 KV。",
+      "risk": "分发回归可能重新调用不可用的 HCU 融合路径，或误改变非 HCU 分支；标题中的 TP8 修复仍需真实运行确认。",
+      "oracle": "对普通池和 LayerSplit 分别观测实际分支，令融合入口在 HCU 测试中被调用即失败；非 HCU 对照必须仍调用融合入口。硬件集成另验证 LightOp、分布式启动与输出。",
+      "counterevidence": "已检索 test/registered/hcu 的 fp4、unit/layers/attention 与 attention/unittests/dsv4 的目标方法；局部搜索未命中，不能证明全仓缺测。已读 TopK 测试直接测试融合入口，attention 候选片段未形成回退分发断言。",
+      "evidence": [
+        "S_BACKEND",
+        "S_LOGITS",
+        "S_TOPK_TEST_COMMON",
+        "S_TOPK_TEST_RAGGED",
+        "S_ATTENTION_CANDIDATE"
+      ],
+      "lane": "PR Test (HCU)",
+      "platform": "hcu",
+      "design": "unknown",
+      "selection": "unknown",
+      "selection_reason": "实际 gate 自动放行可确认，但 workflow 内容不可读取，未核验矩阵、runner 和具体 selector；候选测试注册不能证明 HCU 行为被选择。",
+      "selection_evidence": [
+        "A_GATE",
+        "S_TOPK_TEST_COMMON"
+      ],
+      "tests": [],
+      "observations": []
+    },
+    {
+      "id": "B_LOCAL_TO_FLAT",
+      "name": "局部有效列转换为扁平 KV 索引并正确填充",
+      "changed_paths": [
+        "python/sglang/srt/layers/attention/deepseek_v4_backend.py"
+      ],
+      "before": "HCU 回退按 [ks, ks+compress_lens) 过滤 logits 列，并直接使用列号。",
+      "after": "按 [0, compress_lens) 过滤局部 logits 列，再将有效排名加 ks，后续映射到 page/raw 索引。",
+      "trigger": "多请求 dense prefill，特别是后续请求 ks 非零、可见长度不同、可见长度小于 topk 或为零的行。",
+      "risk": "若局部坐标、请求偏移或填充处理错误，会选到其他请求的 KV、未来 token 或错误的稀疏页。",
+      "oracle": "使用小型互异有限分数和独立的逐请求 KV 映射，手算有效列排名；精确断言 page/raw 输出、有效数及 -1 尾部，而非复制张量实现。",
+      "counterevidence": "融合 TopK 已有窗口、输出偏移和边界断言，构成相关算子合同的部分支持；但它不调用新的 PyTorch 回退，且省略 row_starts 的现有场景使用零偏移，不能验证回退的多请求非零 ks 组合。",
+      "evidence": [
+        "S_BACKEND",
+        "S_TOPK_TEST_COMMON",
+        "S_TOPK_TEST_RAGGED"
+      ],
+      "lane": "PR Test (HCU)",
+      "platform": "hcu",
+      "design": "partial",
+      "selection": "unknown",
+      "selection_reason": "已读测试注册为 CUDA/AMD，未确认实际 HCU runner 选择这些测例或任何直接覆盖 backend 回退的测例；gate 放行不等于测例被选择。",
+      "selection_evidence": [
+        "A_GATE",
+        "S_TOPK_TEST_COMMON"
+      ],
+      "tests": [
+        {
+          "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+          "id": "test_topk_v2_ragged_window",
+          "assertion": "以窗口切片参考 TopK 检查结果、有效数量和写入范围，覆盖非零输出偏移；被测的是融合算子而非本次 HCU 回退。",
+          "evidence": [
+            "S_TOPK_TEST_COMMON",
+            "S_TOPK_TEST_RAGGED"
+          ]
+        },
+        {
+          "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+          "id": "test_topk_v2_ragged_no_row_starts",
+          "assertion": "断言省略与显式零 row_starts 的融合结果相同；本场景 starts 与 offsets 为零，不验证新的非零 ks 回退组合。",
+          "evidence": [
+            "S_TOPK_TEST_RAGGED"
+          ]
+        }
+      ],
+      "observations": []
+    }
+  ],
+  "observations": [],
+  "findings": [
+    {
+      "id": "F_HCU_EVIDENCE",
+      "kind": "evidence_gap",
+      "severity": "P2",
+      "confidence": "high",
+      "title": "尚未建立 HCU 回退断言、有效选择与固定 head 执行证据的对应关系",
+      "impact": "现有已读融合 TopK 断言不能证明本次 backend 分发和局部到扁平索引转换已被验证。gate 放行也不能替代具体测例结果；当前不能确认普通池、LayerSplit 或 TP8 修复已通过验证。",
+      "recommendation": "先验证是否有直接命中回退的现有测例并补齐选择、checkout/wheel 与逐测例日志；不足时再补有独立预期和负控的针对性场景。失败基础设施的根因另行取证，不归因于产品代码。",
+      "behavior_ids": [
+        "B_HCU_DISPATCH",
+        "B_LOCAL_TO_FLAT"
+      ],
+      "evidence": [
+        "S_BACKEND",
+        "S_TOPK_TEST_COMMON",
+        "S_TOPK_TEST_RAGGED",
+        "S_ATTENTION_CANDIDATE",
+        "A_GATE"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T_VALIDATE_HCU_DISPATCH",
+      "feature_id": "B_HCU_DISPATCH",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "现有可见候选未证明普通池和 LayerSplit 均命中 HCU 回退，真实 HCU/TP8 执行未核验。先定位替代覆盖，再决定补测。",
+      "evidence": [
+        "S_BACKEND",
+        "S_LOGITS",
+        "S_ATTENTION_CANDIDATE",
+        "A_GATE"
+      ],
+      "prerequisites": [
+        "取得实际 HCU workflow revision、矩阵、suite、selector 及失败 job 日志，核对固定 head 的 checkout 与安装产物。",
+        "准备 HCU 与 LightOp 兼容环境、普通池/LayerSplit 夹具；TP8 集成另需八卡资源和实际模型配置。运行与补丁需另行授权。"
+      ],
+      "acceptance": [
+        "已有或新增测例分别断言普通池和 LayerSplit 在 HCU 上不调用融合 TopK，非 HCU 对照仍保留原入口。",
+        "负控恢复旧的 LayerSplit 限制后普通池测例失败；保存固定 head 同一次 run/attempt 的选择及逐测例结果，CPU mock 不作为硬件通过证据。"
+      ],
+      "cases": [
+        {
+          "id": "C_HCU_POOL_DISPATCH",
+          "name": "普通池与 LayerSplit 的 HCU 分发及非 HCU 对照",
+          "inputs": "HCU dense extend；分别使用普通池与 LayerSplit，确保至少一条可见压缩 KV；另设非 HCU 对照。",
+          "expected": "两个 HCU 场景都完成回退且不调用融合入口，非 HCU 继续调用融合入口。",
+          "oracle": "入口调用观测与显式失败桩验证分发；真实 HCU 集成核对实际算子执行，不能仅看服务启动。",
+          "negative_control": "把条件恢复成 HCU 且 LayerSplit，普通池场景必须因误入融合入口而失败。"
+        }
+      ]
+    },
+    {
+      "id": "T_VALIDATE_LOCAL_OFFSETS",
+      "feature_id": "B_LOCAL_TO_FLAT",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "融合算子测试只提供相关合同支持，尚未验证实际 HCU 回退的非零 ks、可见长度和 page/raw 输出组合。",
+      "evidence": [
+        "S_BACKEND",
+        "S_TOPK_TEST_COMMON",
+        "S_TOPK_TEST_RAGGED"
+      ],
+      "prerequisites": [
+        "定位直接调用 backend dense 回退的现有测例；如没有，先确认可用池与 logits 夹具再补最小测例。",
+        "目标为 PR Test (HCU) lane；使用可追踪的固定 head 与 LightOp 版本，并独立记录测试选择和执行身份。"
+      ],
+      "acceptance": [
+        "采用互异有限分数和不同请求 KV 映射，精确验证非零 ks、零可见行、少于 topk、超过 topk、补齐列及 -1 填充。",
+        "删除加 ks 或恢复旧有效区间后相应测例必须失败；真实 HCU 结果与独立逐请求参考一致，并取得同次 run/attempt 的逐测例记录。"
+      ],
+      "cases": [
+        {
+          "id": "C_MULTI_REQUEST_LOCAL_OFFSETS",
+          "name": "多请求局部 TopK 与扁平 KV 映射",
+          "inputs": "至少两个请求，后者 ks 非零；请求 KV 映射互不相同，局部有限分数互异，补齐列放高分；覆盖可见长度为零、短于 topk 和长于 topk。",
+          "expected": "只选每行可见的本请求 KV，page/raw 索引按预期排序，有效项数正确且剩余项为 -1，补齐高分不被选中。",
+          "oracle": "逐请求人工小矩阵的排名及独立 KV 字典映射，不使用被测实现产生期望值。",
+          "negative_control": "分别去掉 ranked 加 ks、恢复 columns 大于等于 ks 的旧掩码；非零偏移请求的精确输出断言必须失败。"
+        }
+      ]
+    }
+  ]
+}

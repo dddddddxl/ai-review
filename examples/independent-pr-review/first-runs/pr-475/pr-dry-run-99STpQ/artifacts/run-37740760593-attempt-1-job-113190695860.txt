@@ -1,0 +1,29 @@
+来源：/repos/HYGON-AI/sglang-das/actions/jobs/113190695860/logs
+run=37740760593; attempt=1; job=113190695860; head_sha=821fca935ddf628fb26eaf99cfa9592835006b0a
+截断：false
+2026-10-08T06:58:24.0098024Z Current runner version: '2.337.0'
+2026-10-08T06:58:24.0105014Z Runner name: 'ci-nmz1'
+2026-10-08T06:58:24.0105844Z Runner group name: 'ci-general'
+2026-10-08T06:58:24.0106875Z Machine name: 'github-nmz1'
+2026-10-08T06:58:24.0110204Z ##[group]GITHUB_TOKEN Permissions
+2026-10-08T06:58:24.0112672Z Contents: read
+2026-10-08T06:58:24.0113355Z Metadata: read
+2026-10-08T06:58:24.0114026Z PullRequests: write
+2026-10-08T06:58:24.0114720Z ##[endgroup]
+2026-10-08T06:58:24.0116921Z Secret source: Actions
+2026-10-08T06:58:24.0117987Z Cache mode: read
+2026-10-08T06:58:24.0118800Z Prepare workflow directory
+2026-10-08T06:58:24.0493623Z Prepare all required actions
+2026-10-08T06:58:24.0541070Z Getting action download info
+2026-10-08T06:58:25.0195674Z Download action repository 'actions/labeler@v5' (SHA:8558fd74291d67161a8a78ce36a881fa63b766a9)
+2026-10-08T06:58:26.8288724Z Complete job name: label
+2026-10-08T06:58:27.0664030Z ##[group]Run actions/labeler@v5
+2026-10-08T06:58:27.0664642Z with:
+2026-10-08T06:58:27.0667951Z   repo-token: ***
+2026-10-08T06:58:27.0668415Z   configuration-path: .github/labeler.yml
+2026-10-08T06:58:27.0668843Z   sync-labels: false
+2026-10-08T06:58:27.0669244Z   dot: true
+2026-10-08T06:58:27.0669679Z ##[endgroup]
+2026-10-08T06:58:29.7615916Z The configuration file (path: .github/labeler.yml) was found locally, reading from the file
+2026-10-08T06:58:29.8324518Z Cleaning up orphan processes
+2026-10-08T06:58:30.0582205Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/labeler@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

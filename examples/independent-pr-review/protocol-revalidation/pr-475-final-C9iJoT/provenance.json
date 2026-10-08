@@ -1,0 +1,32 @@
+{
+  "kind": "posthoc_finalization_not_first_blind_run",
+  "repository": "HYGON-AI/sglang-das",
+  "pr": 475,
+  "head_sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+  "source_first_result_sha256": "881716db7f47f05f956d7df3f40fc321556c7ecd04182c75130e789feba9bae1",
+  "new_tool_calls_allowed": 0,
+  "new_model_turns_allowed": 1,
+  "separate_interaction_window_ms": 1800000,
+  "historical_answers_from_other_agents": false,
+  "target_tests_executed": false,
+  "corrected_eof_records": [
+    {
+      "id": "E21",
+      "before_end": 46,
+      "after_end": 45,
+      "reason": "host phantom terminal line removed"
+    },
+    {
+      "id": "E22",
+      "before_end": 29,
+      "after_end": 28,
+      "reason": "host phantom terminal line removed"
+    },
+    {
+      "id": "E24",
+      "before_end": 33,
+      "after_end": 32,
+      "reason": "host phantom terminal line removed"
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-463",
+  "repository": "HYGON-AI/sglang-das",
+  "head_sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+  "base_sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+  "input_sha256": "671863ecd5dbde862f98ff96b63449759270c8155fc039bd332c26696b1c0957",
+  "input_path": "../inputs/pr-463.json",
+  "label_origin": "independent_agent_not_human",
+  "labels": [
+    {
+      "id": "463-code-runner-migration-consistent",
+      "track": "code",
+      "kind": "supported",
+      "certainty": "confirmed",
+      "description": "已审的12个workflow diff将目标job统一改为静态 [ci, bw1100]；移除runner_label输出时同步改掉下游引用，保留的输入明确标注deprecated/ignored。未确认新增悬空输出引用或其他静态功能缺陷。",
+      "evidence": [
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "start": 57,
+          "end": 93
+        },
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "start": 333,
+          "end": 341
+        },
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "start": 450,
+          "end": 457
+        },
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "start": 614,
+          "end": 617
+        },
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "start": 689,
+          "end": 692
+        },
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/hcu-full-enabled.yml",
+          "start": 75,
+          "end": 82
+        },
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/nightly-test-hcu.yml",
+          "start": 60,
+          "end": 71
+        },
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/hcu-manual-model-test.yml",
+          "start": 118,
+          "end": 125
+        }
+      ],
+      "reason": "全diff及修改文件内 runner_label/HCU_CI_RUNNER_LABEL/outputs.runner_label 搜索未见旧动态runner输出残留消费者。此结论仅表示配置引用一致，不证明组织runner可用、标签实际部署或环境满足依赖。"
+    },
+    {
+      "id": "463-tests-captured-runner-selection-mismatch",
+      "track": "tests",
+      "kind": "selection_gap",
+      "certainty": "confirmed",
+      "description": "捕获的同head PR Test (HCU) 运行实际job labels是 [bw1100]，而新源码声明 [ci, bw1100]；仅凭该run的head_sha与PR一致不能认定已执行并验证新增runner选择配置。",
+      "evidence": [
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "start": 120,
+          "end": 123
+        },
+        {
+          "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "path": ".github/workflows/pr-test-hcu.yml",
+          "start": 842,
+          "end": 845
+        },
+        {
+          "path": "../inputs/pr-463.json",
+          "json_pointer": "/snapshot/runs",
+          "run_ids": [
+            36663736701,
+            36663007558
+          ],
+          "job_ids": [
+            109723855278,
+            109723920566,
+            109721625978,
+            109722497959
+          ],
+          "head_sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+          "observed_labels": [
+            "bw1100"
+          ]
+        }
+      ],
+      "reason": "实际jobs metadata与新YAML的labels可直接比较。run事件为pull_request_target，工作流版本/执行脚本来源需要独立核实；head归属本身不是新YAML生效证据。此是已捕获验证链缺口，不是宣称迁移配置必然错误。"
+    },
+    {
+      "id": "463-tests-environment-and-completion-unknown",
+      "track": "tests",
+      "kind": "evidence_gap",
+      "certainty": "unknown",
+      "description": "捕获的PR HCU测试在Check changes失败或关闭取消后，下游stage跳过/取消；没有新selector成功调度并完成硬件用例的证据，也未取得组织runner授权/标签和环境清单。",
+      "evidence": [
+        {
+          "path": "../inputs/pr-463.json",
+          "json_pointer": "/snapshot/runs",
+          "run_ids": [
+            36663007558,
+            36663736701
+          ],
+          "job_ids": [
+            109721625978,
+            109722498197,
+            109722499100,
+            109723920986,
+            109723921086
+          ]
+        },
+        {
+          "path": "../inputs/pr-463.json",
+          "json_pointer": "/snapshot/checks"
+        },
+        {
+          "path": "../inputs/pr-463.json",
+          "json_pointer": "/snapshot/run_details_truncated"
+        }
+      ],
+      "reason": "YAML静态检查或质量门禁不能验证Docker、DCU设备、共享模型目录及组织runner分配；失败/取消原因不能从汇总状态推断。缺少这些证据不等于runner不存在或没有测试。"
+    }
+  ],
+  "reviewed_scope": {
+    "code": [
+      "完整12文件workflow diff",
+      "pr-test-hcu/full-enabled/nightly/manual中runner输入、outputs和下游消费者",
+      "全相关测试/scripts关键词搜索未找到专门runner-selector assertion"
+    ],
+    "tests": [
+      "工作流触发、runner选择、gate/validate/wheels/stage链的静态连接",
+      "无新增测试文件；不把YAML能解析等同于调度正确"
+    ],
+    "ci": [
+      "fixture中各run/event/head、job结论、实际labels和runner_name；未读取PR正文artifact"
+    ]
+  },
+  "limitations": [
+    "静态阅读与已采集只读metadata，未触发workflow",
+    "未读取组织runner管理权限或私密配置",
+    "实际执行的工作流版本未确定",
+    "没有确认新代码defect；保留环境/部署unknown",
+    "未读取评论、历史AI审查或其他reviewer输出"
+  ],
+  "frozen_at": "2026-10-08 07:20:50 UTC"
+}

@@ -1,0 +1,1 @@
+测试覆盖审查未完成（阶段：validation；原因：skill_validation_failed）。不能据此判断没有测试缺口。

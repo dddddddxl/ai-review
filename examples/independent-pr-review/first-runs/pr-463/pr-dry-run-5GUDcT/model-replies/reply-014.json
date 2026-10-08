@@ -1,0 +1,138 @@
+{
+  "action": "final",
+  "result": {
+    "review_version": 1,
+    "head_sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+    "diff_base": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+    "diff_base_reason": "使用宿主冻结快照与各批 diff 一致提供的比较基线，未用合并提交或当前分支替代 PR head。",
+    "platform": "hcu",
+    "summary": "本 PR 将主要工作流迁移到 ci 与 bw1100 双标签 runner，并停用旧 runner_label 覆盖输入。已有导入、环境标记、构建配置及 wheel 身份断言提供局部检查，不能证明新 runner 的标签交集、设备、挂载或网络满足要求。快照中 PR Test HCU 的一次运行在变更检测步骤失败后下游跳过，另一次被关闭 PR 流程取消；其已记录 job 标签为 bw1100，不能据此证明 head 的双标签配置得到执行。尚无可核验的迁移端到端通过证据；未确诊产品回归。",
+    "limitations": [
+      "仅使用指定 bridge 的冻结 diff、宿主只读源码与运行快照；fresh_context，未接触预标注、其他报告、GitHub 评论或 evaluation。",
+      "未运行目标代码、测试、collection 或 CI；行覆盖率和分支覆盖率未测量。",
+      "hcu-full-enabled.yml、hcu-manual-model-test.yml、pr-test-hcu.yml 的 read_file 被宿主标记 content_denied；仅检查已提供 diff，完整调用与选择链延期。",
+      "共享 24 次宿主工具预算已用完。runner 文件搜索、workflow 文件搜索、test/ 的 bw1100 搜索以及 .github/ 的构建测试引用搜索均有截断；阴性结果不证明全仓不存在替代覆盖。",
+      "完整阅读了 scripts/ci/hcu/test_hcu_build_alignment.py 和 HCU smoke 文件；没有把其他仅搜索命中的测试当作已读断言。",
+      "夜间矩阵仅读取 640 至 839 行，未核验完整后续执行命令、动态 selector 和全部分片；调度配置不等于场景已运行。",
+      "运行详情采集被标记截断；唯一取得的日志来自取消工作流，不包含 HCU 测例结果、设备能力或安装产物身份。",
+      "pull_request_target 的运行元数据关联 PR head 不代表实际 workflow 源版本就是 head；已记录的单标签 job 与 head 双标签配置不同，实际执行版本仍需核验。",
+      "组织 runner 库存、访问范围、仓库变量、环境审批及外部依赖不可见；不得将其缺失推断为配置错误。",
+      "质量门禁快照同时包含较早成功和较晚取消后汇总失败的运行；未跨 run 或 attempt 拼接成功子集。合并提交的其他调度运行未回填为 PR head 通过。"
+    ],
+    "files": [
+      {"path":".github/workflows/hcu-feishu-notify-preview.yml","status":"reviewed","reason":"已核对 runner 变更及 environment 上下文；触发和实际通知效果未验证。"},
+      {"path":".github/workflows/hcu-full-enabled.yml","status":"deferred","reason":"已读全部提供 diff；完整源码被拒绝，完整 gate、测试选择及执行链延期。"},
+      {"path":".github/workflows/hcu-manual-model-test.yml","status":"deferred","reason":"已读提供 diff；主体源码被拒绝，手动参数到执行步骤的完整链延期。"},
+      {"path":".github/workflows/labeler.yml","status":"reviewed","reason":"已核对 runner 迁移 diff；现有成功 job 元数据不验证 head 双标签和实际标记结果。"},
+      {"path":".github/workflows/lint-hcu.yml","status":"reviewed","reason":"已读完整 workflow，核对事件、head checkout 和 pre-commit 调用；未取得实际 lint 日志。"},
+      {"path":".github/workflows/nightly-test-hcu.yml","status":"reviewed","reason":"已读 diff、触发配置、构建片段及部分矩阵；剩余选择和执行证据明确未知。"},
+      {"path":".github/workflows/nightly-test-image-hcu.yml","status":"reviewed","reason":"已读完整 workflow，核对 workflow_call、镜像输入、容器挂载及 CItest 调用。"},
+      {"path":".github/workflows/pr-states.yml","status":"reviewed","reason":"已核对 runner 迁移 diff；实际正文效果及执行 workflow 版本未验证。"},
+      {"path":".github/workflows/pr-test-hcu.yml","status":"deferred","reason":"已读全部提供 diff 及运行元数据；完整源码被拒绝，完整路径筛选、gate、suite 链延期。"},
+      {"path":".github/workflows/release-docker-hcu.yml","status":"reviewed","reason":"已读完整 workflow，核对构建与镜像测试之间的 outputs/needs 传递。"},
+      {"path":".github/workflows/release-pr-hcu.yml","status":"reviewed","reason":"已读 diff 及 1 至 200 行，核对事件、容器要求、版本检查和构建测试断言。"},
+      {"path":".github/workflows/release-pypi-nightly-hcu.yml","status":"reviewed","reason":"已读 diff 及 1 至 200 行，核对 release 分支触发、手动模式及容器要求；发布结果未验证。"}
+    ],
+    "evidence": [
+      {"id":"S_PREVIEW","kind":"source","path":".github/workflows/hcu-feishu-notify-preview.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":24,"end":30,"claim":"预览作业切换为双标签并继续使用通知 environment。"},
+      {"id":"S_FULL","kind":"source","path":".github/workflows/hcu-full-enabled.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":40,"end":46,"claim":"提供的 diff 显示全量 gate 改为 ci 与 bw1100 双标签。"},
+      {"id":"S_MANUAL","kind":"source","path":".github/workflows/hcu-manual-model-test.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":118,"end":127,"claim":"提供的 diff 显示手动验证 runner 和记录标签一同改为固定双标签。"},
+      {"id":"S_LABEL","kind":"source","path":".github/workflows/labeler.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":10,"end":16,"claim":"自动标记作业改为固定双标签。"},
+      {"id":"S_LINT","kind":"source","path":".github/workflows/lint-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":1,"end":58,"claim":"push 与 pull_request_target 触发，在新 runner 容器中 checkout 后运行 pre-commit。"},
+      {"id":"S_NIGHTLY","kind":"source","path":".github/workflows/nightly-test-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":1,"end":120,"claim":"schedule/dispatch、job_filter、默认测试 ref 和停用 runner_label 的配置；不能据此证明实际执行。"},
+      {"id":"S_NIGHTLY_BUILD","kind":"source","path":".github/workflows/nightly-test-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":294,"end":493,"claim":"新 runner 上的条件构建依赖设备、驱动与 staging 挂载，且检查构建 Torch 版本。"},
+      {"id":"S_MATRIX","kind":"source","path":".github/workflows/nightly-test-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":640,"end":839,"claim":"测试矩阵依赖前序 wheel 作业，部分条目要求不同设备数量、suite 与分片。"},
+      {"id":"S_IMAGE","kind":"source","path":".github/workflows/nightly-test-image-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":1,"end":84,"claim":"dispatch/call 接收镜像，在新 runner 使用设备及模型挂载并调用 CItest。"},
+      {"id":"S_STATES","kind":"source","path":".github/workflows/pr-states.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":35,"end":41,"claim":"PR 正文更新作业改为固定双标签。"},
+      {"id":"S_PR","kind":"source","path":".github/workflows/pr-test-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":120,"end":126,"claim":"提供的 diff 显示变更检测改为双标签；完整选择链未获返回。"},
+      {"id":"S_DOCKER","kind":"source","path":".github/workflows/release-docker-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":1,"end":90,"claim":"按 schedule/dispatch 构建发布镜像，并通过 needs 和 docker_image 输出调用镜像测试。"},
+      {"id":"S_RELEASE_PR","kind":"source","path":".github/workflows/release-pr-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":1,"end":200,"claim":"PR 路径过滤或 dispatch 触发单 Python 版本构建；依赖新 runner 的设备和 staging 挂载。"},
+      {"id":"S_RELEASE_NIGHTLY","kind":"source","path":".github/workflows/release-pypi-nightly-hcu.yml","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":1,"end":200,"claim":"release 分支 push 或 dispatch 触发 wheel 构建，在新 runner 使用容器及设备。"},
+      {"id":"T_ALIGNMENT","kind":"source","path":"scripts/ci/hcu/test_hcu_build_alignment.py","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":1,"end":200,"claim":"已读断言覆盖分支环境路由、构建版本、Rust 路径分类和内嵌脚本语法，不检查 runner 标签交集。"},
+      {"id":"T_WHEEL","kind":"source","path":"scripts/ci/hcu/test_hcu_build_alignment.py","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":201,"end":362,"claim":"正反例校验 wheel 版本、manifest 和安装身份，但使用临时目录与 mock，未验证新机器能力或跨 runner 共享路径。"},
+      {"id":"T_SMOKE","kind":"source","path":"test/registered/hcu/interface/test_hcu_smoke.py","revision":"bd01fc60d46266c47710784dd7051320edbbe002","start":1,"end":56,"claim":"注册到 Stage A；只断言包版本和 CI 标记，标记缺失时跳过，不执行 HCU 运算。"},
+      {"id":"A_CANCEL","kind":"artifact","path":"artifacts/run-36663746175-attempt-1-job-109723883930.txt","claim":"关闭 PR 的 run 36663746175 attempt 1 明确请求取消 PR HCU run 36663736701、PR wheel run 36663007650 与质量门禁 run 36663736872；此日志不是 HCU 测试通过证据。"}
+    ],
+    "behaviors": [
+      {
+        "id":"B_PR_ROUTING",
+        "name":"PR、全量、手动与 lint 的执行环境迁移及覆盖输入停用",
+        "changed_paths":[".github/workflows/hcu-full-enabled.yml",".github/workflows/hcu-manual-model-test.yml",".github/workflows/lint-hcu.yml",".github/workflows/pr-test-hcu.yml"],
+        "before":"各流程使用输入或仓库变量指定 runner，或旧固定标签；部分控制作业可回退 Ubuntu，配置验证向下游输出 runner_label。",
+        "after":"控制和执行作业使用 ci 与 bw1100 双标签；相关 runner_label 输入保留但忽略，动态输出被删除，手动流程记录固定标签。",
+        "trigger":"PR 路径检测与 gate 满足、全量标签开启、手动触发或 lint 事件；完整选择链因部分文件不可读而未核验。",
+        "risk":"若实际执行版本未采用新配置或目标 runner 不满足容器要求，控制作业、测试和汇总可能无法完成；这是待验证风险，不是已确认故障原因。",
+        "oracle":"实际执行 workflow revision 和 job 标签交集与冻结配置一致；独立记录设备、容器与 checkout 身份，绑定同次运行的具体测例结果，并核验旧覆盖输入不再改变调度。",
+        "counterevidence":"已完整阅读 HCU smoke，导入与标记断言仅提供局部启动信号；构建对齐测试不检查这些 runner 标签。scripts/ci/hcu/ 的 runner 检索覆盖 24 个文件；test/ 检索截断，不据此断言全仓缺少测试。运行快照中的 HCU Stage A/B 为跳过或取消，未形成有效通过观测。",
+        "evidence":["S_FULL","S_MANUAL","S_LINT","S_PR","T_SMOKE","T_ALIGNMENT","A_CANCEL"],
+        "lane":"pr",
+        "platform":"hcu",
+        "design":"partial",
+        "selection":"unknown",
+        "selection_reason":"smoke 源码注册了 Stage A suite，但完整 PR/full/manual 选择链不可读；相关快照未执行出已验证的具体测例，不能把注册等同于选中。",
+        "selection_evidence":["T_SMOKE","S_PR","S_LINT"],
+        "tests":[
+          {"path":"test/registered/hcu/interface/test_hcu_smoke.py","id":"TestHCUSmoke.test_import_sglang","assertion":"断言 sglang.__version__ 存在、为字符串且非空；不能验证设备或 runner 标签。","evidence":["T_SMOKE"]},
+          {"path":"test/registered/hcu/interface/test_hcu_smoke.py","id":"TestHCUSmoke.test_hcu_ci_env_marker","assertion":"仅在 HCU CI 标记存在时断言通用 CI 标记为 1，否则跳过；不能当作硬件成功证据。","evidence":["T_SMOKE"]}
+        ],
+        "observations":[]
+      },
+      {
+        "id":"B_BUILD_NIGHTLY",
+        "name":"夜间测试、wheel 与镜像构建迁移后的环境兼容性",
+        "changed_paths":[".github/workflows/nightly-test-hcu.yml",".github/workflows/nightly-test-image-hcu.yml",".github/workflows/release-docker-hcu.yml",".github/workflows/release-pr-hcu.yml",".github/workflows/release-pypi-nightly-hcu.yml"],
+        "before":"构建及镜像作业使用旧 HCU/nmz4 标签；夜间验证依赖动态 runner 输出及覆盖输入。",
+        "after":"构建、探测等待、测试、汇总等改用固定双标签；夜间 runner 覆盖停用，原容器设备、staging、模型路径和依赖服务要求继续存在。",
+        "trigger":"nightly schedule/dispatch、PR wheel 路径过滤或 dispatch、release 分支 push，以及镜像构建成功后的 workflow_call；各条通路分别核验。",
+        "risk":"迁移的 runner 能否访问设备和共享产物、是否安装兼容依赖尚未被运行证据证明；旧单机临时目录测试无法证明跨 runner 的 staging 可见性。",
+        "oracle":"对每条通路单独核验 workflow revision、实际调度标签、容器能力、源 SHA 和 wheel/image 身份；同次 run/attempt 的全部所需分片结果与独立预期一致。",
+        "counterevidence":"已完整读取构建对齐测试；其版本、manifest 与安装 guard 的正反例可发现部分身份错误，但不验证机器调度或真实共享挂载。已检查 nightly 部分矩阵与镜像调用；构建测试在 .github/ 的引用检索截断且未命中，不能证明它未被外部或其他 CI 选择。PR wheel 运行被关闭流程取消；未获得 nightly 或镜像迁移的匹配实测日志。",
+        "evidence":["S_NIGHTLY","S_NIGHTLY_BUILD","S_MATRIX","S_IMAGE","S_DOCKER","S_RELEASE_PR","S_RELEASE_NIGHTLY","T_ALIGNMENT","T_WHEEL","A_CANCEL"],
+        "lane":"nightly",
+        "platform":"hcu",
+        "design":"partial",
+        "selection":"conditional",
+        "selection_reason":"已读事件、路径筛选及部分 needs/matrix 条件；PR wheel 有路径过滤，nightly 测试要求 wheel 前序成功，镜像测试依赖构建成功。完整 selector 与构建对齐测试是否进 CI 未验证，不能认定迁移断言已纳入执行。",
+        "selection_evidence":["S_NIGHTLY","S_MATRIX","S_RELEASE_PR","S_RELEASE_NIGHTLY","S_DOCKER","S_IMAGE"],
+        "tests":[
+          {"path":"scripts/ci/hcu/test_hcu_build_alignment.py","id":"TestBuildAlignment.test_build_contract","assertion":"检查构建镜像、Torch/package 版本及构建脚本约束，不断言新 runner 标签或设备可用。","evidence":["T_ALIGNMENT"]},
+          {"path":"scripts/ci/hcu/test_hcu_build_alignment.py","id":"TestBuildAlignment.test_nightly_wait_rejects_wrong_torch","assertion":"临时 staging 中版本匹配时返回成功，错误 Torch 或包版本时失败；不验证真实 runner 间共享目录。","evidence":["T_WHEEL"]},
+          {"path":"scripts/ci/hcu/test_hcu_build_alignment.py","id":"TestBuildAlignment.test_nightly_probe_rejects_bad_manifest_and_router","assertion":"有效 manifest 与包输出 wheel_available=true，错误身份、损坏/缺失 manifest 等输出 false。","evidence":["T_WHEEL"]},
+          {"path":"scripts/ci/hcu/test_hcu_build_alignment.py","id":"TestBuildAlignment.test_install_guard_before_uninstall","assertion":"校验安装 guard 顺序及错误 wheel 身份的拒绝路径；环境和命令身份使用 mock。","evidence":["T_WHEEL"]}
+        ],
+        "observations":[]
+      },
+      {
+        "id":"B_ADMIN_ROUTING",
+        "name":"通知预览与 PR 管理作业的双标签调度",
+        "changed_paths":[".github/workflows/hcu-feishu-notify-preview.yml",".github/workflows/labeler.yml",".github/workflows/pr-states.yml"],
+        "before":"通知预览使用旧固定 runner；自动标记与正文更新依赖仓库变量或旧标签回退。",
+        "after":"三个作业固定选择 ci 与 bw1100，预览继续依赖通知 environment。",
+        "trigger":"对应工作流的通知或 PR 管理事件，具体事件过滤与环境审批未在已读 diff 中完全提供。",
+        "risk":"标签交集、网络或 environment 不满足时管理结果可能不产生；现有成功 job 不能直接验证本次调度配置。",
+        "oracle":"实际 job 请求双标签且 workflow revision 与审查版本一致；在隔离测试目标上验证应有的标记、正文或卡片结果，并检验条件未满足时不产生外部写入。",
+        "counterevidence":"已核对三个 diff；快照中 label 与 update-pr-body 为 success，但 job 元数据标签只有 bw1100，缺少实际 workflow revision 及结果工件。未读到能证明双标签调度或业务副作用正确的专用断言；不能因此断言不存在测试。",
+        "evidence":["S_PREVIEW","S_LABEL","S_STATES"],
+        "lane":"pr",
+        "platform":"hcu",
+        "design":"unknown",
+        "selection":"unknown",
+        "selection_reason":"已读范围未覆盖完整触发与环境 gate；元数据成功不能替代 head 配置身份和业务结果断言。",
+        "selection_evidence":["S_PREVIEW","S_LABEL","S_STATES"],
+        "tests":[],
+        "observations":[]
+      }
+    ],
+    "observations":[],
+    "findings": [
+      {"id":"F_PR_EVIDENCE","kind":"evidence_gap","severity":"P2","confidence":"high","title":"PR 验证链尚未证明双标签配置及覆盖输入停用可用","impact":"现有导入与环境标记断言不能验证 runner 迁移；已采集运行未提供身份匹配的 Stage A/B 结果，不能把其失败、跳过或取消归因为本 PR 产品回归。","recommendation":"补取实际 workflow revision、变更检测失败日志和具体测试身份；另行授权后验证冻结配置下的双标签及旧输入兼容行为。","behavior_ids":["B_PR_ROUTING"],"evidence":["S_PR","S_FULL","S_MANUAL","T_SMOKE","A_CANCEL"]},
+      {"id":"F_BUILD_EVIDENCE","kind":"evidence_gap","severity":"P2","confidence":"high","title":"构建和夜间迁移缺少真实环境与跨 runner 产物验证","impact":"现有版本与 manifest 正反例提供局部覆盖，但不证明双标签机器的设备、模型和共享产物可用；取消的 PR wheel 作业也未验证迁移后的构建结果。","recommendation":"分别核对 PR wheel、nightly、发布和镜像调用的同版本运行证据；将真实 runner 能力与产物身份检查同每条通路的既有断言关联。","behavior_ids":["B_BUILD_NIGHTLY"],"evidence":["S_NIGHTLY_BUILD","S_MATRIX","S_IMAGE","S_DOCKER","T_WHEEL","A_CANCEL"]},
+      {"id":"F_ADMIN_EVIDENCE","kind":"evidence_gap","severity":"P2","confidence":"medium","title":"管理作业的成功状态不足以验证本次双标签迁移","impact":"已读源码只有调度变化，现有元数据不能确认实际运行了审查版本或产生预期管理结果；通知预览亦未取得匹配结果工件。","recommendation":"补取执行 workflow 版本、请求标签、环境 gate 与脱敏结果，使用隔离目标验证管理副作用，不直接重跑生产通知或修改真实 PR。","behavior_ids":["B_ADMIN_ROUTING"],"evidence":["S_PREVIEW","S_LABEL","S_STATES"]}
+    ],
+    "tasks": [
+      {"id":"TASK_PR_RUNNER_VALIDATION","feature_id":"B_PR_ROUTING","route":"validate_existing","priority":"P2","reason":"设计仅局部支持且选择、执行未核验；先确认现有断言与运行身份，不能由导入 smoke 推断迁移完成。","evidence":["S_PR","S_FULL","S_MANUAL","S_LINT","T_SMOKE","A_CANCEL"],"prerequisites":["取得被冻结文件中被拒绝部分的合法可读版本及实际执行 workflow revision。","准备具备双标签的隔离 HCU runner 与合法容器/测试夹具；任何执行须另行授权，不携带生产写权限。"],"acceptance":["逐条记录 PR、全量、手动与 lint 的 gate、suite 和实际 job 请求标签，区分 workflow revision、checkout SHA 与安装产物 SHA。","在同一 run/attempt 内给出所需具体测例结果，旧 runner_label 不改变目标，输入为空也不依赖旧变量；缺失或跳过不可记为通过。"],"cases":[{"id":"CASE_PR_DOUBLE_LABEL","name":"双标签调度与旧覆盖输入兼容","inputs":"冻结 workflow，旧 runner_label 分别为空和非空，隔离 runner 分别具备双标签或仅一个标签。","expected":"符合 gate 的作业只匹配双标签，旧覆盖输入不影响选择；单标签不应被视为满足要求。","oracle":"GitHub job 请求标签与独立 runner 库存交叉核对，不能只匹配 job 名称。","negative_control":"在隔离配置副本中移除一个必需标签，检查 oracle 能识别不满足双标签合同。"},{"id":"CASE_PR_RUNTIME_IDENTITY","name":"PR 验证真实执行身份","inputs":"满足路径和 gate 的隔离事件、冻结源码及可追溯构建产物。","expected":"设备能力和所选具体测例有匹配版本的结果；环境标记缺失或导入成功不得单独充当硬件通过。","oracle":"实际 checkout、wheel 身份、设备探测结果及独立测例断言共同验证。","negative_control":"隔离环境隐藏设备或提供不匹配产物，验证检查能失败而不是仅凭 import 通过。"}]},
+      {"id":"TASK_BUILD_RUNNER_VALIDATION","feature_id":"B_BUILD_NIGHTLY","route":"validate_existing","priority":"P2","reason":"已有版本和身份断言，但实际 runner 兼容性、选择链及执行证据仍未确认。","evidence":["S_NIGHTLY","S_NIGHTLY_BUILD","S_MATRIX","S_IMAGE","S_DOCKER","S_RELEASE_PR","S_RELEASE_NIGHTLY","T_ALIGNMENT","T_WHEEL"],"prerequisites":["补齐完整矩阵后续 selector 与构建对齐测试的 CI 入口，准备隔离 staging、模型和构建资源。","分别授权 PR wheel、nightly、release 与镜像测试验证；使用临时发布目标，不向生产仓库发布。"],"acceptance":["每条通路单独记录双标签 job、workflow revision、构建源 SHA、wheel/image 身份以及所需分片；不同运行不得拼成一次通过。","真实设备与挂载可用，产物从构建到消费在实际选中的 runner 间可见；已有错误身份反例有效且执行结果可追溯。"],"cases":[{"id":"CASE_STAGING_CROSS_RUNNER","name":"真实构建与 wheel 消费链","inputs":"双标签 runner 上的隔离构建和消费任务，以及匹配和错误身份的测试产物。","expected":"匹配产物可被后续任务消费，错误 SHA/版本与不完整产物被拒绝。","oracle":"独立记录实际文件哈希、manifest、源版本与消费日志，并关联现有 wheel 身份断言。","negative_control":"隔离 staging 中替换为错误身份或去掉 READY，验证消费链不能报告匹配通过。"},{"id":"CASE_IMAGE_NIGHTLY_CAPABILITY","name":"镜像与夜间设备能力","inputs":"冻结镜像调用和一个明确选中的夜间分片，具备指定设备与只读模型夹具的隔离 runner。","expected":"请求双标签，所需设备及模型路径可用，运行的是明确镜像和对应测试产物，具体断言完成。","oracle":"镜像摘要、设备清单、实际 selector 与独立测试结果共同核验。","negative_control":"隔离环境缺失所需设备或模型挂载时，能力或测试检查必须失败且不能误记通过。"}]},
+      {"id":"TASK_ADMIN_RUNNER_VALIDATION","feature_id":"B_ADMIN_ROUTING","route":"validate_existing","priority":"P2","reason":"专用断言、完整触发选择和本次双标签执行身份未知。","evidence":["S_PREVIEW","S_LABEL","S_STATES"],"prerequisites":["取得三个 workflow 的完整触发、环境 gate 与实际执行版本。","准备无生产副作用的测试 PR、通知目标或等价隔离夹具；执行和外部写入另行授权。"],"acceptance":["证明实际 job 请求 ci 与 bw1100，并关联冻结 workflow revision，不以旧单标签成功记录替代。","对标记、正文和预览分别提供预期结果证据；gate 未满足时不产生外部写入。"],"cases":[{"id":"CASE_ADMIN_EFFECTS","name":"隔离管理结果与 gate","inputs":"具有确定文件变更的测试 PR、固定正文夹具和预览数据，分别满足或不满足触发/环境条件。","expected":"满足条件时在隔离目标得到预期标记、正文或卡片；不满足条件时不写入。","oracle":"脱敏前后状态与独立期望比较，并核对 job 请求标签和 workflow revision。","negative_control":"隔离夹具拒绝环境条件或使用不触发的事件，确认不会因 job 名称或状态误报结果已生成。"}]}
+    ]
+  }
+}

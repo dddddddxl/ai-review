@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","revision":"41dc6cae2d23a40ecf600a89e72e173bd6a4366c","path":"test/registered/kernels/ops/attention/test_topk_v2.py","start":309},{"tool":"read_artifact","path":"artifacts/run-36681595281-attempt-1-job-109778168182.txt"}]}

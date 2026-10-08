@@ -1,0 +1,217 @@
+来源：/repos/HYGON-AI/sglang-das/actions/jobs/113173005905/logs
+run=37735182855; attempt=1; job=113173005905; head_sha=3b7049f294910ae75265c5dc66d2a93798460afc
+截断：false
+2026-10-08T05:58:36.6223681Z Current runner version: '2.337.0'
+2026-10-08T05:58:36.6230565Z Runner name: 'ci-nmz1'
+2026-10-08T05:58:36.6231437Z Runner group name: 'ci-general'
+2026-10-08T05:58:36.6232450Z Machine name: 'github-nmz1'
+2026-10-08T05:58:36.6235726Z ##[group]GITHUB_TOKEN Permissions
+2026-10-08T05:58:36.6238064Z Actions: read
+2026-10-08T05:58:36.6238732Z Metadata: read
+2026-10-08T05:58:36.6239458Z PullRequests: write
+2026-10-08T05:58:36.6240149Z ##[endgroup]
+2026-10-08T05:58:36.6242501Z Secret source: Actions
+2026-10-08T05:58:36.6243555Z Cache mode: read
+2026-10-08T05:58:36.6244360Z Prepare workflow directory
+2026-10-08T05:58:36.6599944Z Prepare all required actions
+2026-10-08T05:58:36.6648081Z Getting action download info
+2026-10-08T05:58:37.6365853Z Download action repository 'actions/github-script@v8' (SHA:ed597411d8f924073f98dfc5c65a23a2325f34cd)
+2026-10-08T05:58:51.3136601Z Complete job name: update-pr-body
+2026-10-08T05:58:51.5469178Z ##[group]Run actions/github-script@v8
+2026-10-08T05:58:51.5469769Z with:
+2026-10-08T05:58:51.5490949Z   script: const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 6000;
+const LABEL_ON_PRESLEEP_MS = 3000;
+const LABEL_OFF_PRESLEEP_MS = 6000;
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// Event-agnostic PR lookup.
+// - pull_request_target: PR is in the payload.
+// - workflow_run: pull_requests[] is populated for same-repo
+//   PRs; fork PRs need a head-ref reverse lookup
+//   ("forkOwner:branch") because
+//   listPullRequestsAssociatedWithCommit requires the commit to
+//   be in the default branch. Bail when no open PR matches.
+// - workflow_dispatch: pr_number is an explicit input.
+let prNumber;
+if (context.payload.pull_request) {
+  prNumber = context.payload.pull_request.number;
+} else if (context.eventName === 'workflow_run') {
+  const wr = context.payload.workflow_run;
+  // Only pull_request runs are the PR gate. Manual runs on a PR
+  // branch can also be PR-associated, but the rows below
+  // deliberately ignore them.
+  if (wr.event !== 'pull_request') {
+    core.info(`Triggering run event '${wr.event}' is not pull_request; skipping.`);
+    return;
+  }
+  if (wr.pull_requests && wr.pull_requests.length > 0) {
+    prNumber = wr.pull_requests[0].number;
+  } else if (wr.head_repository && wr.head_branch) {
+    const headSpec = `${wr.head_repository.owner.login}:${wr.head_branch}`;
+    const { data: prs } = await github.rest.pulls.list({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      state: 'open',
+      head: headSpec,
+    });
+    // Multiple PRs could share a head ref if a branch was reused;
+    // match by head_sha to pick the right one.
+    const match = prs.find(p => p.head.sha === wr.head_sha) || prs[0];
+    if (!match) {
+      core.info(`No open PR for head=${headSpec}; skipping.`);
+      return;
+    }
+    prNumber = match.number;
+  } else {
+    core.info(`workflow_run has no PR linkage; skipping.`);
+    return;
+  }
+} else if (context.eventName === 'workflow_dispatch') {
+  // Reject non-digit pr_number; parseInt('123abc', 10) returns
+  // 123 and would silently truncate trailing garbage.
+  const raw = context.payload.inputs.pr_number;
+  if (!/^\d+$/.test(raw)) {
+    core.setFailed(`workflow_dispatch: invalid pr_number input '${raw}' (must be digits only)`);
+    return;
+  }
+  prNumber = parseInt(raw, 10);
+} else {
+  core.info(`Unsupported event '${context.eventName}'; skipping.`);
+  return;
+}
+const { data: pr } = await github.rest.pulls.get({
+  owner: context.repo.owner,
+  repo: context.repo.repo,
+  pull_number: prNumber,
+});
+const sha = pr.head.sha;
+const labels = pr.labels.map(l => l.name);
+const hasCI = labels.includes('run-ci');
+const hasExtra = labels.includes('run-ci-extra');
+
+// Pre-sleep below only matters when a label was just removed;
+// other no-label fires don't race against fresh indexing.
+const justRemovedLabel = context.eventName === 'pull_request_target'
+                         && context.payload.action === 'unlabeled';
+
+async function findRunBySha(workflowFile) {
+  const { data } = await github.rest.actions.listWorkflowRuns({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    workflow_id: workflowFile,
+    head_sha: sha,
+    // Every row reports the PR gate, so exclude other events for
+    // this SHA: both workflows also accept workflow_dispatch.
+    event: 'pull_request',
+    per_page: 1,
+  });
+  return data.workflow_runs[0] || null;
+}
+async function findRun(workflowFile, { preSleepMs = 0, attempts = 1, delayMs = 0 }) {
+  if (preSleepMs > 0) await sleep(preSleepMs);
+  for (let i = 0; i < attempts; i++) {
+    const run = await findRunBySha(workflowFile);
+    if (run) return run;
+    if (i < attempts - 1) await sleep(delayMs);
+  }
+  return null;
+}
+
+// Query unconditionally: removing a label does NOT cancel an
+// in-flight workflow, so a run from before removal can still be
+// live. Label state only picks the fallback text. labelOnOpts
+// covers fresh-push indexing race; labelOffOpts only pre-sleeps
+// on just-removed-label to catch removal-after-push.
+const labelOnOpts  = { preSleepMs: LABEL_ON_PRESLEEP_MS, attempts: RETRY_ATTEMPTS, delayMs: RETRY_DELAY_MS };
+const labelOffOpts = { preSleepMs: justRemovedLabel ? LABEL_OFF_PRESLEEP_MS : 0, attempts: 1 };
+
+const [ptRun, peRun] = await Promise.all([
+  findRun('pr-test.yml', hasCI ? labelOnOpts : labelOffOpts),
+  // pr-test-extra gates on BOTH labels (see check-changes there).
+  findRun(
+    'pr-test-extra.yml',
+    (hasCI && hasExtra) ? labelOnOpts : labelOffOpts,
+  ),
+]);
+
+// Skipped run = "no real run" -- happens when a label is added
+// after a commit, because GHA doesn't retrigger on `labeled`.
+const isReal = (run) => run && run.conclusion !== 'skipped';
+
+const missingCIText = ':x: **Missing `run-ci` label** -- add it to run CI tests.';
+const peBlockedByCIText = ':x: **Blocked** -- `run-ci` is required first.';
+const notExtraEnabledText = ':warning: **Not enabled** -- add `run-ci-extra` label to opt in.';
+const stalePushText = ':warning: **Not run on latest push** -- push again or use /rerun-failed-ci to dispatch.';
+// Status icon: body otherwise looks uniformly "dispatched" even
+// for gate-failed runs (call-gate exits on missing label).
+function runIcon(run) {
+  if (run.status !== 'completed') return ':hourglass_flowing_sand:';
+  switch (run.conclusion) {
+    case 'success': return ':white_check_mark:';
+    case 'failure': return ':x:';
+    case 'cancelled': return ':no_entry_sign:';
+    case 'timed_out': return ':alarm_clock:';
+    case 'action_required': return ':warning:';
+    case 'neutral': return ':grey_question:';
+    default: return ':grey_question:';
+  }
+}
+const runLink = (run) => `${runIcon(run)} [Run #${run.id}](${run.html_url})`;
+const ptText = isReal(ptRun)
+  ? runLink(ptRun)
+  : (!hasCI ? missingCIText : '_Not run yet_');
+const peText = isReal(peRun)
+  ? runLink(peRun)
+  : !hasCI
+    ? peBlockedByCIText
+    : !hasExtra
+      ? notExtraEnabledText
+      : stalePushText;
+const outerStart = '<!-- pr-states:start -->';
+const outerEnd   = '<!-- pr-states:end -->';
+const ptStart    = '<!-- slot:pr-test:start -->';
+const ptEnd      = '<!-- slot:pr-test:end -->';
+const peStart    = '<!-- slot:pr-test-extra:start -->';
+const peEnd      = '<!-- slot:pr-test-extra:end -->';
+const newBlock = [
+  outerStart,
+  '---',
+  '### CI States',
+  '',
+  `Latest PR Test (Base): ${ptStart}${ptText}${ptEnd}`,
+  `Latest PR Test (Extra): ${peStart}${peText}${peEnd}`,
+  outerEnd,
+].join('\n');
+
+const body = pr.body || '';
+
+// \n* absorbs preceding blank lines so repeated PATCHes don't accumulate them.
+const blockRe = new RegExp(`\\n*(?:---\\n+)?${outerStart}[\\s\\S]*?${outerEnd}`);
+let newBody;
+if (blockRe.test(body)) {
+  newBody = body.replace(blockRe, `\n\n${newBlock}`);
+} else {
+  const sep = body.length === 0
+    ? ''
+    : (body.endsWith('\n') ? '\n' : '\n\n');
+  newBody = `${body}${sep}${newBlock}`;
+}
+
+if (newBody !== body) {
+  await github.rest.pulls.update({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    pull_number: prNumber,
+    body: newBody,
+  });
+}
+
+2026-10-08T05:58:51.5522738Z   github-token: ***
+2026-10-08T05:58:51.5523051Z   debug: false
+2026-10-08T05:58:51.5523365Z   user-agent: actions/github-script
+2026-10-08T05:58:51.5523984Z   result-encoding: json
+2026-10-08T05:58:51.5524289Z   retries: 0
+2026-10-08T05:58:51.5524620Z   retry-exempt-status-codes: 400,401,403,404,422
+2026-10-08T05:58:51.5525427Z ##[endgroup]
+2026-10-08T05:59:11.1062351Z Cleaning up orphan processes

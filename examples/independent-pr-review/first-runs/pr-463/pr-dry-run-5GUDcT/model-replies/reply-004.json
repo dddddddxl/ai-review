@@ -1,0 +1,1 @@
+{"action":"final","result":{"overview":["夜间 HCU 验证、wheel 构建及等待、结果汇总和通知作业统一选择同时具备 ci 与 bw1100 标签的 runner，移除动态 runner_label 输出及校验。","镜像 CI 测试由 nmz4 标签切换为 ci 与 bw1100 标签；手动 runner_label 输入保留但标记为忽略。"],"findings":[]}}

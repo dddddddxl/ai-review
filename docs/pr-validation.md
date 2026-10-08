@@ -37,6 +37,7 @@ npm run dry-run:pr -- --repo C:\review-data\sglang-pr478 --skill C:\controlled\s
 | `provenance.json` | 仓库、PR、提交、输入摘要、skill 版本、模式、交互窗口及上下文声明 |
 | `manifest.json` | 代码片段范围、完成与排除原因；不是测试代码覆盖率 |
 | `evidence-index.json` | 工具请求、版本、位置、状态和截断信息 |
+| `evidence-budget.json` | 工具次数、字符数、限制及耗尽原因；与源码是否已看完分别记录 |
 | `code-review.json` | 产品缺陷审查及定位结果 |
 | `test-review.json` | 测试审查与校验状态；不把测试建议转换为产品 bug |
 | `report.md`、`pipeline-result.json` | 中文汇总和机器结果 |
@@ -44,7 +45,11 @@ npm run dry-run:pr -- --repo C:\review-data\sglang-pr478 --skill C:\controlled\s
 
 退出码：0 为请求阶段均完成，1 为有未完成项，2 为输入或依赖错误。测试阶段的 `validated` 仅表示分析/交接通过校验，不表示 CI、补测代码或硬件已验证。任何截断、拒绝或不足都保留；不能把 partial 写成“没有问题”。
 
+工具/字符预算耗尽时，若原有轮次和共享时间仍有余量，可给一次 FINAL_ONLY 收尾：不再取证，只根据已有证据形成带限制的报告。没有余量则直接未完成；校验通过也保留 `status=incomplete`、`validation_status=validated` 和整体 partial。并发批次不会突破共享次数，续审缓存保留已耗预算。代码阶段与测试阶段的完成状态分别保存，后续测试预算不足不回写已完成的代码清单。
+
 ## 4. 独立样本评估
+
+本轮实际的六个 PR、首次失败、修复后独立结果、指标与人工复核表见 [独立评估报告](../examples/independent-pr-review/README.md)。六份首次结果均未完整完成，不能把离线自动化通过解释为模型质量验收通过。
 
 普通干跑始终声明 `blind: false`，不会因为没有 fixture.analysis 就自动升级成盲测。独立评估需要另外保存：预先冻结的样本与输入、先于审查的独立标签、fresh-context 代理身份、首次输出摘要，以及输出冻结后的逐项裁定。
 

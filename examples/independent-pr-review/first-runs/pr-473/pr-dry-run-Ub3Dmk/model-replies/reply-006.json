@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"search_code","query":"def find_printable_text","prefix":"python/sglang/utils.py"},{"tool":"read_file","path":"python/sglang/srt/managers/scheduler_components/output_streamer.py","start":420,"end":559}]}

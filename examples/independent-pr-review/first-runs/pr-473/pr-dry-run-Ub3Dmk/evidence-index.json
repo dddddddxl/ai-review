@@ -1,0 +1,351 @@
+{
+  "provenance": {
+    "kind": "codex_file_bridge_dry_run",
+    "model_api_called": false,
+    "scripted_answers": false,
+    "agent_context": "context_not_independently_verified_not_blind",
+    "blind": false,
+    "mode": "both",
+    "source_pr": "https://github.com/HYGON-AI/sglang-das/pull/473",
+    "repository": "HYGON-AI/sglang-das",
+    "source_head": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+    "source_base": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+    "diff_base": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+    "history_shallow": true,
+    "ancestry_verified": true,
+    "ci_evidence": "frozen_snapshot_not_current_live_ci",
+    "captured_at": "2026-10-08T07:03:03.075Z",
+    "input_hash": "0d445dd989a21e59c4754c7494d5d4fc165e0726e9eefdd48f62f1645da48be4",
+    "skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+    "required_skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "skill_status": "available",
+    "target_tests_executed": false,
+    "github_writes": false,
+    "network": false,
+    "model_window_ms": 1800000,
+    "max_tools": 24
+  },
+  "records": [
+    {
+      "id": "E1",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_diff",
+      "diffBase": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+      "truncated": false
+    },
+    {
+      "id": "E2",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "python/sglang/srt/managers/detokenizer_manager.py",
+      "start": 350,
+      "end": 549,
+      "sha256": "0a28ce43ef7718011cbf05baa0a874e38ece36e85aa305618befcd66ba7f2d30",
+      "truncated": false
+    },
+    {
+      "id": "E3",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "search_code",
+      "matches": [],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E4",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/srt/managers/io_struct.py",
+          "line": 1528,
+          "text": "class BatchTokenIDOutput(BaseBatchReq, kw_only=True):"
+        },
+        {
+          "path": "python/sglang/srt/managers/multi_tokenizer_mixin.py",
+          "line": 162,
+          "text": "        new_output = BatchTokenIDOutput("
+        },
+        {
+          "path": "python/sglang/srt/managers/scheduler_components/output_streamer.py",
+          "line": 682,
+          "text": "        return BatchTokenIDOutput("
+        }
+      ],
+      "searchedFiles": 52,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E5",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "python/sglang/srt/managers/detokenizer_manager.py",
+      "start": 1,
+      "end": 140,
+      "sha256": "0a28ce43ef7718011cbf05baa0a874e38ece36e85aa305618befcd66ba7f2d30",
+      "truncated": false
+    },
+    {
+      "id": "E6",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "python/sglang/srt/managers/detokenizer_manager.py",
+      "start": 260,
+      "end": 349,
+      "sha256": "0a28ce43ef7718011cbf05baa0a874e38ece36e85aa305618befcd66ba7f2d30",
+      "truncated": false
+    },
+    {
+      "id": "E7",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "python/sglang/srt/managers/scheduler_components/output_streamer.py",
+      "start": 560,
+      "end": 740,
+      "sha256": "8bfe917edc87ae89f387c718944310e8f9002e1740ecae87b6fd7194f1669855",
+      "truncated": false
+    },
+    {
+      "id": "E8",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "python/sglang/utils.py",
+          "line": 345,
+          "text": "def find_printable_text(text: str):"
+        }
+      ],
+      "searchedFiles": 1,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E9",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "python/sglang/srt/managers/scheduler_components/output_streamer.py",
+      "start": 420,
+      "end": 559,
+      "sha256": "8bfe917edc87ae89f387c718944310e8f9002e1740ecae87b6fd7194f1669855",
+      "truncated": false
+    },
+    {
+      "id": "E10",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "python/sglang/utils.py",
+      "start": 345,
+      "end": 544,
+      "sha256": "7da52dcf63e3399c3d04dfe5ca4b99aabac54fa3a034e0a6526252462e75d4ef",
+      "truncated": false
+    },
+    {
+      "id": "E11",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_ci",
+      "truncated": true,
+      "execution": "not_verified"
+    },
+    {
+      "id": "E12",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "find_files",
+      "matches": [
+        "python/sglang/srt/managers/detokenizer_manager.py",
+        "rust/sglang-server/src/tokenizer_manager/detokenizer.rs",
+        "test/registered/unit/managers/test_detokenizer_incremental.py"
+      ],
+      "truncated": false
+    },
+    {
+      "id": "E13",
+      "status": "unavailable",
+      "reason": "content_denied",
+      "tool": "read_file",
+      "revision": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "path": ".github/workflows/pr-test-hcu.yml"
+    },
+    {
+      "id": "E14",
+      "status": "available",
+      "revision": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": ".github/workflows/_pr-test-stage.yml",
+          "line": 7,
+          "text": "# and matrix can't use step-resolved values. base-a-test-cpu stays inline in"
+        },
+        {
+          "path": ".github/workflows/pr-test-rust-exts.yml",
+          "line": 5,
+          "text": "# unit suite (base-a-test-cpu), which builds the extensions from source; this"
+        },
+        {
+          "path": ".github/workflows/pr-test.yml",
+          "line": 114,
+          "text": "              {\"prefix\": \"base-a-test-cpu\", \"expected_count\": ${{ fromJson(needs.check-changes.outputs.partitions)['base-a-test-cpu'].size }}}"
+        },
+        {
+          "path": ".github/workflows/pr-test.yml",
+          "line": 324,
+          "text": "  base-a-test-cpu:"
+        },
+        {
+          "path": ".github/workflows/pr-test.yml",
+          "line": 332,
+          "text": "      self_name: base-a-test-cpu"
+        },
+        {
+          "path": ".github/workflows/pr-test.yml",
+          "line": 473,
+          "text": "        base-a-test-cpu,"
+        }
+      ],
+      "searchedFiles": 100,
+      "skipped": 0,
+      "truncated": true
+    },
+    {
+      "id": "E15",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "find_files",
+      "matches": [
+        "python/sglang/multimodal_gen/test/run_suite.py",
+        "python/sglang/multimodal_gen/test/server/musa/run_suite.py",
+        "test/run_suite.py"
+      ],
+      "truncated": false
+    },
+    {
+      "id": "E16",
+      "status": "available",
+      "revision": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "tool": "read_file",
+      "path": ".github/workflows/pr-test.yml",
+      "start": 324,
+      "end": 523,
+      "sha256": "b2bed5b62849e3200f46ea2f43813b4a13d31b724cf5f37f87a2c9e17eb8e39b",
+      "truncated": false
+    },
+    {
+      "id": "E17",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "test/run_suite.py",
+      "start": 1,
+      "end": 200,
+      "sha256": "78c039c7572a94590a91e9d496c8b2f4a8405fe8b0097c2f8d2815ffb72e01f6",
+      "truncated": false
+    },
+    {
+      "id": "E18",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "python/sglang/test/ci/ci_register.py",
+      "start": 1,
+      "end": 200,
+      "sha256": "2853357d80b3adb4437de6750d5698bb2e980b05cc3769f315ff6584e2cacd7a",
+      "truncated": false
+    },
+    {
+      "id": "E19",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "find_files",
+      "matches": [
+        "python/sglang/multimodal_gen/test/unit/sana_wm/test_streaming_cached.py",
+        "python/sglang/multimodal_gen/test/unit/sana_wm/test_streaming_forward_long.py",
+        "python/sglang/multimodal_gen/test/unit/sana_wm/test_streaming_realtime_path.py",
+        "python/sglang/multimodal_gen/test/unit/sana_wm/test_streaming_stage.py",
+        "python/sglang/multimodal_gen/test/unit/sana_wm/test_streaming_vae.py",
+        "sgl-model-gateway/e2e_test/responses/test_streaming_events.py",
+        "test/registered/sessions/test_streaming_session.py",
+        "test/registered/sessions/test_streaming_session_extra.py",
+        "test/registered/sessions/test_streaming_session_swa.py",
+        "test/registered/sessions/test_streaming_session_swa_extra.py",
+        "test/registered/unit/mem_cache/test_streaming_session_unit.py"
+      ],
+      "truncated": false
+    },
+    {
+      "id": "E20",
+      "status": "available",
+      "revision": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "tool": "read_file",
+      "path": ".github/workflows/_pr-test-stage-cpu.yml",
+      "start": 1,
+      "end": 182,
+      "sha256": "ba4d5c4579a5f6e7f548564685b462a820cf0f82075572d4a9271bad2288228b",
+      "truncated": false
+    },
+    {
+      "id": "E21",
+      "status": "available",
+      "revision": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "tool": "read_file",
+      "path": ".github/workflows/pr-test.yml",
+      "start": 1,
+      "end": 200,
+      "sha256": "b2bed5b62849e3200f46ea2f43813b4a13d31b724cf5f37f87a2c9e17eb8e39b",
+      "truncated": false
+    },
+    {
+      "id": "E22",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "search_code",
+      "matches": [
+        {
+          "path": "test/run_suite.py",
+          "line": 351,
+          "text": "        if t.effective_suite not in valid:"
+        },
+        {
+          "path": "test/run_suite.py",
+          "line": 353,
+          "text": "                f\"  {t.filename}: backend={t.backend.name}, suite='{t.effective_suite}'\""
+        },
+        {
+          "path": "test/run_suite.py",
+          "line": 372,
+          "text": "        if t.backend == hw and t.effective_suite in suite_set and t.nightly == nightly"
+        }
+      ],
+      "searchedFiles": 1,
+      "skipped": 0,
+      "truncated": false
+    },
+    {
+      "id": "E23",
+      "status": "available",
+      "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "tool": "read_file",
+      "path": "test/registered/sessions/test_streaming_session.py",
+      "start": 1,
+      "end": 84,
+      "sha256": "486647d9b9d12ce15ba617302d750d35037fb7ea5af85a95d1cd3ccebb3b3c6c",
+      "truncated": false
+    }
+  ]
+}

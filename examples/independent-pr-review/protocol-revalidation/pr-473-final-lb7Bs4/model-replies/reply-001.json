@@ -1,0 +1,572 @@
+{
+  "action": "final",
+  "result": {
+    "review_version": 1,
+    "head_sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+    "diff_base": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+    "diff_base_reason": "调用方冻结快照及 diff_base 明确提供此比较基线；未使用移动后的分支 tip 或测试合并提交替代。",
+    "platform": "hcu",
+    "summary": "本轮为 continued_context 的 FINAL_ONLY 收尾，不属于新的首次盲审。已静态审查两个变更文件：新增 CPU 测试对干净边界回溯、不完整字符和停滞复位的关键断言不足，纯替换字符的输出/窗口检查仅部分支持新增行为。冻结快照记录 HCU run 37012723576 attempt 1 失败、Stage A 成功及四个 Stage B required 分片失败，但缺少逐测例日志和安装产物身份，不能归因于本 PR。CPU 用例本次是否选中未知，所有行为执行未核验；建议补测并补齐选择与运行证据，不作合并结论。",
+    "limitations": [
+      "首次测试审查因 evidence_character_budget 截止；本轮只用已有 E1 至 E23 及冻结快照，不新增取证，不执行目标代码、测试、collection 或 CI。",
+      "仅审查本 PR 两个变更文件及已提供片段；其他 tokenizer、单条解码开关、多请求混合与性能影响未完整核验。",
+      "E13 的 HCU workflow 内容不可读；未绕过该限制。CPU base 配置仅代表静态路线，不能冒充 HCU pull_request_target 当次实际 workflow 或 runner 版本。",
+      "尚未读取 CPU check-changes/pr-gate 的全部条件、上游调用方及本次分片清单；选择与分支调度保留未知。",
+      "streaming_session 的继承断言未取得；部分搜索结果有截断，不能把未找到候选等同于全仓无替代覆盖。",
+      "快照是固定时点元数据；未取得匹配 checkout 与实际安装包身份的逐测例工件。HCU 失败根因未知，未声明 test_failure 或 infrastructure_failure。",
+      "没有 coverage.py 或其他同版本代码行/分支覆盖工件，覆盖率未测量；功能断言、选择状态与实际执行分别报告。",
+      "测试合并提交 5cd13ee6e15a3e8aef2931f0c94896ac89e401b0 与 PR head 分开看待；未把合并提交或其他运行结果回填为 head 通过。"
+    ],
+    "files": [
+      {
+        "path": "python/sglang/srt/managers/detokenizer_manager.py",
+        "status": "reviewed",
+        "reason": "已审本次流式提交、回溯边界和停滞计数 diff，并核对提供的解码状态及调度输出片段；依赖图与各 tokenizer 兼容性未穷尽。"
+      },
+      {
+        "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+        "status": "reviewed",
+        "reason": "已读新增文件全部伪 tokenizer、喂入辅助函数、四个测例及实际断言；实际 CI 选择与执行未核验。"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "S_IMPL",
+        "kind": "source",
+        "path": "python/sglang/srt/managers/detokenizer_manager.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 440,
+        "end": 544,
+        "claim": "新增回溯边界、停滞上限提交及提交后偏移/计数复位；按既有上下文长度截取增量文本。"
+      },
+      {
+        "id": "S_STATE",
+        "kind": "source",
+        "path": "python/sglang/srt/managers/detokenizer_manager.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 76,
+        "end": 114,
+        "claim": "尾 token 上限为 3，停滞阈值为 8，DecodeStatus 保存提交文本和连续停滞计数。"
+      },
+      {
+        "id": "S_CONTEXT",
+        "kind": "source",
+        "path": "python/sglang/srt/managers/detokenizer_manager.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 356,
+        "end": 439,
+        "claim": "同一请求累积 token，分别解码 read/surrogate，再按 surrogate 字符长度取增量。"
+      },
+      {
+        "id": "S_REG",
+        "kind": "source",
+        "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 20,
+        "end": 67,
+        "claim": "新增文件仅显式注册 CPU base-a-test-cpu；字节级伪 tokenizer 用 UTF-8 replace 解码。"
+      },
+      {
+        "id": "S_FEED",
+        "kind": "source",
+        "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 85,
+        "end": 104,
+        "claim": "每个 chunk 仅调用一次增量解码，返回合并后的文本，未暴露逐步输出给现有断言。"
+      },
+      {
+        "id": "S_SPLIT",
+        "kind": "source",
+        "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 108,
+        "end": 117,
+        "claim": "所谓不完整字符测试一次提供完整 CJK 字节，只断言完整结果。"
+      },
+      {
+        "id": "S_BOUNDARY",
+        "kind": "source",
+        "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 119,
+        "end": 132,
+        "claim": "所谓回溯边界测试每个 chunk 以 ASCII 文本结束，最终断言重复的替换字符加 a。"
+      },
+      {
+        "id": "S_CAP",
+        "kind": "source",
+        "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 134,
+        "end": 149,
+        "claim": "纯替换字符测试断言最终输出非空与最终重解码窗口上界，未比较完整输出或逐步窗口。"
+      },
+      {
+        "id": "S_RESET",
+        "kind": "source",
+        "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 151,
+        "end": 162,
+        "claim": "计数复位测试每步提供完整中加 a，无不完整字节造成的停滞。"
+      },
+      {
+        "id": "S_CPU_CALL",
+        "kind": "source",
+        "path": ".github/workflows/pr-test.yml",
+        "revision": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+        "start": 324,
+        "end": 337,
+        "claim": "base 配置将 CPU job 委托至可复用 CPU workflow，存在前置 job 条件并转交分片参数。"
+      },
+      {
+        "id": "S_CPU_STAGE",
+        "kind": "source",
+        "path": ".github/workflows/_pr-test-stage-cpu.yml",
+        "revision": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+        "start": 45,
+        "end": 159,
+        "claim": "base CPU workflow 根据 main_package/renderer gate 分片，并以 --hw cpu、指定 suite 和自动分片参数运行。"
+      },
+      {
+        "id": "S_ENTRY",
+        "kind": "source",
+        "path": ".github/workflows/pr-test.yml",
+        "revision": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+        "start": 10,
+        "end": 45,
+        "claim": "已读 base 主 workflow 声明 workflow_dispatch 与 workflow_call，不能仅凭测试注册推断自动 PR 调度。"
+      },
+      {
+        "id": "S_FILTER",
+        "kind": "source",
+        "path": "test/run_suite.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 372,
+        "end": 372,
+        "claim": "已取得的精确搜索行显示按 backend、effective_suite 与 nightly 共同选择测试。"
+      },
+      {
+        "id": "S_REGISTRY",
+        "kind": "source",
+        "path": "python/sglang/test/ci/ci_register.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 77,
+        "end": 87,
+        "claim": "CPU 注册函数为 AST 标记，运行时不执行测试。"
+      },
+      {
+        "id": "S_ALTERNATIVE",
+        "kind": "source",
+        "path": "test/registered/sessions/test_streaming_session.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 8,
+        "end": 33,
+        "claim": "替代 streaming_session 文件注册 CUDA/AMD 并继承 mixin；该包装片段不含可核验的 UTF-8 边界断言。"
+      },
+      {
+        "id": "S_CALLER",
+        "kind": "source",
+        "path": "python/sglang/srt/managers/scheduler_components/output_streamer.py",
+        "revision": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "start": 420,
+        "end": 490,
+        "claim": "流式间隔可逐步输出，Python 路径发送新的 decode_ids 与 read_offset，故跨事件增量解码是实际调用形态。"
+      }
+    ],
+    "behaviors": [
+      {
+        "id": "DETOK-CLEAN-BOUNDARY",
+        "name": "尾部替换字符前的稳定边界及时提交",
+        "changed_paths": [
+          "python/sglang/srt/managers/detokenizer_manager.py",
+          "test/registered/unit/managers/test_detokenizer_incremental.py"
+        ],
+        "lane": "pr",
+        "platform": "cpu",
+        "selection": "unknown",
+        "selection_reason": "head 用例注册到 CPU 的 base-a-test-cpu；已读 base 侧调用与可复用 workflow 的 gate、分片矩阵和 --hw cpu/--suite 参数，head runner 搜索结果显示按 backend、suite、nightly 过滤。base 主 workflow 仅声明 workflow_dispatch/workflow_call；未取得本次调用链、实际参数、分片名单或测例结果，不能认定此次 PR 已选中。HCU workflow 内容不可读，其具体选择另属未知。",
+        "selection_evidence": [
+          "S_REG",
+          "S_CPU_CALL",
+          "S_CPU_STAGE",
+          "S_ENTRY",
+          "S_FILTER"
+        ],
+        "observations": [],
+        "counterevidence": "已按 detokenizer、test_stream 路径检索，并读取新增文件全部断言及现有 streaming_session 包装文件；后者断言来自尚未取得的 mixin，不能作为该场景的替代覆盖证明。检索范围有限，未声称全仓不存在替代测试。",
+        "before": "尾部以 U+FFFD 结束时不推进 token 偏移，只尝试发送可打印前缀。",
+        "after": "从末尾向前检查最多三个 token 边界，找到非 U+FFFD 结尾且不短于 pending 的文本后提交，并跳过已发送前缀。",
+        "trigger": "当前解码尾部为 U+FFFD，但此前 token 边界已产生完整可提交文本。",
+        "risk": "回溯退化会重新出现长时间不提交及重解码窗口增长；pending 处理错误可能重复输出。",
+        "oracle": "对明确的字节序列逐事件检查固定预期文本、已提交偏移及前缀不重复；终止后输出应等于独立的一次性 UTF-8 replace 解码。",
+        "evidence": [
+          "S_IMPL",
+          "S_FEED",
+          "S_BOUNDARY",
+          "S_CALLER"
+        ],
+        "design": "gap",
+        "tests": [
+          {
+            "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+            "id": "TestIncrementalDecodeOffsets::test_degenerate_run_emits_at_the_clean_boundary",
+            "assertion": "仅验证每步以 a 结束的普通干净提交；未触发目标回溯分支。",
+            "evidence": [
+              "S_BOUNDARY",
+              "S_FEED"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "DETOK-STALL-CAP",
+        "name": "纯替换字符有界提交且不损坏新开始的字符",
+        "changed_paths": [
+          "python/sglang/srt/managers/detokenizer_manager.py",
+          "test/registered/unit/managers/test_detokenizer_incremental.py"
+        ],
+        "lane": "pr",
+        "platform": "cpu",
+        "selection": "unknown",
+        "selection_reason": "head 用例注册到 CPU 的 base-a-test-cpu；已读 base 侧调用与可复用 workflow 的 gate、分片矩阵和 --hw cpu/--suite 参数，head runner 搜索结果显示按 backend、suite、nightly 过滤。base 主 workflow 仅声明 workflow_dispatch/workflow_call；未取得本次调用链、实际参数、分片名单或测例结果，不能认定此次 PR 已选中。HCU workflow 内容不可读，其具体选择另属未知。",
+        "selection_evidence": [
+          "S_REG",
+          "S_CPU_CALL",
+          "S_CPU_STAGE",
+          "S_ENTRY",
+          "S_FILTER"
+        ],
+        "observations": [],
+        "counterevidence": "已按 detokenizer、test_stream 路径检索，并读取新增文件全部断言及现有 streaming_session 包装文件；后者断言来自尚未取得的 mixin，不能作为该场景的替代覆盖证明。检索范围有限，未声称全仓不存在替代测试。",
+        "before": "无干净边界的替换字符序列可持续保持偏移不变。",
+        "after": "连续停滞达到阈值时提交整个当前 new_text，并推进到全部已收 token 之后。",
+        "trigger": "持续无干净边界的输出；尤其连续替换字节之后立即开始一个分步到达的多字节字符。",
+        "risk": "有界等待可能改善纯替换输出，但强制提交时仍可能包含新到的不完整字符，造成不可逆文本损坏；仅最终窗口断言无法验证全部中间状态。",
+        "oracle": "纯替换序列应完整且无重复/丢失，并逐步检查窗口；8 个独立 0x80 后再分步 E4、B8、AD，最终应为八个替换字符加中，不能把中变成额外替换字符。",
+        "evidence": [
+          "S_IMPL",
+          "S_STATE",
+          "S_CONTEXT",
+          "S_CAP",
+          "S_REG"
+        ],
+        "design": "partial",
+        "tests": [
+          {
+            "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+            "id": "TestIncrementalDecodeOffsets::test_pure_replacement_run_is_bounded",
+            "assertion": "验证合并输出非空及末次重解码窗口不超过两倍阈值；没有混合尾部、精确文本及每步窗口断言。",
+            "evidence": [
+              "S_CAP"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "DETOK-SPLIT-RESET",
+        "name": "分步多字节字符保留与连续停滞计数复位",
+        "changed_paths": [
+          "python/sglang/srt/managers/detokenizer_manager.py",
+          "test/registered/unit/managers/test_detokenizer_incremental.py"
+        ],
+        "lane": "pr",
+        "platform": "cpu",
+        "selection": "unknown",
+        "selection_reason": "head 用例注册到 CPU 的 base-a-test-cpu；已读 base 侧调用与可复用 workflow 的 gate、分片矩阵和 --hw cpu/--suite 参数，head runner 搜索结果显示按 backend、suite、nightly 过滤。base 主 workflow 仅声明 workflow_dispatch/workflow_call；未取得本次调用链、实际参数、分片名单或测例结果，不能认定此次 PR 已选中。HCU workflow 内容不可读，其具体选择另属未知。",
+        "selection_evidence": [
+          "S_REG",
+          "S_CPU_CALL",
+          "S_CPU_STAGE",
+          "S_ENTRY",
+          "S_FILTER"
+        ],
+        "observations": [],
+        "counterevidence": "已按 detokenizer、test_stream 路径检索，并读取新增文件全部断言及现有 streaming_session 包装文件；后者断言来自尚未取得的 mixin，不能作为该场景的替代覆盖证明。检索范围有限，未声称全仓不存在替代测试。",
+        "before": "未完整 UTF-8 字符保留 token 上下文，后续字节到达后才提交。",
+        "after": "保留原恢复逻辑，同时每次未提交增加 stalled_steps，每次成功提交复位，影响后续是否触发强制提交。",
+        "trigger": "合法多字节字符跨多个流式事件到达，连续多轮出现短暂停滞与干净提交交替。",
+        "risk": "过早推进偏移会损坏字符；未复位则会把多个独立字符的短暂停滞累加到强制提交阈值。",
+        "oracle": "E4、B8、AD 分步送入时前两步不输出替换字符，第三步输出中；重复多轮后完整输出不损坏且每次干净提交后计数复位。",
+        "evidence": [
+          "S_IMPL",
+          "S_STATE",
+          "S_FEED",
+          "S_SPLIT",
+          "S_RESET"
+        ],
+        "design": "gap",
+        "tests": [
+          {
+            "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+            "id": "TestIncrementalDecodeOffsets::test_incomplete_character_is_still_held_back",
+            "assertion": "完整字符在同一 chunk 到达，无法检验保留不完整字节。",
+            "evidence": [
+              "S_FEED",
+              "S_SPLIT"
+            ]
+          },
+          {
+            "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+            "id": "TestIncrementalDecodeOffsets::test_stall_counter_resets_on_a_clean_step",
+            "assertion": "每步均为完整中加 a，停滞计数不会增加，因而不能检验复位。",
+            "evidence": [
+              "S_FEED",
+              "S_RESET"
+            ]
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "findings": [
+      {
+        "id": "F-CLEAN-ASSERT",
+        "kind": "coverage_gap",
+        "severity": "P2",
+        "confidence": "high",
+        "title": "干净边界用例未进入新增回溯分支",
+        "impact": "每个 chunk 以 a 结束，回溯实现即使始终返回 None，现有文本断言也不能识别该退化。",
+        "recommendation": "改用末尾为替换字节、此前存在干净边界的输入，并逐步验证提交偏移与即时输出；加入已有 pending 的去重场景。",
+        "behavior_ids": [
+          "DETOK-CLEAN-BOUNDARY"
+        ],
+        "evidence": [
+          "S_BOUNDARY",
+          "S_FEED",
+          "S_IMPL"
+        ],
+        "existing_code": "steps = [[STRAY_BYTE, TEXT_TOKEN]] * 12",
+        "evidence_ids": [
+          "E1",
+          "E2"
+        ]
+      },
+      {
+        "id": "F-CAP-MIXED",
+        "kind": "coverage_gap",
+        "severity": "P2",
+        "confidence": "high",
+        "title": "停滞上限测试未保护阈值后的新不完整字符",
+        "impact": "纯替换测试只检查输出非空和末次窗口；无法识别达到上限时连新到 E4 一起提交、后续 B8/AD 无法恢复中的文本损坏路径。该判断来自静态代码推导，未运行验证。",
+        "recommendation": "加入替换字节饱和后接分步完整字符的精确输出 oracle，同时检查纯替换运行的每步窗口与最终完整文本。",
+        "behavior_ids": [
+          "DETOK-STALL-CAP"
+        ],
+        "evidence": [
+          "S_IMPL",
+          "S_CONTEXT",
+          "S_STATE",
+          "S_CAP",
+          "S_REG"
+        ],
+        "existing_code": "self.assertGreater(len(text), 0, \"no text ever reached the client\")",
+        "evidence_ids": [
+          "E1",
+          "E2",
+          "E5"
+        ]
+      },
+      {
+        "id": "F-SPLIT-ASSERT",
+        "kind": "coverage_gap",
+        "severity": "P2",
+        "confidence": "high",
+        "title": "不完整字符和复位用例没有制造停滞",
+        "impact": "两个用例一次送入完整字符，错误地每步提交或不复位计数仍可满足它们的当前断言，声明的增量回归保护未建立。",
+        "recommendation": "将每个字节放入独立 chunk，断言中间无替换字符，重复交替停滞与干净提交以越过累计阈值。",
+        "behavior_ids": [
+          "DETOK-SPLIT-RESET"
+        ],
+        "evidence": [
+          "S_FEED",
+          "S_SPLIT",
+          "S_RESET",
+          "S_IMPL"
+        ],
+        "existing_code": "steps = [list(CJK_BYTES) + [TEXT_TOKEN]] * 10",
+        "evidence_ids": [
+          "E1",
+          "E2"
+        ]
+      },
+      {
+        "id": "F-RUN-EVIDENCE",
+        "kind": "evidence_gap",
+        "severity": "P2",
+        "confidence": "high",
+        "title": "注册与静态路线不足以确认本次选择和执行",
+        "impact": "当前不能证明三个行为在固定 head 对应的 CPU lane 中执行；HCU job 元数据失败也不足以判为相关测例失败或基础设施根因。",
+        "recommendation": "核实上游事件、gate、workflow/runner 版本、CPU 分片选择清单，以及 checkout 和安装包身份匹配的逐测例结果；单独定位 HCU 失败日志。",
+        "behavior_ids": [
+          "DETOK-CLEAN-BOUNDARY",
+          "DETOK-STALL-CAP",
+          "DETOK-SPLIT-RESET"
+        ],
+        "evidence": [
+          "S_REG",
+          "S_REGISTRY",
+          "S_CPU_CALL",
+          "S_CPU_STAGE",
+          "S_ENTRY",
+          "S_FILTER"
+        ],
+        "existing_code": "register_cpu_ci(est_time=5, suite=\"base-a-test-cpu\")",
+        "evidence_ids": [
+          "E1",
+          "E11",
+          "E13",
+          "E16",
+          "E18",
+          "E20",
+          "E21",
+          "E22"
+        ]
+      }
+    ],
+    "tasks": [
+      {
+        "id": "T-CLEAN-BOUNDARY",
+        "feature_id": "DETOK-CLEAN-BOUNDARY",
+        "route": "write",
+        "priority": "P2",
+        "reason": "目标回溯分支没有被现有同名用例触发。",
+        "evidence": [
+          "S_BOUNDARY",
+          "S_FEED",
+          "S_IMPL"
+        ],
+        "prerequisites": [
+          "目标为 CPU/pr lane 的 base-a-test-cpu；使用已有无模型、无 IPC 字节伪 tokenizer 夹具。",
+          "先核对仍为固定 head；确认新增用例与已有替代测试不重复，后续执行需另获授权。"
+        ],
+        "acceptance": [
+          "尾部替换字符前的干净边界在停滞上限之前推进，逐事件输出与偏移断言明确。",
+          "覆盖 pending 前缀不重复；最终拼接与独立一次性解码一致。",
+          "禁用回溯的负控必须被测试发现，并提供同版本 CI 选择与逐测例执行证据。"
+        ],
+        "cases": [
+          {
+            "id": "C-CLEAN-BOUNDARY",
+            "name": "替换字符尾部前即时提交",
+            "inputs": "在正常提示上下文后，首个 chunk 输入 [TEXT_TOKEN, STRAY_BYTE]，后续再加文本；另设带已发送可打印前缀的变体。",
+            "expected": "首个 chunk 的 a 在上限之前被提交，未完成/替换尾部按策略保留；已发送前缀不会再次输出。",
+            "oracle": "固定字节串的预期前缀、明确边界偏移和独立 UTF-8 replace 最终解码。",
+            "negative_control": "令回溯函数恒返回 None，立即提交/偏移断言应失败；重复发送 pending 的变体应被文本断言发现。"
+          }
+        ]
+      },
+      {
+        "id": "T-STALL-CAP",
+        "feature_id": "DETOK-STALL-CAP",
+        "route": "write",
+        "priority": "P2",
+        "reason": "现有纯替换测试仅覆盖部分有界性，缺少阈值附近的字符完整性与精确输出。",
+        "evidence": [
+          "S_CAP",
+          "S_IMPL",
+          "S_CONTEXT",
+          "S_STATE"
+        ],
+        "prerequisites": [
+          "目标为 CPU/pr lane 的 base-a-test-cpu；无需 HCU、模型下载或外部服务。",
+          "沿用字节伪 tokenizer，但预期文本用固定输入的独立字节解码建立，不复制被测提交算法。"
+        ],
+        "acceptance": [
+          "连续替换序列逐事件窗口有界，结束时输出精确且不丢失/重复。",
+          "达到停滞阈值后新开始的多字节字符仍完整输出。",
+          "能杀死无条件全尾提交的负控；补齐匹配 head 的 CI 选择及执行证据。"
+        ],
+        "cases": [
+          {
+            "id": "C-CAP-MIXED",
+            "name": "饱和替换后开始中",
+            "inputs": "正常提示上下文；依次输入八个独立 0x80 chunk，再分步输入 E4、B8、AD，最后结束请求。",
+            "expected": "最终输出为八个 U+FFFD 加中，中不能成为第九个替换字符。",
+            "oracle": "对完整输出字节一次性进行 UTF-8 replace 解码，并逐事件确认尚未完整的字符不被提交。",
+            "negative_control": "保留阈值处无条件提交整个 new_text 的实现，应被精确文本断言发现。"
+          },
+          {
+            "id": "C-CAP-PURE",
+            "name": "纯替换长序列的精确输出和窗口",
+            "inputs": "多倍阈值长度的独立 0x80 chunk，记录每步输出及窗口，并发送结束事件。",
+            "expected": "有限间隔产生输出，窗口持续有界，结束后的字符总数等于输入替换字节数，无重复或漏发。",
+            "oracle": "固定重复 U+FFFD 文本与逐步 token 窗口上界，不以只检查最后一步替代全程断言。",
+            "negative_control": "移除上限提交、重复发送或漏发字符中的任一种变体应导致断言失败。"
+          }
+        ]
+      },
+      {
+        "id": "T-SPLIT-RESET",
+        "feature_id": "DETOK-SPLIT-RESET",
+        "route": "write",
+        "priority": "P2",
+        "reason": "当前 chunk 粒度绕过不完整字符状态，未验证保留和复位。",
+        "evidence": [
+          "S_FEED",
+          "S_SPLIT",
+          "S_RESET",
+          "S_IMPL"
+        ],
+        "prerequisites": [
+          "目标为 CPU/pr lane 的 base-a-test-cpu，使用已有无 IPC 夹具。",
+          "调整测试辅助函数以观察逐步输出和状态，但不更改生产实现来迁就测试。"
+        ],
+        "acceptance": [
+          "前三个单字节事件前两步不输出替换字符，第三步只输出中。",
+          "重复多轮后不产生累计停滞导致的误提交，成功提交后 stalled_steps 为零。",
+          "每步提交及删除复位的独立负控都必须失败；留存本版本选择和逐测例 CI 证据。"
+        ],
+        "cases": [
+          {
+            "id": "C-SPLIT-RESET",
+            "name": "短暂停滞与完整提交交替",
+            "inputs": "将 E4、B8、AD 分成三个独立 chunk，随后送入 ASCII，重复十轮。",
+            "expected": "结果精确为中a重复十次，每轮前两步不输出替换字符，每次干净提交后计数归零。",
+            "oracle": "固定 Unicode 文本和逐事件预期；不调用生产回溯/提交函数计算预期。",
+            "negative_control": "无条件每步提交应损坏字符并失败；去掉复位语句应触发状态或后续文本断言失败。"
+          }
+        ]
+      },
+      {
+        "id": "T-VERIFY-CI",
+        "feature_id": "DETOK-STALL-CAP",
+        "route": "validate_existing",
+        "priority": "P2",
+        "reason": "对本次 CPU 注册用例的实际选择、运行身份和结果没有足够证据；HCU 失败也需独立定位。",
+        "evidence": [
+          "S_REG",
+          "S_CPU_CALL",
+          "S_CPU_STAGE",
+          "S_ENTRY",
+          "S_FILTER"
+        ],
+        "prerequisites": [
+          "由有权读取 CI 的调用方获取真实日志、分片名单与安装产物身份；本任务本身不授权重跑或执行。",
+          "保持 PR head、测试合并提交及 run/attempt 分离；若 head 变化须重新审查。"
+        ],
+        "acceptance": [
+          "提供本次有效事件→gate→workflow 版本→suite→分片→具体测例的选择链，若未选中再转 repair_selection。",
+          "同一 run/attempt 下提供 checkout 与安装包身份及完整逐测例结果，包含失败、跳过和重跑，不拼接成功子集。",
+          "分别解释 HCU 四个失败分片的证据及根因；证据仍不足时维持未知，不宣称 PR 产品失败或 CI 缺口关闭。"
+        ],
+        "required_evidence": [
+          "ci_selection",
+          "ci_execution"
+        ],
+        "required_evidence_reason": "本项为非代码证据核验，不生成测例或负控；正反例要求由三个 write 任务承担。",
+        "cases": [
+          {
+            "id": "C-VERIFY-EXISTING",
+            "name": "核验已有纯替换用例及同文件其他测例",
+            "inputs": "固定 head 下新增测试文件、实际触发参数、分片选择清单、checkout/安装包记录及同次运行逐测例结果。",
+            "expected": "能明确指出是否选中、实际测试提交与每个真实测例结局；缺失项保持未核验。",
+            "oracle": "来源可追溯的 CI 原始记录与仓库实际测试身份逐一匹配。",
+            "negative_control": "只有 suite 注册、job 成功或不匹配提交的日志时，核验结论必须拒绝升级为通过。"
+          }
+        ]
+      }
+    ]
+  }
+}

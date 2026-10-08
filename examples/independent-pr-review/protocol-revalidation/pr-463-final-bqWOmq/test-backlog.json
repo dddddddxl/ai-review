@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "origin_mode": "pr_ci_review",
+  "repository": "https://github.com/HYGON-AI/sglang-das",
+  "source_commit": "bd01fc60d46266c47710784dd7051320edbbe002",
+  "pr_context": {
+    "number": 463,
+    "url": "https://github.com/HYGON-AI/sglang-das/pull/463",
+    "base_sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+    "head_sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+    "diff_base": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+    "head_repository": "dddddddxl/sglang-das",
+    "captured_at": "2026-10-08T07:03:20.285Z",
+    "snapshot_sha256": "ce264659a618ed848e69dce1be29f33135ada6fadad42c6901965141b3682168"
+  },
+  "scope": {
+    "platform": "hcu",
+    "extent": "bounded",
+    "lanes": [
+      "nightly",
+      "pr"
+    ],
+    "limitations": [
+      "本轮没有新增取证；只使用新请求携带的既有证据。首次回复及结果保持不变，本轮不得计入首次盲测。",
+      "未接触预标注、其他审查答案或 evaluation；未读取 checkout，未运行目标代码、测试、collection 或 CI。",
+      "hcu-full-enabled.yml、hcu-manual-model-test.yml、pr-test-hcu.yml 读取曾被宿主拒绝；hcu-feishu-notify-preview.yml、labeler.yml、pr-states.yml 仅见 diff，没有满足宿主合同的 read_file 证据，均标记 deferred。",
+      "reviewed 仅表示已审阅列明的源码与关联断言范围，不表示完整执行链或测试覆盖已经核验。",
+      "nightly 的源码阅读仅覆盖 1 至 120、294 至 493、640 至 839 行；构建发布 workflow 有些仅读到 200 行，完整 selector、矩阵后续命令和运行选择仍未知。",
+      "完整读取了构建对齐测试；现有 runner、workflow 及 CI 引用检索存在范围或截断限制，未命中不能证明全仓没有替代覆盖。",
+      "快照中的 PR HCU 一次变更检测失败后下游跳过，另一次被关闭 PR 流程取消；失败根因没有足够日志，未归因为本次迁移。",
+      "pull_request_target 元数据关联 PR head 不证明实际 workflow 源版本为 head。快照相关 job 记录单标签 bw1100，不能用来证明 head 的双标签配置已经执行。",
+      "唯一可读运行工件是关闭 PR 的取消日志，没有 HCU 逐测例结果、设备能力或安装产物身份。没有将不同运行或 attempt 的成功子集拼接。",
+      "组织 runner 库存、权限范围、变量、环境审批和外部调度不可见；不能据此推断新 runner 存在配置故障。",
+      "没有同版本 coverage 工件，代码行覆盖率与分支覆盖率未测量；补充验证建议不等于批准合并，也不授权执行测试或外部写入。",
+      "元数据不能证明具体场景、checkout 或安装产物身份。",
+      "未执行测试；外部调度、不可见配置与动态选择可能无法核验。"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "TASK_LINT_VALIDATION",
+      "feature_id": "B_LINT_ROUTING",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "先确认是否已有专用断言和可追溯运行；实现中的 pre-commit 调用不能证明 runner 迁移已被测试。",
+      "evidence": [
+        "S_LINT"
+      ],
+      "prerequisites": [
+        "取得实际执行 workflow revision 及现有断言/CI 入口的合法证据。",
+        "另行授权后使用隔离 HCU runner、可追溯容器与无生产写权限的 lint 夹具。"
+      ],
+      "acceptance": [
+        "证明实际 job 请求 ci 与 bw1100，并关联冻结 workflow、checkout 和容器身份。",
+        "所选具体 lint 检查的预期结果可追溯，缺失断言或仅有 job 成功不能关闭此证据缺口。"
+      ],
+      "cases": [
+        {
+          "id": "CASE_LINT_RUNNER",
+          "name": "双标签 lint 调度与执行",
+          "inputs": "冻结 lint workflow，包含已知格式错误及修正版本的隔离代码夹具，满足或缺少一个必需标签的 runner 库存。",
+          "expected": "仅双标签 runner 满足调度合同，已知错误被相应检查发现，修正后该检查通过。",
+          "oracle": "独立 runner 库存与 job 请求标签交叉核对，并比较具体 lint 结果与预先确定的夹具预期。",
+          "negative_control": "隔离配置中移除一个必需标签或保留已知 lint 错误，验证检查不会仍报告合同满足。"
+        }
+      ],
+      "lanes": [
+        "pr"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    },
+    {
+      "id": "TASK_BUILD_VALIDATION",
+      "feature_id": "B_BUILD_NIGHTLY",
+      "route": "validate_existing",
+      "priority": "P2",
+      "reason": "复用已有版本和 wheel 身份断言，补齐它们是否被选择以及新环境真实执行的证据；不把现有未知改写为确定缺测例。",
+      "evidence": [
+        "S_NIGHTLY",
+        "S_NIGHTLY_BUILD",
+        "S_MATRIX",
+        "S_IMAGE",
+        "S_DOCKER",
+        "S_RELEASE_PR",
+        "S_RELEASE_NIGHTLY",
+        "T_ALIGNMENT",
+        "T_WHEEL"
+      ],
+      "prerequisites": [
+        "补齐完整 nightly selector、构建对齐测试入口与每条通路实际 workflow revision。",
+        "另行授权后准备隔离 runner、设备、模型和 staging；构建发布使用临时目标，不触及生产发布或通知。"
+      ],
+      "acceptance": [
+        "PR wheel、nightly、release 和镜像调用分别记录同次 run/attempt 的标签、源码/产物身份、选择参数及所需完整分片，不跨运行拼接。",
+        "正例能消费匹配产物并完成具体断言；错误身份、设备或挂载缺失由独立检查识别，不能仅凭 import 或 mock 成功判定真实环境通过。"
+      ],
+      "cases": [
+        {
+          "id": "CASE_STAGING_IDENTITY",
+          "name": "跨 runner 构建与消费身份",
+          "inputs": "双标签隔离 runner 上的构建和消费任务，匹配与错误身份的 wheel/manifest。",
+          "expected": "匹配产物可被实际消费，错误版本或 SHA 被拒绝；共享目录可见性得到独立核验。",
+          "oracle": "实际文件哈希、manifest、源码版本和消费日志，结合现有 wheel 身份断言。",
+          "negative_control": "隔离 staging 替换错误身份或去除 READY，验证消费不会报告身份匹配通过。"
+        },
+        {
+          "id": "CASE_RUNTIME_CAPABILITY",
+          "name": "夜间及镜像真实环境能力",
+          "inputs": "明确镜像、指定夜间分片、真实设备与只读模型夹具；各条通路独立运行。",
+          "expected": "实际请求双标签、所需设备与挂载可用，匹配版本的具体断言完成。",
+          "oracle": "镜像摘要、设备清单、selector、源码/产物身份及独立测例结果联合核验。",
+          "negative_control": "隔离环境隐藏所需设备或模型挂载，能力或测试检查必须发现失败，不能以作业名称或导入成功代替。"
+        }
+      ],
+      "lanes": [
+        "nightly"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "S_LINT",
+      "kind": "source",
+      "path": ".github/workflows/lint-hcu.yml",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 1,
+      "end": 57,
+      "claim": "存在 push/pull_request_target 触发、双标签容器和 pre-commit 调用；这是实现配置，不能证明 runner 迁移测试已经被 CI 选择。",
+      "sha256": "339efcf53fd9feb5e1ba9da86600361218c49f2aa1b670df1b20c556bb659bfe"
+    },
+    {
+      "id": "S_NIGHTLY",
+      "kind": "source",
+      "path": ".github/workflows/nightly-test-hcu.yml",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 1,
+      "end": 120,
+      "claim": "夜间 schedule/dispatch、job_filter 与双标签配置可见；旧 runner_label 标记忽略，不能证明当次测试选择或执行。",
+      "sha256": "e14886d95dccffcc8829ffc5c6c509db91c00199a4635573d782fa836199c38d"
+    },
+    {
+      "id": "S_NIGHTLY_BUILD",
+      "kind": "source",
+      "path": ".github/workflows/nightly-test-hcu.yml",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 294,
+      "end": 493,
+      "claim": "条件构建在双标签 runner 使用设备、驱动及 staging 挂载，并检查 Torch 版本。",
+      "sha256": "e14886d95dccffcc8829ffc5c6c509db91c00199a4635573d782fa836199c38d"
+    },
+    {
+      "id": "S_MATRIX",
+      "kind": "source",
+      "path": ".github/workflows/nightly-test-hcu.yml",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 640,
+      "end": 839,
+      "claim": "可见部分 needs、suite、分片和设备数矩阵；缺少完整后续 selector，不能证明具体迁移断言进入 CI。",
+      "sha256": "e14886d95dccffcc8829ffc5c6c509db91c00199a4635573d782fa836199c38d"
+    },
+    {
+      "id": "S_IMAGE",
+      "kind": "source",
+      "path": ".github/workflows/nightly-test-image-hcu.yml",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 1,
+      "end": 83,
+      "claim": "dispatch/call 接收镜像，配置双标签、设备和模型挂载，并调用 CItest；没有实际结果证明。",
+      "sha256": "54c0bc7526917abdd4b06753b83a32047e571c84fa510707bf20c9170fdeff91"
+    },
+    {
+      "id": "S_DOCKER",
+      "kind": "source",
+      "path": ".github/workflows/release-docker-hcu.yml",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 1,
+      "end": 89,
+      "claim": "schedule/dispatch 构建镜像，通过 needs 和输出将本次镜像传入镜像测试 workflow。",
+      "sha256": "b6ec9485e3e33a61657e9ce83947409075fea3fcc3c3a9d893b1d4257fd76001"
+    },
+    {
+      "id": "S_RELEASE_PR",
+      "kind": "source",
+      "path": ".github/workflows/release-pr-hcu.yml",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 1,
+      "end": 200,
+      "claim": "PR 路径过滤或 dispatch 触发双标签构建，单 Python 版本矩阵及设备/staging 要求可见。",
+      "sha256": "80b36fa7d702b8021e1071c4bec517d27d73e5856ee2d68980d9f25d417682cc"
+    },
+    {
+      "id": "S_RELEASE_NIGHTLY",
+      "kind": "source",
+      "path": ".github/workflows/release-pypi-nightly-hcu.yml",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 1,
+      "end": 200,
+      "claim": "release 分支 push 或 dispatch 触发双标签构建，容器、设备及部分产物条件可见。",
+      "sha256": "1f330b9573d6e4c5d5bf9aaaf7969bcff1cf40bdc81b1a4f54da40ef2dfc3fc9"
+    },
+    {
+      "id": "T_ALIGNMENT",
+      "kind": "source",
+      "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 1,
+      "end": 200,
+      "claim": "断言分支环境、构建版本、Rust 路径与内嵌脚本语法；未断言 runner 标签交集或实际硬件能力。",
+      "sha256": "7c4e9f1576456aa2f8356aa43589a75d41fc233bf74d84e58e20c372b4fc73e6"
+    },
+    {
+      "id": "T_WHEEL",
+      "kind": "source",
+      "path": "scripts/ci/hcu/test_hcu_build_alignment.py",
+      "revision": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "start": 201,
+      "end": 361,
+      "claim": "正反例校验 wheel 与 manifest 身份及安装 guard；临时目录和 mock 不证明真实跨 runner 挂载。",
+      "sha256": "7c4e9f1576456aa2f8356aa43589a75d41fc233bf74d84e58e20c372b4fc73e6"
+    },
+    {
+      "id": "A_CANCEL",
+      "kind": "artifact",
+      "path": "artifacts/run-36663746175-attempt-1-job-109723883930.txt",
+      "claim": "取消工作流 run 36663746175 attempt 1 明确请求取消 PR HCU run 36663736701、PR wheel run 36663007650 和质量门禁 run 36663736872；不是测试通过证据。",
+      "sha256": "1ead16d31852698efd1aea01d84b9ea1d919116148e8ec7ec25560a8469bdacc"
+    }
+  ],
+  "source_fingerprints": {
+    ".github/workflows/lint-hcu.yml": "82d11224396bc476fea0bc17c094d3c22b7130bb2cca00d1df510f02af736934",
+    ".github/workflows/nightly-test-hcu.yml": "c80ddcec24faa56ee01f6ffd66aa5fe5ac8060fc6658743a98b0ef0c17e2aefc",
+    ".github/workflows/nightly-test-image-hcu.yml": "1a657ea14a6097ef2cc01010cfb5055b618cd84ac807fc809d52559d61e4a109",
+    ".github/workflows/release-docker-hcu.yml": "28c86e32e8bb51c63825231c22225bce260cc4a7ffb3d50fba3f4acb32c14e31",
+    ".github/workflows/release-pr-hcu.yml": "4b496ae1a66e66ada031187cf2fc8683e0ef354bbe4e9b5dc037bcf90996cc04",
+    ".github/workflows/release-pypi-nightly-hcu.yml": "1ed3a9b8e26275dc7881c8837d8b0a019cb51280edb9a7f42fce9ce9a79f5d4f",
+    "scripts/ci/hcu/test_hcu_build_alignment.py": "8a6063c909c8452f949fcecd2d6cdcf2bcf402d5ccefd635def5aeb6b56127fb"
+  }
+}

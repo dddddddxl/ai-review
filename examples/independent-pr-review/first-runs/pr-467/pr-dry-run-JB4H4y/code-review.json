@@ -1,0 +1,10 @@
+{
+  "status": "partial",
+  "findings": [],
+  "overview": [
+    "HCU 的 dense prefill 索引选择统一使用 PyTorch TopK 回退，覆盖普通与 LayerSplit 缓存池；非 HCU 的融合调用保持不变。",
+    "HCU 回退按每行可见压缩长度筛选局部列，再加请求的扁平 KV 偏移，保留无效项的 -1 填充。"
+  ],
+  "findings_count": 0,
+  "report": "## AI Review\n\n审查尚未完整完成，无法给出整体结论；当前没有可发布的已确认问题，不代表代码没有问题。\n\n> 审查未完整完成：以 GitHub 返回的 PR diff 为主体，关联上下文仅用于核验，未运行代码。\n\n> 覆盖情况：共 1 个文件，已审查 1 个。"
+}

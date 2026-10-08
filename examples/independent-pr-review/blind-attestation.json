@@ -1,0 +1,411 @@
+{
+  "attestation_version": 1,
+  "kind": "orchestrator_declared_fresh_context_not_host_certification",
+  "host_default_blind_flag_unchanged": true,
+  "human_certified": false,
+  "label_agent": "/root/blind_sample_capture",
+  "posthoc_adjudicator": "/root/adjudicate_blind_results",
+  "reviewer_initial_context": "fork_turns=none",
+  "isolation": "reviewers were instructed to use only bridge requests and host-provided evidence, without labels, other reports or direct checkout access",
+  "limits": [
+    "代理编排与自述，不是技术沙箱证明。",
+    "宿主协议在实验中修复，未宣称单一固定宿主二进制对照。",
+    "文件时间用于复核顺序，不是外部时间戳认证。"
+  ],
+  "samples": [
+    {
+      "sample_id": "pr-478",
+      "reviewer": "/root/blind_pr478",
+      "fork_turns": "none",
+      "prelabel_frozen_at": "2026-10-08T07:08:11.000Z",
+      "first_request_created_at": "2026-10-08T07:11:40.790Z",
+      "prelabel_precedes_first_request": true,
+      "head_sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "original_input_sha256": "a42e9b6bd2d53f8b18fa71c36ac60bb1b38d0deda6f85ff8e3cb520f4f4a72e3",
+      "exported_input_sha256": "a42e9b6bd2d53f8b18fa71c36ac60bb1b38d0deda6f85ff8e3cb520f4f4a72e3",
+      "original_label_sha256": "1a1cb93b41ca415f216d41dff556a0e2cd884f50d953325a1e0ac70bf4fe6204",
+      "first_status_sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb",
+      "first_model_replies": [
+        {
+          "path": "first-runs/pr-478/pr-dry-run-eih1C8/model-replies/reply-001.json",
+          "sha256": "d378dc6fe497e0b4dab6f6db22aa6addfa3e0860d63577164aa3c45b5a52d66b"
+        }
+      ],
+      "answers_frozen_before_posthoc_comparison": true,
+      "new_context_retry_in_primary_score": false
+    },
+    {
+      "sample_id": "pr-477",
+      "reviewer": "/root/blind_pr477",
+      "fork_turns": "none",
+      "prelabel_frozen_at": "2026-10-08T07:10:57.000Z",
+      "first_request_created_at": "2026-10-08T07:20:19.925Z",
+      "prelabel_precedes_first_request": true,
+      "head_sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "original_input_sha256": "59e3509894969c793129bd930f3f8ba19e942ce094b6d8dd0c78d0a54fe6537b",
+      "exported_input_sha256": "59e3509894969c793129bd930f3f8ba19e942ce094b6d8dd0c78d0a54fe6537b",
+      "original_label_sha256": "7555f4df36da82d06ac6f4d854eab3d26b22111aba486210d47c264aec716825",
+      "first_status_sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb",
+      "first_model_replies": [
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-001.json",
+          "sha256": "7fd68fc39f2987fa722ae0a80361ebbaabab1b66e7f14fa945f9c186a5846356"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-002.json",
+          "sha256": "c6176f605f00dbe3d5b0b2075ee80c35a37ad51328324a1ea079bdba892028aa"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-003.json",
+          "sha256": "6a5c230e811df27348bd5c93f8a32ada3e23b51d92bbca3c57447a9b8efc8d1b"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-004.json",
+          "sha256": "31e294caed14a6649ebdfbdaa84ebf572ec01179a4f942391754844fdea7bebc"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-005.json",
+          "sha256": "10c9930e028bf3de8fe7cb0dee0e22e87ea945b47934763e0de63b510c1c262c"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-006.json",
+          "sha256": "131608493781ec9f8267af1c8e801e4a2eaf526cc2b962410a2db6250705a108"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-007.json",
+          "sha256": "09dfde128898931ae6e29db73a896a0fd81059edea9d8d6ff73e9aad7f974f05"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-008.json",
+          "sha256": "bd4d10961217d1b3c9c8883584633b7a54af76c4d1df3c66a02e34690f6ca400"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-009.json",
+          "sha256": "a755531c56f461d794924c0c88daab8a4050b1ae433603122ed9de9bad60e4f2"
+        },
+        {
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-010.json",
+          "sha256": "56484d3ae52e9c278f4ca14652bfaaa6df6310ee674094e8e55bc91384a9b844"
+        }
+      ],
+      "answers_frozen_before_posthoc_comparison": true,
+      "new_context_retry_in_primary_score": false
+    },
+    {
+      "sample_id": "pr-467",
+      "reviewer": "/root/blind_pr467",
+      "fork_turns": "none",
+      "prelabel_frozen_at": "2026-10-08T07:14:27.000Z",
+      "first_request_created_at": "2026-10-08T07:35:03.596Z",
+      "prelabel_precedes_first_request": true,
+      "head_sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "original_input_sha256": "d5df5a850c71062bed912904ee0d5fbf01deb1e5b10ff99c5b8093db39538246",
+      "exported_input_sha256": "d5df5a850c71062bed912904ee0d5fbf01deb1e5b10ff99c5b8093db39538246",
+      "original_label_sha256": "60d3393652cfed09efbcd211402df61010cf969d7840e11059f386931fbac4c1",
+      "first_status_sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb",
+      "first_model_replies": [
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-001.json",
+          "sha256": "1e7418c66307e0fb46b8189a660fca7adc50947106d1d2d5cceebacec4e1f9a6"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-002.json",
+          "sha256": "ce38ca540c7ada2c1c74d05afd2d8842cf2ae65fe45e2a5e84b2baca53d2c893"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-003.json",
+          "sha256": "85d9868423de9db2411268abb2b28fdef1e197cff5973f18a60ae5139be15834"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-004.json",
+          "sha256": "946fc271cdf7f8008618c368f2d4b1e4a187d94da8f52ffb4cfc192fd45201f5"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-005.json",
+          "sha256": "c84ca9190c00d4224db4c5af8f8867873dc8ef48a6728df9e08ba572d18154d0"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-006.json",
+          "sha256": "22edcb4d0bc94c631369e3a3206bc9fc1aebc767b0a4abba2be3f05f2162824a"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-007.json",
+          "sha256": "d3e0a160434ed21cb5f37567745ed253352cd4366924bfb0d00b0a73019c0c7e"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-008.json",
+          "sha256": "6bb60d2601b9a98443b43f5276dfb58a4dbfc7820d01a517e6d068a6a6faf8fa"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-009.json",
+          "sha256": "5fe41fc4bddaf5046bd28385b0c3a6b4859d6300ca097bde5b6a4f7031d0b18a"
+        },
+        {
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-010.json",
+          "sha256": "3f79b6a94d632cfc5503dcab2799199b0efdc7975db2bf200c2ccc695b6d82b5"
+        }
+      ],
+      "answers_frozen_before_posthoc_comparison": true,
+      "new_context_retry_in_primary_score": false
+    },
+    {
+      "sample_id": "pr-473",
+      "reviewer": "/root/blind_pr473",
+      "fork_turns": "none",
+      "prelabel_frozen_at": "2026-10-08T07:17:06.000Z",
+      "first_request_created_at": "2026-10-08T07:41:22.100Z",
+      "prelabel_precedes_first_request": true,
+      "head_sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "original_input_sha256": "c7d3b8d0793e6e1be7fe6ca689195be4fdff1c251227ddf49a8df3bcfa2a53ac",
+      "exported_input_sha256": "c7d3b8d0793e6e1be7fe6ca689195be4fdff1c251227ddf49a8df3bcfa2a53ac",
+      "original_label_sha256": "d2756773271dfc5a60a3d859d286202fff5fd60eaeed3e4f4853b86541c89c7a",
+      "first_status_sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb",
+      "first_model_replies": [
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-001.json",
+          "sha256": "5fb56d2039bd1e552760cf3837168b4b89f8f414b9b190f7c9a906ecc5a83b6b"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-002.json",
+          "sha256": "d06a1fdfedfcefdf3f8d93e7e9422898032b9e5b188f8e3981c2f9d3642973bc"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-003.json",
+          "sha256": "f4f69157c7a0f150f709d5cfb734614420f307fddebd1a4874bade5f2e4a1a6f"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-004.json",
+          "sha256": "fa26015d8d22fbc9ce6c4220e851fe2beb7afd3da0d4a7386e97e2ffb4be59d5"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-005.json",
+          "sha256": "00e056bd56f3b270b80a22e4fff7e5585b97bd725d9c5a5ca089a67589dd427c"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-006.json",
+          "sha256": "f2b6a4d11ec9b2f97c04dfec701e76c82e9d432eeed22c9bb2650e1cf2696202"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-007.json",
+          "sha256": "5f8f3cf21654910565fb252cb3908bf34dd87f0f85771567bddb532355c7828f"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-008.json",
+          "sha256": "3b342c7e4f83155b0718faeb5342b507ac3b617abcad1dcba09d4f06f4418741"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-009.json",
+          "sha256": "1ae25b7d0bb89e2e747dcb71f9e8224eb979653622af8966baf9307279d40345"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-010.json",
+          "sha256": "bc40b2d534e5470f6f4b84d6a89ada427f1632790bdad1bd38f088d59ef74b8d"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-011.json",
+          "sha256": "ce7b0097f45e10fbfcfb0c6bb8e5b8f10fc32da286f567490e29b95ce7e47219"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-012.json",
+          "sha256": "8b8b8d820dc51d9baf43210fc8bd9ece588723639090fcb876dda5aefe4601e7"
+        },
+        {
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-013.json",
+          "sha256": "12edeccde87c155d3b44e3981af76a3515823a624001fd55c2693588917faa47"
+        }
+      ],
+      "answers_frozen_before_posthoc_comparison": true,
+      "new_context_retry_in_primary_score": false
+    },
+    {
+      "sample_id": "pr-463",
+      "reviewer": "/root/blind_pr463",
+      "fork_turns": "none",
+      "prelabel_frozen_at": "2026-10-08T07:20:50.000Z",
+      "first_request_created_at": "2026-10-08T07:53:55.437Z",
+      "prelabel_precedes_first_request": true,
+      "head_sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "original_input_sha256": "671863ecd5dbde862f98ff96b63449759270c8155fc039bd332c26696b1c0957",
+      "exported_input_sha256": "c523fa2acaacde681deba95f43acaf23ee239f048c19d9aa628cd32060f5a76d",
+      "original_label_sha256": "20460d8dd1507025deb8c88afe10e86c3aef481932ab007d9e098ea757dbed84",
+      "first_status_sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb",
+      "first_model_replies": [
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-001.json",
+          "sha256": "07be8073921604b70d911eebbb8c9b8afdb50c3794c607173b043434ed65ca05"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-002.json",
+          "sha256": "feb004414937f71a9e0ddb398c84e1d06036bbb1df4a1ec579796b0db3736dfb"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-003.json",
+          "sha256": "ccd869f73e3d40d0efc54ab46dc31094b69361a3581db0cb858e6766427814a3"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-004.json",
+          "sha256": "03d90c983a2b6e562e4a2079858b6de9c896c061ecda53fe8008498c49e773c0"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-005.json",
+          "sha256": "9d1f69d2cde5189489b732030df17babc16c170d2c25677fc8601755185939cc"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-006.json",
+          "sha256": "dad7970896094032389829dfd301c442f3b5113466362eeade245991849b6da6"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-007.json",
+          "sha256": "1eb79914b2b0e2bb303914d12b28ffa40024cd4420faf910df0dbd38cb285b10"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-008.json",
+          "sha256": "e31ebaf378df77d96a6b7eb539ab66635ff53eb07d12823cb41598d135f51a88"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-009.json",
+          "sha256": "e34ff5469c7f63871541bef15960c2cc4db1f265e42a7f088ed4edafe4e4ab60"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-010.json",
+          "sha256": "e797b64075dd99aa0469a5934792852da58096e59fd56c0f8020aaec6ffa0077"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-011.json",
+          "sha256": "a49e78b1461cecbb81439a8a4bc6036822db96d245177989e9099b76ed7f6ca2"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-012.json",
+          "sha256": "fdb8ac9a36978eec07a1216a27ab4726166bcade7ce009adb83c5e55a82e72a1"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-013.json",
+          "sha256": "36efca2f8d286967b125e2d94b4cfe58e089d50abcf9dc07bbe94024c27f4f27"
+        },
+        {
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-014.json",
+          "sha256": "2d66a58393134c7a1baada7bdaeb19643a7f33f2d48c044c62fe4803d75dce5c"
+        }
+      ],
+      "answers_frozen_before_posthoc_comparison": true,
+      "new_context_retry_in_primary_score": false
+    },
+    {
+      "sample_id": "pr-475",
+      "reviewer": "/root/blind_pr475",
+      "fork_turns": "none",
+      "prelabel_frozen_at": "2026-10-08T07:30:10.000Z",
+      "first_request_created_at": "2026-10-08T07:55:18.860Z",
+      "prelabel_precedes_first_request": true,
+      "head_sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "original_input_sha256": "e8a3cea6fc83e416fce0f282264e41ed428a44426a3649c47fb15a6075020bed",
+      "exported_input_sha256": "e8a3cea6fc83e416fce0f282264e41ed428a44426a3649c47fb15a6075020bed",
+      "original_label_sha256": "cd681daf08353dbb42005fec24d3cdaf01888bedd2a07edb07a61d883266cc11",
+      "first_status_sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb",
+      "first_model_replies": [
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-001.json",
+          "sha256": "d8a5371ec645a8f2160e15f97d4556d819f5d648428c74843f4859a83498c8fb"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-002.json",
+          "sha256": "92798ff2fbc5e43f198f02d913f66074d7df7d94c31faec4f25f676c025dc866"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-003.json",
+          "sha256": "8002b5df46bb81e295548e3e2eab5da62192295c2ec0ba4db1b9ea7d76f18e2c"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-004.json",
+          "sha256": "14ae67224647087772e9346ff549376e45a223185094d38cdd4cc50593d850ba"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-005.json",
+          "sha256": "f47d39d12fafb40d396deefb2eed85227d95c127f0eadb1736db466305fe2d01"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-006.json",
+          "sha256": "19150c0db8b795425185436aeaf40e2b18b536d4d723c65488d45911d75712ac"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-007.json",
+          "sha256": "ed3038ae4e9e42d0f7dd4969d4bb43b511af8d38ccadb933d3df0c7f9a81b774"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-008.json",
+          "sha256": "311cc6b5b66e708b725a948adba80493de98da5b1d3ecb0bf9ac3947224bfd76"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-009.json",
+          "sha256": "aaf9cceef219b7dcd947ed5bd10f427b612899d83cdc7880da89d2a93f485467"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-010.json",
+          "sha256": "4e59c2d298a273e76610a41621065fc68e53e6c231dbac4e9620873a019c56be"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-011.json",
+          "sha256": "f7b6d797fb27766ee94c78ddb7c10ed8e14fad70261422d6747f30e488e7688f"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-012.json",
+          "sha256": "51ca2da6178bdbcc31803e3a4290607d4348a00eb52c8d6f6d80567800851479"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-013.json",
+          "sha256": "3edc485f228634053462771ceb6885ef1d6acc8afdb4740b912a7c168f0ddd63"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-014.json",
+          "sha256": "e28168f31569a6c4c2af754b7fa185c4e642e3d08dcf55b8ea69ddeb2f7f1197"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-015.json",
+          "sha256": "d0a9f941d7d4c2e1414909e5189de42bc4fd69e1db1092061aba7a31144471a9"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-016.json",
+          "sha256": "4372863355258017428c5c32ec8ee4c43e3f74e3733767e2721dabbfa42cd98a"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-017.json",
+          "sha256": "4b1dc9d6db44cdf1df941fd1129d3073e54580b9fca94934b8ec156af9fce988"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-018.json",
+          "sha256": "5c94be8103444645ea53a5cfc2ab1683a935fa9e8ecbeeeb46bd729f0453854d"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-019.json",
+          "sha256": "afb0d51a7576b56097c28e136e5c0075c2642c7295858034a8b5f8c2ac623571"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-020.json",
+          "sha256": "d38b61cbc65bb80e08c69574e0d548d0c829f49fef4efefa275cbcb647bdf7da"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-021.json",
+          "sha256": "8a97a18503a41a34b0c19d9c25b457c77076adea0358e6add892ee74c5194d16"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-022.json",
+          "sha256": "dde4b5e5e4634601fe6b243661163173115281fc25919aae978bb5443c8a4683"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-023.json",
+          "sha256": "41ea40a7b44c34232da2e6b5ed3e6dcf02008c7888ee40c8ab9f774337e7c171"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-024.json",
+          "sha256": "f42d53a4ca9ed88ca6c732e5297aeb3d6faa96eeed6db601fe5db38bdcbf7bd2"
+        },
+        {
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-025.json",
+          "sha256": "e814346c3df52c8d54e45629d93d1f21545055e11ed36d0e65fce89b65533478"
+        }
+      ],
+      "answers_frozen_before_posthoc_comparison": true,
+      "new_context_retry_in_primary_score": false
+    }
+  ]
+}

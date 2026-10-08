@@ -1,0 +1,1 @@
+{"action":"final","result":{"overview":["HCU MLA 的 DRAFT_EXTEND_V2 改用 MLA 前向路径，同时在非 skip_prefill 情况下初始化 FlashAttention 元数据；HCU 多步草稿后端显式返回名称与实例，工厂也兼容仅返回实例。","变长 KV 长度累加显式使用 int32；DeepSeek 共享专家识别压缩量化配置时，在 quantization_config 缺失或为空时回退读取 compression_config。"],"findings":[]}}

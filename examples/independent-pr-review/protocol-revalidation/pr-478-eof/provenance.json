@@ -1,0 +1,31 @@
+{
+  "kind": "deterministic_host_EOF_repair_not_blind",
+  "original_reply_sha256": "424858f5493ab93de48093021748ed290ae6ee6c35c482dbd39ca9afd0bd6a44",
+  "changes": [
+    {
+      "id": "E16",
+      "field": "end",
+      "before": 100,
+      "after": 99,
+      "reason": "remove_host_reported_phantom_terminal_line"
+    },
+    {
+      "id": "E17",
+      "field": "end",
+      "before": 70,
+      "after": 69,
+      "reason": "remove_host_reported_phantom_terminal_line"
+    },
+    {
+      "id": "E23",
+      "field": "end",
+      "before": 413,
+      "after": 412,
+      "reason": "remove_host_reported_phantom_terminal_line"
+    }
+  ],
+  "semantic_findings_changed": false,
+  "original_output_preserved": true,
+  "new_evidence_fetched_by_reviewer": false,
+  "target_tests_executed": false
+}

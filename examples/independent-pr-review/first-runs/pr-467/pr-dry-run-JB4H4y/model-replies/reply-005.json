@@ -1,0 +1,1 @@
+{"action":"final","result":{"overview":["HCU 的 dense prefill 索引选择统一使用 PyTorch TopK 回退，覆盖普通与 LayerSplit 缓存池；非 HCU 的融合调用保持不变。","HCU 回退按每行可见压缩长度筛选局部列，再加请求的扁平 KV 偏移，保留无效项的 -1 填充。"],"findings":[]}}

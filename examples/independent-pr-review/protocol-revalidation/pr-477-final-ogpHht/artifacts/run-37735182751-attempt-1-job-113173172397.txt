@@ -1,0 +1,79 @@
+来源：/repos/HYGON-AI/sglang-das/actions/jobs/113173172397/logs
+run=37735182751; attempt=1; job=113173172397; head_sha=3b7049f294910ae75265c5dc66d2a93798460afc
+截断：false
+2026-10-08T06:00:55.1828885Z Current runner version: '2.337.0'
+2026-10-08T06:00:55.1834183Z Runner name: 'ci-nmz6'
+2026-10-08T06:00:55.1834818Z Runner group name: 'ci-general'
+2026-10-08T06:00:55.1835640Z Machine name: 'github-nmz6'
+2026-10-08T06:00:55.1838183Z ##[group]GITHUB_TOKEN Permissions
+2026-10-08T06:00:55.1840170Z Actions: read
+2026-10-08T06:00:55.1840700Z Contents: read
+2026-10-08T06:00:55.1841188Z Issues: read
+2026-10-08T06:00:55.1841680Z Metadata: read
+2026-10-08T06:00:55.1842247Z PullRequests: read
+2026-10-08T06:00:55.1842740Z ##[endgroup]
+2026-10-08T06:00:55.1844458Z Secret source: Actions
+2026-10-08T06:00:55.1845255Z Cache mode: read
+2026-10-08T06:00:55.1845864Z Prepare workflow directory
+2026-10-08T06:00:55.2903171Z Prepare all required actions
+2026-10-08T06:00:55.2939458Z Getting action download info
+2026-10-08T06:00:56.3105532Z Download action repository 'actions/github-script@v7' (SHA:f28e40c7f34bde8b3046d885e986cb6290c5673b)
+2026-10-08T06:00:58.1322330Z Complete job name: Call PR gate
+2026-10-08T06:00:58.3441827Z ##[group]Run actions/github-script@v7
+2026-10-08T06:00:58.3442386Z with:
+2026-10-08T06:00:58.3444553Z   github-token: ***
+2026-10-08T06:00:58.3445481Z   script: const pr = await github.rest.pulls.get({
+  owner: context.repo.owner,
+  repo: context.repo.repo,
+  pull_number: context.issue.number
+});
+core.setOutput("labels", JSON.stringify(pr.data.labels.map(l => l.name)));
+core.setOutput("draft", pr.data.draft);
+core.setOutput("user", pr.data.user.login);
+
+2026-10-08T06:00:58.3446439Z   debug: false
+2026-10-08T06:00:58.3446662Z   user-agent: actions/github-script
+2026-10-08T06:00:58.3446927Z   result-encoding: json
+2026-10-08T06:00:58.3447141Z   retries: 0
+2026-10-08T06:00:58.3447371Z   retry-exempt-status-codes: 400,401,403,404,422
+2026-10-08T06:00:58.3447808Z ##[endgroup]
+2026-10-08T06:00:59.6714586Z ##[group]Run echo "===== HCU PR Gate Info ====="
+2026-10-08T06:00:59.6714942Z [36;1mecho "===== HCU PR Gate Info ====="[0m
+2026-10-08T06:00:59.6715235Z [36;1mecho "PR Event: pull_request_target"[0m
+2026-10-08T06:00:59.6715531Z [36;1mecho "PR Labels: ["deepseek","run-ci"]"[0m
+2026-10-08T06:00:59.6715775Z [36;1mecho "PR Draft: false"[0m
+2026-10-08T06:00:59.6715990Z [36;1mecho "PR User: zhangang1221"[0m
+2026-10-08T06:00:59.6716212Z [36;1mecho "Require run-ci: true"[0m
+2026-10-08T06:00:59.6716432Z [36;1mecho "Auto run HCU CI: true"[0m
+2026-10-08T06:00:59.6716652Z [36;1mecho "============================"[0m
+2026-10-08T06:00:59.6725483Z shell: /usr/bin/bash -e {0}
+2026-10-08T06:00:59.6725708Z ##[endgroup]
+2026-10-08T06:00:59.6777025Z ===== HCU PR Gate Info =====
+2026-10-08T06:00:59.6777407Z PR Event: pull_request_target
+2026-10-08T06:00:59.6777672Z PR Labels: [deepseek,run-ci]
+2026-10-08T06:00:59.6777904Z PR Draft: false
+2026-10-08T06:00:59.6778174Z PR User: zhangang1221
+2026-10-08T06:00:59.6778406Z Require run-ci: true
+2026-10-08T06:00:59.6778641Z Auto run HCU CI: true
+2026-10-08T06:00:59.6778882Z ============================
+2026-10-08T06:00:59.6841161Z ##[group]Run if [[ "${HAS_RUN_CI_LABEL}" == "true" ]]; then
+2026-10-08T06:00:59.6841581Z [36;1mif [[ "${HAS_RUN_CI_LABEL}" == "true" ]]; then[0m
+2026-10-08T06:00:59.6841930Z [36;1m  echo "Found run-ci label. Proceeding with HCU CI."[0m
+2026-10-08T06:00:59.6842230Z [36;1m  exit 0[0m
+2026-10-08T06:00:59.6842398Z [36;1mfi[0m
+2026-10-08T06:00:59.6842557Z [36;1m[0m
+2026-10-08T06:00:59.6842734Z [36;1mif [[ "${AUTO_RUN_CI}" == "true" ]]; then[0m
+2026-10-08T06:00:59.6843025Z [36;1m  echo "Auto-run HCU CI because HCU-impact paths changed."[0m
+2026-10-08T06:00:59.6843294Z [36;1m  exit 0[0m
+2026-10-08T06:00:59.6843454Z [36;1mfi[0m
+2026-10-08T06:00:59.6843617Z [36;1m[0m
+2026-10-08T06:00:59.6844143Z [36;1mecho "Missing required label 'run-ci'. See https://docs.sglang.io/developer_guide/contribution_guide.html#how-to-trigger-ci-tests for more details."[0m
+2026-10-08T06:00:59.6844690Z [36;1mexit 1[0m
+2026-10-08T06:00:59.6850980Z shell: /usr/bin/bash -e {0}
+2026-10-08T06:00:59.6851231Z env:
+2026-10-08T06:00:59.6851391Z   AUTO_RUN_CI: true
+2026-10-08T06:00:59.6851753Z   HAS_RUN_CI_LABEL: true
+2026-10-08T06:00:59.6851977Z ##[endgroup]
+2026-10-08T06:00:59.6875626Z Found run-ci label. Proceeding with HCU CI.
+2026-10-08T06:00:59.6943068Z Cleaning up orphan processes
+2026-10-08T06:00:59.9051159Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/github-script@v7. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

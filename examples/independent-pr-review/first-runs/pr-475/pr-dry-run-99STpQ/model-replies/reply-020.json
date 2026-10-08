@@ -1,0 +1,1 @@
+{"action":"final","result":{"overview":["EAGLE 验证输出改用单个 int32 缓冲区，验证和模拟完成后在 TP 或 ATTN_TP/ATTN_CP 拓扑中统一广播；LightOp 采样改用 joint 过滤模式。","HCU GLM DSA 首个 draft 步骤重新计算索引 TopK，并在 EAGLE 与 Frozen-KV MTP 图捕获后调用 H16 缓存清理。"],"findings":[]}}

@@ -1,0 +1,1273 @@
+{
+  "source_url": "https://api.github.com/repos/HYGON-AI/sglang-das/pulls?state=all&sort=updated&direction=desc&per_page=100&page=1",
+  "captured_at": "2026-10-08 06:57:08 UTC",
+  "selection": "filter draft=false; take first 60; exclude PR 436 from sample candidates (60-item scan still records it)",
+  "redactions": [
+    "PR body omitted",
+    "author identity omitted",
+    "comments and reviews not requested",
+    "nonessential personal/account metadata omitted"
+  ],
+  "items": [
+    {
+      "number": 479,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/479",
+      "title": "[BUGFIX]镜像增加安装megamoe",
+      "state": "open",
+      "draft": false,
+      "created_at": "2026-10-08T06:39:30Z",
+      "updated_at": "2026-10-08T06:48:27Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head": {
+        "sha": "10f225935d538db034ccaf189d5c84d1025f25d0",
+        "ref": "main",
+        "repo": "Crowder13/sglang-das"
+      },
+      "base": {
+        "sha": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 475,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/475",
+      "title": "修复 GLM-5.1/5.2 DSA 服务兼容性并优化 CP decode FlashMLA",
+      "state": "open",
+      "draft": false,
+      "created_at": "2026-10-07T13:17:07Z",
+      "updated_at": "2026-10-08T06:13:05Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head": {
+        "sha": "cbb0073c5e5c943a01050d5f9e297822fe919570",
+        "ref": "shiaichun/glm51-glm52-hcu-dsa-flashmla-h16-cp-decode",
+        "repo": "qieshiniao/sglang-das"
+      },
+      "base": {
+        "sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 477,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/477",
+      "title": "fix(hcu): enable EAGLE draft decoding for DeepSeek MLA",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-10-08T04:08:24Z",
+      "updated_at": "2026-10-08T06:07:58Z",
+      "closed_at": "2026-10-08T06:07:58Z",
+      "merged_at": "2026-10-08T06:07:58Z",
+      "head": {
+        "sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+        "ref": "fix-deepseek-r1-fp8",
+        "repo": "zhangang1221/sglang-das-0518"
+      },
+      "base": {
+        "sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 478,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/478",
+      "title": "fix: remove alt_stream overlap copy when writing KV cache",
+      "state": "open",
+      "draft": false,
+      "created_at": "2026-10-08T04:29:54Z",
+      "updated_at": "2026-10-08T05:45:42Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head": {
+        "sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+        "ref": "fix/remove-alt-stream-kv-cache-write",
+        "repo": "Zhuwenbopro/sglang-das"
+      },
+      "base": {
+        "sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 476,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/476",
+      "title": "[DSV4.1] 接入topk_transform_ragged_v2融合算子以及消除FP4_mqa前置HtoD操作",
+      "state": "open",
+      "draft": false,
+      "created_at": "2026-10-08T01:40:06Z",
+      "updated_at": "2026-10-08T04:51:14Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head": {
+        "sha": "fbc4e5861f2e31a97168243e08a9c1f0a82d8d80",
+        "ref": "DSV4.1_prefill_opt",
+        "repo": "liucong521/sglang-das"
+      },
+      "base": {
+        "sha": "bb3172bf179b867fbbf3ac41b16fa885d099a9f9",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 474,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/474",
+      "title": "[DSV4.1] 接入 HIP LightOp 分页 FP4 与候选索引器图路径",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-10-06T02:47:17Z",
+      "updated_at": "2026-10-08T03:19:32Z",
+      "closed_at": "2026-10-08T03:19:31Z",
+      "merged_at": "2026-10-08T03:19:31Z",
+      "head": {
+        "sha": "c3b6a06a5fdcf55a44f69805fe72fe178a04a640",
+        "ref": "codex/dsv41-lightop-indexer",
+        "repo": "wics1224/sglang-das"
+      },
+      "base": {
+        "sha": "bb3172bf179b867fbbf3ac41b16fa885d099a9f9",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 472,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/472",
+      "title": "fix deepgemm masked fp8 api upstream",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-10-01T04:55:24Z",
+      "updated_at": "2026-10-08T02:07:08Z",
+      "closed_at": "2026-10-08T02:07:08Z",
+      "merged_at": "2026-10-08T02:07:08Z",
+      "head": {
+        "sha": "f879d4548b87a7b1159f792f6c73fd99d78f1049",
+        "ref": "codex/fix-deepgemm-masked-fp8-api-upstream",
+        "repo": "chaoyujiang/sglang-das"
+      },
+      "base": {
+        "sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 473,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/473",
+      "title": "FIX(detokenizer): stream through genuine U+FFFD instead of holding until finish",
+      "state": "open",
+      "draft": false,
+      "created_at": "2026-10-02T13:19:32Z",
+      "updated_at": "2026-10-02T14:53:12Z",
+      "closed_at": null,
+      "merged_at": null,
+      "head": {
+        "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+        "ref": "fix/detok-fffd-stream-holdback",
+        "repo": "Peng416/sglang-das"
+      },
+      "base": {
+        "sha": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 470,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/470",
+      "title": "Sync/20260929 rye rel 2 main",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T08:20:47Z",
+      "updated_at": "2026-09-30T12:27:02Z",
+      "closed_at": "2026-09-30T12:27:02Z",
+      "merged_at": "2026-09-30T12:27:02Z",
+      "head": {
+        "sha": "9593da41d92ea700594c939f56debe9f5e8c9a9a",
+        "ref": "sync/20260929_rye_rel-2-main",
+        "repo": "RyeYuan/sglang-das"
+      },
+      "base": {
+        "sha": "e05f146bed9ca80c72a18a4946fd6f838d8e7774",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 468,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/468",
+      "title": "[DSV4.1] HIP: 接入 rope_fp4 AOT kernel 及 lightop topk 算子",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T07:04:30Z",
+      "updated_at": "2026-09-30T09:52:20Z",
+      "closed_at": "2026-09-30T09:52:20Z",
+      "merged_at": "2026-09-30T09:52:20Z",
+      "head": {
+        "sha": "6faa1f305e108b26d06cd1e05a3d3d7ae6c69943",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "Rich-Bao/sglang-das"
+      },
+      "base": {
+        "sha": "6c8c3f26ad17735fcf1588aeb17b66d16d47b4fd",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 461,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/461",
+      "title": "Feat/20260920 deepseek v4.1 decode opt",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T02:21:31Z",
+      "updated_at": "2026-09-30T09:16:26Z",
+      "closed_at": "2026-09-30T09:16:26Z",
+      "merged_at": "2026-09-30T09:16:26Z",
+      "head": {
+        "sha": "ac5192d3ad24e6f9a77230116e9d9ed86499b258",
+        "ref": "feat/20260920_deepseek-v4.1-decode-opt",
+        "repo": "luosyx/sglang-das"
+      },
+      "base": {
+        "sha": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 467,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/467",
+      "title": "[DSV4.1] 绕开topk_transform_ragged_v2融合,解决TP8报错问题",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T07:03:53Z",
+      "updated_at": "2026-09-30T07:59:53Z",
+      "closed_at": "2026-09-30T07:59:53Z",
+      "merged_at": "2026-09-30T07:59:53Z",
+      "head": {
+        "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+        "ref": "DSV4.1_1M",
+        "repo": "liucong521/sglang-das"
+      },
+      "base": {
+        "sha": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 469,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/469",
+      "title": "fix(hcu): restore ForwardBatch RMS quantization flag",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T07:22:52Z",
+      "updated_at": "2026-09-30T07:52:55Z",
+      "closed_at": "2026-09-30T07:52:55Z",
+      "merged_at": "2026-09-30T07:52:55Z",
+      "head": {
+        "sha": "552b1c86c492c84db51eb2666c5f5878c75f1ca1",
+        "ref": "fix/restore-forward-batch-rms-quant-flag",
+        "repo": "wuju01/sglang-das"
+      },
+      "base": {
+        "sha": "08ea4dec71b0244d41b646c32dd322c9c234fd41",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 466,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/466",
+      "title": "fix(hcu): serve DeepSeek-V3.2 INT8, FP8, and BF16 in sglang0.5.18",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T07:01:58Z",
+      "updated_at": "2026-09-30T07:51:11Z",
+      "closed_at": "2026-09-30T07:51:11Z",
+      "merged_at": "2026-09-30T07:51:11Z",
+      "head": {
+        "sha": "ae72522c85985db85f31c09dcf6c4145eb60152e",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "li425/sglang-das"
+      },
+      "base": {
+        "sha": "08ea4dec71b0244d41b646c32dd322c9c234fd41",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 456,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/456",
+      "title": "fix(mimo attention): build SWA metadata for MTP draft CUDA graphs",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-29T06:03:42Z",
+      "updated_at": "2026-09-30T06:05:10Z",
+      "closed_at": "2026-09-30T05:51:57Z",
+      "merged_at": null,
+      "head": {
+        "sha": "be7cd9c76b136a4a352812586f079e08efea8672",
+        "ref": "mimo_int8_update",
+        "repo": "daishiqiang123/sglang-das"
+      },
+      "base": {
+        "sha": "3854f77546c1a65ebc26d86ab84f2ebd96740cc5",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 450,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/450",
+      "title": "fix(dsv4): resolve Flash-0731 W4A8 API and general_fc accuracy issues",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-24T12:23:03Z",
+      "updated_at": "2026-09-30T05:55:20Z",
+      "closed_at": "2026-09-30T05:55:20Z",
+      "merged_at": "2026-09-30T05:55:20Z",
+      "head": {
+        "sha": "fdeac2c0a838992f115b72de7eb3c3f0f01dfb0f",
+        "ref": "zhengzhi-dsv4-general-fc-fixes",
+        "repo": "zhengz-hub/sglang-das-fix"
+      },
+      "base": {
+        "sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 462,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/462",
+      "title": "fix w4a16 moe asm error",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T03:00:56Z",
+      "updated_at": "2026-09-30T05:35:39Z",
+      "closed_at": "2026-09-30T03:29:22Z",
+      "merged_at": "2026-09-30T03:29:22Z",
+      "head": {
+        "sha": "c24450a38dc58cb97b87347d53fd1acbbd3388b1",
+        "ref": "fix_w4a16_moe_asm_error",
+        "repo": "jiafei96/sglang-das"
+      },
+      "base": {
+        "sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 458,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/458",
+      "title": "opt(kda): update kda verify decode op from boltops",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-29T12:42:13Z",
+      "updated_at": "2026-09-30T05:34:09Z",
+      "closed_at": "2026-09-30T05:34:09Z",
+      "merged_at": "2026-09-30T05:34:09Z",
+      "head": {
+        "sha": "6fbbe365a4e0063ceb673d3e8a7c0745f2055281",
+        "ref": "k3_kda_update",
+        "repo": "daishiqiang123/sglang-das"
+      },
+      "base": {
+        "sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 453,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/453",
+      "title": "feat(minimax-m3): optimize prefill and decode on HCU gfx938",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-28T10:15:35Z",
+      "updated_at": "2026-09-30T05:29:46Z",
+      "closed_at": "2026-09-30T05:29:46Z",
+      "merged_at": "2026-09-30T05:29:46Z",
+      "head": {
+        "sha": "27a527875b163a3663982fa231ca185e04bbfdf6",
+        "ref": "minimax-m3-dev",
+        "repo": "WenQ7/sglang-das"
+      },
+      "base": {
+        "sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 418,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/418",
+      "title": "[HY4][HCU] Enable fp8_e4m3 KV cache with learnable attention sink",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-21T03:41:26Z",
+      "updated_at": "2026-09-30T05:26:15Z",
+      "closed_at": "2026-09-30T05:26:15Z",
+      "merged_at": "2026-09-30T05:26:15Z",
+      "head": {
+        "sha": "cef4f6be03c68b9227e35d9c9fc5a4dd35d44a2e",
+        "ref": "hy4/fp8-kvcache-with-sink-hcu",
+        "repo": "liuzj512/sglang-das"
+      },
+      "base": {
+        "sha": "1828115e08aba1659f71c5da67f761343e3553f4",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 459,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/459",
+      "title": "Hy4/fp8 kv pd perf",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-29T13:05:34Z",
+      "updated_at": "2026-09-30T03:46:01Z",
+      "closed_at": "2026-09-30T03:46:01Z",
+      "merged_at": null,
+      "head": {
+        "sha": "63cd226c7714a10a00e1755204a3a8b7e1baefea",
+        "ref": "hy4/fp8-kv-pd-perf",
+        "repo": "liuzj512/sglang-das"
+      },
+      "base": {
+        "sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 455,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/455",
+      "title": "[Fix][Unified Cache] Retry external KV abort cleanup after forward and source drain",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-29T03:20:41Z",
+      "updated_at": "2026-09-30T03:25:23Z",
+      "closed_at": "2026-09-30T03:25:23Z",
+      "merged_at": "2026-09-30T03:25:23Z",
+      "head": {
+        "sha": "b4dc883a37b9b774c56c5b77ce04e56f6fda7648",
+        "ref": "codex/pr-38352-upstream",
+        "repo": "ybhe1110/sglang-das"
+      },
+      "base": {
+        "sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 463,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/463",
+      "title": "ci(hcu): migrate main workflows to organization runners",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T03:07:43Z",
+      "updated_at": "2026-09-30T03:17:41Z",
+      "closed_at": "2026-09-30T03:17:41Z",
+      "merged_at": "2026-09-30T03:17:40Z",
+      "head": {
+        "sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+        "ref": "hcu/org-runners-main-0930",
+        "repo": "dddddddxl/sglang-das"
+      },
+      "base": {
+        "sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 464,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/464",
+      "title": "ci(hcu): migrate v0.5.12 workflows to organization runners",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T03:08:07Z",
+      "updated_at": "2026-09-30T03:17:05Z",
+      "closed_at": "2026-09-30T03:17:04Z",
+      "merged_at": "2026-09-30T03:17:04Z",
+      "head": {
+        "sha": "f73fd977182d32ec914fd41e14bff48260fa202d",
+        "ref": "hcu/org-runners-v0512-0930",
+        "repo": "dddddddxl/sglang-das"
+      },
+      "base": {
+        "sha": "df9f2074a0666c941a2ecc45172b13a71a6a06b3",
+        "ref": "v0.5.12_dev",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 465,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/465",
+      "title": "ci(hcu): migrate v0.5.18 workflows to organization runners",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-30T03:08:26Z",
+      "updated_at": "2026-09-30T03:16:39Z",
+      "closed_at": "2026-09-30T03:16:39Z",
+      "merged_at": "2026-09-30T03:16:39Z",
+      "head": {
+        "sha": "1442a0b15ca90ca402b19d0787440c4438307501",
+        "ref": "hcu/org-runners-v0518-0930",
+        "repo": "dddddddxl/sglang-das"
+      },
+      "base": {
+        "sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 460,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/460",
+      "title": "[DSV4.1][DSPARK] Fix HCU DeepEP low-latency execution",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-29T13:33:00Z",
+      "updated_at": "2026-09-30T00:57:14Z",
+      "closed_at": "2026-09-30T00:57:14Z",
+      "merged_at": "2026-09-30T00:57:14Z",
+      "head": {
+        "sha": "747a960e01f61677d8983d59f6bce5c52b7d909c",
+        "ref": "fix/dspark-w4a8-deepep-ll-sync",
+        "repo": "wuju01/sglang-das"
+      },
+      "base": {
+        "sha": "9ccb17c94f25c18ecc2f79fd1c9d8fc194a4ce3d",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 457,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/457",
+      "title": "[DSV4.1] support CP KV-cache layer split in PD serving",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-29T06:35:39Z",
+      "updated_at": "2026-09-29T07:20:29Z",
+      "closed_at": "2026-09-29T07:20:29Z",
+      "merged_at": "2026-09-29T07:20:29Z",
+      "head": {
+        "sha": "78c7af96f7e835983e8245092ef66bcc7c7a868b",
+        "ref": "DSV4.1_layer_split",
+        "repo": "liucong521/sglang-das"
+      },
+      "base": {
+        "sha": "9d07feaf59a5055392fede7a1d810a43c7e2f343",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 454,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/454",
+      "title": "[DSV4.1] 接入lightop fp8_fp4_mqa_logits算子",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-28T12:55:45Z",
+      "updated_at": "2026-09-29T03:17:40Z",
+      "closed_at": "2026-09-29T03:17:39Z",
+      "merged_at": "2026-09-29T03:17:39Z",
+      "head": {
+        "sha": "d8ad71d488455d125350ca2aab68f4247331c441",
+        "ref": "DSV4.1_fp8_fp4_mqa_logits",
+        "repo": "liucong521/sglang-das"
+      },
+      "base": {
+        "sha": "ebe659200a2131033f2fcabe86bc61c225bbfdc5",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 452,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/452",
+      "title": "Sync/official main daily 20260928",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-28T08:43:55Z",
+      "updated_at": "2026-09-29T00:54:33Z",
+      "closed_at": "2026-09-29T00:54:33Z",
+      "merged_at": "2026-09-29T00:54:33Z",
+      "head": {
+        "sha": "aa99d6ac5b51dd350e3447c1d54ac6b3ab94e6df",
+        "ref": "sync/official-main-daily-20260928",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "base": {
+        "sha": "6049c219ec044420bbacce7eddfe7ae31e031625",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 427,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/427",
+      "title": "Glm5.3 flash",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-22T07:45:02Z",
+      "updated_at": "2026-09-28T09:07:06Z",
+      "closed_at": "2026-09-28T09:07:06Z",
+      "merged_at": "2026-09-28T09:07:06Z",
+      "head": {
+        "sha": "0cb3b4c70baac20abbed18e400d753c74e09452d",
+        "ref": "glm5.3-flash",
+        "repo": "Alone-wl/sglang-das"
+      },
+      "base": {
+        "sha": "5e8269d55a8cf4629cc39a3171169f4aa8b4d14b",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 447,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/447",
+      "title": "[BUGFIX]镜像DTK版本号不对",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-24T08:22:40Z",
+      "updated_at": "2026-09-28T03:55:09Z",
+      "closed_at": "2026-09-28T03:55:09Z",
+      "merged_at": "2026-09-28T03:55:09Z",
+      "head": {
+        "sha": "d457f2cee147acbf7217ddb6de2991a991a9d62e",
+        "ref": "main",
+        "repo": "Crowder13/sglang-das"
+      },
+      "base": {
+        "sha": "665b27d1fa35017a437b0aa0099a5f8aa33e5d9b",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 449,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/449",
+      "title": "feat(ci) fix main build whl failed",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-24T10:09:27Z",
+      "updated_at": "2026-09-24T10:17:45Z",
+      "closed_at": "2026-09-24T10:17:45Z",
+      "merged_at": "2026-09-24T10:17:45Z",
+      "head": {
+        "sha": "1f36682a9701c58c9ecc670b50d4ec7e1a1b33f6",
+        "ref": "main",
+        "repo": null
+      },
+      "base": {
+        "sha": "88b0efdfe9e0b690e820e47a929ccf971adf57ce",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 448,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/448",
+      "title": "[DSV4.1] W4A8 Prefill-Decode disaggregation support",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-24T09:38:19Z",
+      "updated_at": "2026-09-24T09:42:42Z",
+      "closed_at": "2026-09-24T09:42:42Z",
+      "merged_at": "2026-09-24T09:42:42Z",
+      "head": {
+        "sha": "ceef91384411f59c42f7764eb59cf634568641d9",
+        "ref": "DSV4.1_W4A8_feat",
+        "repo": "liucong521/sglang-das"
+      },
+      "base": {
+        "sha": "3369d01bbcdfd3df6a07ef64fbe0e757d18bfb69",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 409,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/409",
+      "title": "fix(dsa): 修复 gfx938 72CU sparse MQA 路由与 HCU 判断",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-20T06:59:22Z",
+      "updated_at": "2026-09-24T06:20:19Z",
+      "closed_at": "2026-09-20T09:03:28Z",
+      "merged_at": "2026-09-20T09:03:28Z",
+      "head": {
+        "sha": "e5f3e8a056b5e1df26ed545872531dd9c714cebc",
+        "ref": "fix/dsa-gfx938-72cu-hcu-guard",
+        "repo": "maxiaobetter/sglang-das"
+      },
+      "base": {
+        "sha": "602fb4a30f93bd40a5eda61e5bc02906fc8d4825",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 387,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/387",
+      "title": "feat(layersplit): 支持单层 MTP Draft KV 分片与缓存复用",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-16T06:26:14Z",
+      "updated_at": "2026-09-24T06:01:30Z",
+      "closed_at": "2026-09-17T02:30:21Z",
+      "merged_at": "2026-09-17T02:30:21Z",
+      "head": {
+        "sha": "b2e792129b9d5b9ad682b207b8cae7b93954adf7",
+        "ref": "feature/v0518-draft-layersplit",
+        "repo": "maxiaobetter/sglang-das"
+      },
+      "base": {
+        "sha": "b04678a944551b4af5db812e652f36a53eaa89d8",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 386,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/386",
+      "title": "feat(lplb): 支持 HIP 静态 LP 副本概率分发",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-16T06:26:03Z",
+      "updated_at": "2026-09-24T06:01:30Z",
+      "closed_at": "2026-09-17T02:30:43Z",
+      "merged_at": "2026-09-17T02:30:43Z",
+      "head": {
+        "sha": "758e9f2e593c42ec68c88e0000e3e835ce6b051a",
+        "ref": "feature/v0518-static-lp",
+        "repo": "maxiaobetter/sglang-das"
+      },
+      "base": {
+        "sha": "b04678a944551b4af5db812e652f36a53eaa89d8",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 385,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/385",
+      "title": "feat(spec): 支持节点内 Draft LM-head 词表并行",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-16T06:25:54Z",
+      "updated_at": "2026-09-24T06:01:30Z",
+      "closed_at": "2026-09-16T09:38:41Z",
+      "merged_at": "2026-09-16T09:38:41Z",
+      "head": {
+        "sha": "45d6731bf0d7fe4db4705a92f96b7dc18f2ca530",
+        "ref": "feature/v0518-draft-vp",
+        "repo": "maxiaobetter/sglang-das"
+      },
+      "base": {
+        "sha": "b04678a944551b4af5db812e652f36a53eaa89d8",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 384,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/384",
+      "title": "fix(glm53): 修正 FP8 权重映射并优化 HCU Decode 路径",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-16T06:25:45Z",
+      "updated_at": "2026-09-24T06:01:30Z",
+      "closed_at": "2026-09-17T02:31:23Z",
+      "merged_at": "2026-09-17T02:31:23Z",
+      "head": {
+        "sha": "cc5c868d477f9277d61c44220083cb7f869df427",
+        "ref": "feature/v0518-glm53-runtime",
+        "repo": "maxiaobetter/sglang-das"
+      },
+      "base": {
+        "sha": "b04678a944551b4af5db812e652f36a53eaa89d8",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 383,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/383",
+      "title": "feat(moe): 增加 EP 绝对均衡性能测试开关",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-16T06:25:37Z",
+      "updated_at": "2026-09-24T06:01:30Z",
+      "closed_at": "2026-09-16T08:28:30Z",
+      "merged_at": "2026-09-16T08:28:30Z",
+      "head": {
+        "sha": "ea519128a59633f500c8404e1ed848c0fbfd7218",
+        "ref": "feature/v0518-simulated-balance",
+        "repo": "maxiaobetter/sglang-das"
+      },
+      "base": {
+        "sha": "b04678a944551b4af5db812e652f36a53eaa89d8",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 382,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/382",
+      "title": "fix(dsa): 修复 MQA 显存预算与 CP/MTP 索引补齐",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-16T06:25:27Z",
+      "updated_at": "2026-09-24T06:01:30Z",
+      "closed_at": "2026-09-17T02:32:35Z",
+      "merged_at": "2026-09-17T02:32:35Z",
+      "head": {
+        "sha": "dc8bbb6b1370e54c56d47bfb3ce4702d45a82cb7",
+        "ref": "feature/v0518-dsa-fixes",
+        "repo": "maxiaobetter/sglang-das"
+      },
+      "base": {
+        "sha": "b04678a944551b4af5db812e652f36a53eaa89d8",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 446,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/446",
+      "title": "fix(dsv4.1): unify candidate-consumer decode onto fused topk kernel",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-24T03:45:31Z",
+      "updated_at": "2026-09-24T05:09:59Z",
+      "closed_at": "2026-09-24T05:09:59Z",
+      "merged_at": "2026-09-24T05:09:59Z",
+      "head": {
+        "sha": "6892a06d932f90ac9d67697f0055e75087a56f9f",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "Rich-Bao/sglang-das"
+      },
+      "base": {
+        "sha": "2d1cf163aa620e6cb230d543cc347b66039aa105",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 445,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/445",
+      "title": "[BUGFIX] release-pr-hcu 编译前删除残留 rustup, 全新安装工具链",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-24T03:35:59Z",
+      "updated_at": "2026-09-24T03:52:00Z",
+      "closed_at": "2026-09-24T03:52:00Z",
+      "merged_at": null,
+      "head": {
+        "sha": "f6211f693b30557e0dbcd2b9306d6015d89f37a5",
+        "ref": "ci/rustup-fresh-install",
+        "repo": "Crowder13/sglang-das"
+      },
+      "base": {
+        "sha": "ea1c297dc23343cbe5c6b619f3094325fb5fe45b",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 443,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/443",
+      "title": "fix(dsv41): unify candidate-consumer decode onto fused topk kernel",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-24T02:09:18Z",
+      "updated_at": "2026-09-24T03:09:21Z",
+      "closed_at": "2026-09-24T03:09:21Z",
+      "merged_at": null,
+      "head": {
+        "sha": "468d5d29ab48eb382a5671440b8edb6636fc34ee",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "Rich-Bao/sglang-das"
+      },
+      "base": {
+        "sha": "99e287054443e183f759501f84d24ca7d4588755",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 444,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/444",
+      "title": "[DSV4.1] Deepseek V4.1 W4A8 Optimize",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-24T02:29:06Z",
+      "updated_at": "2026-09-24T02:57:46Z",
+      "closed_at": "2026-09-24T02:57:46Z",
+      "merged_at": "2026-09-24T02:57:46Z",
+      "head": {
+        "sha": "d1362cc0cefa3e50bea617f85e8acdaa7a6fd9de",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "liucong521/sglang-das"
+      },
+      "base": {
+        "sha": "99e287054443e183f759501f84d24ca7d4588755",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 442,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/442",
+      "title": "adapt ci to feat/20260920_deepseek-v4.1",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T12:51:43Z",
+      "updated_at": "2026-09-23T12:59:46Z",
+      "closed_at": "2026-09-23T12:59:46Z",
+      "merged_at": "2026-09-23T12:59:46Z",
+      "head": {
+        "sha": "596e423795fbe0eaa2944fed8906799aaf3e2dc9",
+        "ref": "main",
+        "repo": null
+      },
+      "base": {
+        "sha": "2f9a696abd7055f8cdc545b168b1bcd730cc6109",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 436,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/436",
+      "title": "perf: 为 HCU gfx936 DeepSeek-V4 增加 INT8 Persistent Paged MQA Logits",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T05:02:10Z",
+      "updated_at": "2026-09-23T11:44:52Z",
+      "closed_at": "2026-09-23T11:44:52Z",
+      "merged_at": "2026-09-23T11:44:52Z",
+      "head": {
+        "sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "dyq-w/sglang-das"
+      },
+      "base": {
+        "sha": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 441,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/441",
+      "title": "fix(hcu): resolve aiter MoE runner initialization failures on DCU",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T11:18:12Z",
+      "updated_at": "2026-09-23T11:27:50Z",
+      "closed_at": "2026-09-23T11:27:00Z",
+      "merged_at": "2026-09-23T11:27:00Z",
+      "head": {
+        "sha": "fcc0bb2adb51b32af789c64ef1fd2de06bc7f2b0",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "Rich-Bao/sglang-das"
+      },
+      "base": {
+        "sha": "e36690fd5c0e82ab6c0838a747ec3a931a4fafa2",
+        "ref": "feat/20260920_deepseek-v4.1",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 440,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/440",
+      "title": "[FEATURE] 基础镜像内置 shca 驱动",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T10:38:32Z",
+      "updated_at": "2026-09-23T11:27:34Z",
+      "closed_at": "2026-09-23T11:27:34Z",
+      "merged_at": "2026-09-23T11:27:34Z",
+      "head": {
+        "sha": "3c9fb9981efce56e832930a48264fe85b385d2c4",
+        "ref": "ci/shca-driver-base-image",
+        "repo": "Crowder13/sglang-das"
+      },
+      "base": {
+        "sha": "f2d49c2c0e3cb3ca4dd89130cb5e2a408b0ac54b",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 435,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/435",
+      "title": "FIX(DSV4): 补全 system/reminder 结尾对话的 assistant 生成前缀并解析 markdown 伪工具调用",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T03:39:01Z",
+      "updated_at": "2026-09-23T11:25:19Z",
+      "closed_at": "2026-09-23T11:25:19Z",
+      "merged_at": "2026-09-23T11:25:19Z",
+      "head": {
+        "sha": "b59e34c924958c74ccc9d4a1a9d2666bf57472f6",
+        "ref": "fix/dsv4-assistant-prefix-system-reminder",
+        "repo": "Peng416/sglang-das"
+      },
+      "base": {
+        "sha": "9cd15042af60905ef088d409908e41e330fbf345",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 434,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/434",
+      "title": "fix(hcu): serve packed channel INT4 MoE and route QSA MQA through BoltOPs",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T02:58:11Z",
+      "updated_at": "2026-09-23T11:24:05Z",
+      "closed_at": "2026-09-23T11:24:05Z",
+      "merged_at": "2026-09-23T11:24:05Z",
+      "head": {
+        "sha": "ea7dcf38a639b189bb8271ba3f1598ba8ad17d41",
+        "ref": "feat/yaoht_20260922_qwen38_int4_w4a8_ple_qsa_boltops",
+        "repo": "yht183/sglang-das"
+      },
+      "base": {
+        "sha": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 428,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/428",
+      "title": "fix: fix lightop situ import regression bug and deepgemm w4a8 op interface change",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-22T07:45:25Z",
+      "updated_at": "2026-09-23T11:22:45Z",
+      "closed_at": "2026-09-23T11:22:45Z",
+      "merged_at": "2026-09-23T11:22:45Z",
+      "head": {
+        "sha": "accce387cc4d5fe0cab8ca751a9aeb97a5c17720",
+        "ref": "ep_fix",
+        "repo": "daishiqiang123/sglang-das"
+      },
+      "base": {
+        "sha": "2f93be6c5e0db8a54fa76d10eab1887e7fcfd145",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 425,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/425",
+      "title": "fix(kvcache): handle zero full iterations for asymmetric KV cache",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-21T12:42:10Z",
+      "updated_at": "2026-09-23T11:18:14Z",
+      "closed_at": "2026-09-23T11:18:14Z",
+      "merged_at": "2026-09-23T11:18:14Z",
+      "head": {
+        "sha": "70ebc70cd55370d4d9055e9e0f6f0e8203a6805d",
+        "ref": "mimo_pro",
+        "repo": "daishiqiang123/sglang-das"
+      },
+      "base": {
+        "sha": "2b8d2b04a5a730f2b9031342af00932f583003f1",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 433,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/433",
+      "title": "feat(citest): 更新镜像测试用例, 适配 0.5.18 (Qwen3.8 / DeepSeek-V4)",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T02:03:13Z",
+      "updated_at": "2026-09-23T09:57:02Z",
+      "closed_at": "2026-09-23T09:57:02Z",
+      "merged_at": "2026-09-23T09:57:02Z",
+      "head": {
+        "sha": "fd6a761d25cd2699cd5f00fefa8e026de7c4a89e",
+        "ref": "main",
+        "repo": "Crowder13/sglang-das"
+      },
+      "base": {
+        "sha": "7be1324cf827dafe9f09ec3f86ade353801b5e1e",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 438,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/438",
+      "title": "[FEATURE] docker 镜像改从 dev 基础镜像内联安装 DTK 26.04.1-72cu-0911",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T08:21:11Z",
+      "updated_at": "2026-09-23T09:53:37Z",
+      "closed_at": "2026-09-23T08:26:43Z",
+      "merged_at": "2026-09-23T08:26:43Z",
+      "head": {
+        "sha": "c2f77fc41278e4a2f84539e071ccf220ed57206c",
+        "ref": "ci/dtk-26041-0911-docker-image",
+        "repo": "Crowder13/sglang-das"
+      },
+      "base": {
+        "sha": "b5ca753bc8e054ce99b4c01b0369eb89c6870dbb",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 439,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/439",
+      "title": "fix(w4a8): 修复 HIPC MoE scale 重复乘 16 与 HCU RoPE 启动越界",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-23T08:59:34Z",
+      "updated_at": "2026-09-23T09:49:59Z",
+      "closed_at": "2026-09-23T09:49:59Z",
+      "merged_at": "2026-09-23T09:49:59Z",
+      "head": {
+        "sha": "a5ecdeb717c4b3b90d63054908a27333dee3a1ba",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "li425/sglang-das"
+      },
+      "base": {
+        "sha": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 426,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/426",
+      "title": "fix(mmgen): align MiniMax H3 OpenAPI contract",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-22T07:43:20Z",
+      "updated_at": "2026-09-23T09:49:03Z",
+      "closed_at": "2026-09-23T09:49:03Z",
+      "merged_at": "2026-09-23T09:49:03Z",
+      "head": {
+        "sha": "7566b2eb0ce3c76da242004878857000b567870e",
+        "ref": "fix/minimax-h3-openapi-contract",
+        "repo": "PhyA/sglang-das"
+      },
+      "base": {
+        "sha": "2b8d2b04a5a730f2b9031342af00932f583003f1",
+        "ref": "release/20260825_v0.5.18",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 424,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/424",
+      "title": "ci: report sglang nightly packages to DashHub",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-21T08:54:34Z",
+      "updated_at": "2026-09-23T09:48:19Z",
+      "closed_at": "2026-09-23T09:48:19Z",
+      "merged_at": "2026-09-23T09:48:18Z",
+      "head": {
+        "sha": "798b5668ad7500b6584f41e727f0bd13fb525fe2",
+        "ref": "patch-1",
+        "repo": "guochenyang99/sglang-das"
+      },
+      "base": {
+        "sha": "2871c8fdd9594de894546b144d253c3dd88fd900",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 205,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/205",
+      "title": "feat(glm5): 完善 GLM5.2 HCU 推理支持",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-08-13T09:15:41Z",
+      "updated_at": "2026-09-23T09:40:23Z",
+      "closed_at": "2026-08-24T09:04:47Z",
+      "merged_at": null,
+      "head": {
+        "sha": "145306429f726176a591941160e8d8f450fdc719",
+        "ref": "main_glm52_pr",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "base": {
+        "sha": "9b76db90d66ff3f0379f66a52b24102bf7fb264d",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 410,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/410",
+      "title": "Sync/official main daily 20260920",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-20T07:23:29Z",
+      "updated_at": "2026-09-23T09:39:19Z",
+      "closed_at": "2026-09-20T08:19:39Z",
+      "merged_at": "2026-09-20T08:19:39Z",
+      "head": {
+        "sha": "aa33884a91cf5bfe1489477c5b79bb0616518048",
+        "ref": "sync/official-main-daily-20260920",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "base": {
+        "sha": "adc1d69b2a610fc000ca27e4b92c72e9c1b85044",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    },
+    {
+      "number": 298,
+      "url": "https://github.com/HYGON-AI/sglang-das/pull/298",
+      "title": "[BUGFIX]torchaudio使用hcu的版本",
+      "state": "closed",
+      "draft": false,
+      "created_at": "2026-09-03T08:06:19Z",
+      "updated_at": "2026-09-23T09:39:14Z",
+      "closed_at": "2026-09-03T08:54:03Z",
+      "merged_at": "2026-09-03T08:54:03Z",
+      "head": {
+        "sha": "cbaf45e97ba9b1e54c5887d270bda53162439fe5",
+        "ref": "CI/BUGFIX-zyh",
+        "repo": "HYGON-AI/sglang-das"
+      },
+      "base": {
+        "sha": "2828bde71da3f5f6314aa4022ae7e163dfc33ada",
+        "ref": "main",
+        "repo": "HYGON-AI/sglang-das"
+      }
+    }
+  ]
+}

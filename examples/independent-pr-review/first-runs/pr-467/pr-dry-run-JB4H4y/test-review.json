@@ -1,0 +1,12 @@
+{
+  "status": "incomplete",
+  "diagnostic": {
+    "stage": "validation",
+    "code": "skill_validation_failed"
+  },
+  "report": "测试覆盖审查未完成（阶段：validation；原因：skill_validation_failed）。不能据此判断没有测试缺口。",
+  "limitations": [
+    "未形成通过校验的测试审查；未执行代码或测试。"
+  ],
+  "validation_status": "incomplete"
+}

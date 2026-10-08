@@ -49,7 +49,7 @@ test('tool protocol explains existing line and literal-search limits; execution 
   assert.match(TOOL_PROTOCOL, /end <= 文件实际总行数/); assert.match(TOOL_PROTOCOL, /不是正则或glob/);
   const f = await fixture(t), provider = await createGitEvidence({ repo: f.repo, baseSha: f.base, headSha: f.head, files: f.files });
   const read = await provider.execute({ tool: 'read_file', path: 'api.py' });
-  assert.equal(read.start, 1); assert.equal(read.end, 3);
+  assert.equal(read.start, 1); assert.equal(read.end, 2);
   await assert.rejects(provider.execute({ tool: 'read_file', path: 'api.py', start: 1, end: 200 }), /line_range_invalid/);
   const search = await provider.execute({ tool: 'search_code', query: 'abs', prefix: '^api' });
   assert.deepEqual(search.matches, []);

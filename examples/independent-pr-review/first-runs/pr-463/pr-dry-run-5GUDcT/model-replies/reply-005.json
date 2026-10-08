@@ -1,0 +1,1 @@
+{"action":"final","result":{"overview":["HCU 全量验证、手动模型测试和 lint 改为使用 ci 与 bw1100 双标签 runner；runner_label 输入保留但忽略，全量验证不再解析或输出动态 runner 标签。","手动模型测试记录的 runner 标签同步更新为 ci,bw1100，全量验证的未触发提示移除旧验证分支限定。"],"findings":[]}}

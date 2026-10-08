@@ -1,0 +1,13 @@
+{
+  "kind": "posthoc_finalization_not_first_blind_run",
+  "repository": "HYGON-AI/sglang-das",
+  "pr": 477,
+  "head_sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+  "source_first_result_sha256": "12c867cd62b91d9b1edd418420b61facfbf9421ab5b6001795459843e3ca6659",
+  "new_tool_calls_allowed": 0,
+  "new_model_turns_allowed": 1,
+  "separate_interaction_window_ms": 1800000,
+  "historical_answers_from_other_agents": false,
+  "target_tests_executed": false,
+  "corrected_eof_records": []
+}

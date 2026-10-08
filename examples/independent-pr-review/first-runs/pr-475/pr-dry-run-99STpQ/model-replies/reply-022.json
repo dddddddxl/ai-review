@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_ci"},{"tool":"read_file","revision":"e885e7223180a8ddc2c9aa753a4c884cfc9ba72c","path":".github/workflows/pr-test-hcu.yml","start":1},{"tool":"search_code","revision":"e885e7223180a8ddc2c9aa753a4c884cfc9ba72c","query":"stage-b-test-1-hcu-small","prefix":".github/"},{"tool":"find_files","query":"glm"}]}

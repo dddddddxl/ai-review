@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-478",
+  "repository": "HYGON-AI/sglang-das",
+  "head_sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+  "base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+  "input_sha256": "a42e9b6bd2d53f8b18fa71c36ac60bb1b38d0deda6f85ff8e3cb520f4f4a72e3",
+  "input_path": "../inputs/pr-478.json",
+  "label_origin": "independent_agent_not_human",
+  "labels": [
+    {
+      "id": "478-code-serial-fallback",
+      "track": "code",
+      "kind": "supported",
+      "certainty": "confirmed",
+      "description": "修改后的两个 fallback 保留原来的 K/V 索引和数值写入，并使两次赋值在同一 current stream 顺序执行；在已审静态范围内没有确认新增功能缺陷。",
+      "evidence": [
+        {
+          "sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "start": 169,
+          "end": 202
+        },
+        {
+          "sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "start": 2697,
+          "end": 2708
+        }
+      ],
+      "reason": "store_cache/CPU 的早返回分支没有改变；HCU 布局 page_idxs/offsets 与赋值索引没有改变。此结论只支持局部语义，不证明设备运行、graph capture 或性能无回归。"
+    },
+    {
+      "id": "478-tests-fallback-coverage",
+      "track": "tests",
+      "kind": "coverage_gap",
+      "certainty": "confirmed",
+      "description": "已审的 MHA pool 单测明确关闭 alt_stream，并断言进入 fused store_cache；这些 assertion 不能验证本次移除的 capture+alt_stream fallback 或 HCU FA 布局路径。",
+      "evidence": [
+        {
+          "sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+          "path": "test/registered/unit/mem_cache/test_asymmetric_mha_pool.py",
+          "start": 34,
+          "end": 48
+        },
+        {
+          "sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+          "path": "test/registered/unit/mem_cache/test_asymmetric_mha_pool.py",
+          "start": 111,
+          "end": 156
+        },
+        {
+          "sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+          "path": "test/registered/unit/mem_cache/test_store_cache_4d.py",
+          "start": 338,
+          "end": 346
+        },
+        {
+          "sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+          "path": "python/sglang/srt/mem_cache/memory_pool.py",
+          "start": 172,
+          "end": 185
+        }
+      ],
+      "reason": "现有 round-trip、untouched-slot assertion 对 fused 写入有意义，但路径前提避开修改位置。PR 只改生产文件，未补覆盖两个修改分支的定向 graph-capture/stream 回归测试。不能据此声称仓库完全没有相关集成覆盖。"
+    },
+    {
+      "id": "478-ci-failure-cause-unknown",
+      "track": "tests",
+      "kind": "evidence_gap",
+      "certainty": "unknown",
+      "description": "固定 head 的 HCU Stage B 分区 1/3 和汇总失败，但已捕获 artifact 只有质量门禁汇总日志，无法把失败归因于本次 KV 写入变更或证明具体用例是否覆盖该路径。",
+      "evidence": [
+        {
+          "path": "../inputs/pr-478.json",
+          "json_pointer": "/snapshot/checks",
+          "check_ids": [
+            113153476117,
+            113153476281,
+            113167819040
+          ],
+          "head_sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f"
+        },
+        {
+          "path": "../inputs/pr-478.json",
+          "json_pointer": "/artifacts",
+          "run_id": 37727766505,
+          "job_id": 113150099600
+        }
+      ],
+      "reason": "checks 和 job steps 证明失败状态，缺乏失败 job 的具体 assertion/traceback 与执行场景；质量门禁成功不等于硬件回归通过，缺日志也不等于没跑测试。"
+    }
+  ],
+  "reviewed_scope": {
+    "code": [
+      "PR 全部 2 处修改",
+      "_set_kv_buffer_impl 分支与 MHATokenToKVPool.set_kv_buffer 调用上下文"
+    ],
+    "tests": [
+      "test_asymmetric_mha_pool.py 全文",
+      "test_store_cache_4d.py 中 pool round-trip 与 alt_stream 设置",
+      "test/ 下 alt_stream/_kv_layout_hcu_fa/_set_kv_buffer_impl 搜索"
+    ],
+    "ci": [
+      "fixture checks/runs/job step metadata",
+      "捕获的质量门禁汇总日志",
+      "pr-test-hcu.yml 触发路径及 include-file 选择项"
+    ]
+  },
+  "limitations": [
+    "仅静态阅读；未运行目标代码、测试或 GPU",
+    "未读取 PR 评论、历史 AI 结论或其他 reviewer 输出",
+    "没有把已合并/状态成功当作正确性证明",
+    "未全面证明外部调度或所有测试对场景的覆盖"
+  ],
+  "frozen_at": "2026-10-08 07:08:11 UTC"
+}

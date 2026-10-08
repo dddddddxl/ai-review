@@ -1,0 +1,50 @@
+{
+  "manifest_version": 1,
+  "repository": "HYGON-AI/sglang-das",
+  "pull_number": 478,
+  "base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+  "head_sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+  "diff_base": "cfa865d339c0d7191dd044e6980006be799a570a",
+  "rules_hash": "2b7e77082f9c6e73e8e6be5b5d685d5f514d3a21491f7e03e2f9492949b003d6",
+  "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+  "evidence_hash": "02ed3039c350956bab4916144d44f6a469b9ffb3733cae293ee608ca1074f001",
+  "groups": [
+    [
+      "python/sglang/srt/mem_cache/memory_pool.py"
+    ]
+  ],
+  "total_files": 1,
+  "files": [
+    {
+      "path": "python/sglang/srt/mem_cache/memory_pool.py",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "rule_ids": [],
+      "state": "deferred",
+      "reason": "incomplete_fragments",
+      "fragments": [
+        {
+          "batch": 0,
+          "start": 0,
+          "end": 2039,
+          "state": "failed"
+        }
+      ],
+      "truncated": false
+    }
+  ],
+  "limitations": [
+    "E2: 取证不可用或截断，不能声称完整覆盖",
+    "E3: 取证不可用或截断，不能声称完整覆盖",
+    "E4: 取证不可用或截断，不能声称完整覆盖",
+    "动态取证或模型协议未完成；不代表无缺陷",
+    "动态取证或模型协议未完成；不代表无缺陷"
+  ],
+  "coverage": {
+    "code": "not_measured",
+    "functionality": "separate_test_review",
+    "review": "partial"
+  },
+  "complete": false
+}

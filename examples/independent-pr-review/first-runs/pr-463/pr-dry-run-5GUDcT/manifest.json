@@ -1,0 +1,262 @@
+{
+  "manifest_version": 1,
+  "repository": "HYGON-AI/sglang-das",
+  "pull_number": 463,
+  "base_sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+  "head_sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+  "diff_base": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+  "rules_hash": "2b7e77082f9c6e73e8e6be5b5d685d5f514d3a21491f7e03e2f9492949b003d6",
+  "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+  "evidence_hash": "e84637ad880af8cbae749aa2209bd59f632b6d48bb103e0d7331d9e324d6c6dc",
+  "groups": [
+    [
+      ".github/workflows/hcu-full-enabled.yml",
+      ".github/workflows/hcu-manual-model-test.yml",
+      ".github/workflows/lint-hcu.yml",
+      ".github/workflows/nightly-test-hcu.yml",
+      ".github/workflows/nightly-test-image-hcu.yml",
+      ".github/workflows/pr-test-hcu.yml"
+    ],
+    [
+      ".github/workflows/release-docker-hcu.yml",
+      ".github/workflows/release-pr-hcu.yml",
+      ".github/workflows/release-pypi-nightly-hcu.yml"
+    ],
+    [
+      ".github/workflows/hcu-feishu-notify-preview.yml",
+      ".github/workflows/labeler.yml",
+      ".github/workflows/pr-states.yml"
+    ]
+  ],
+  "total_files": 12,
+  "files": [
+    {
+      "path": ".github/workflows/hcu-feishu-notify-preview.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 4,
+          "start": 0,
+          "end": 213,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/hcu-full-enabled.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 0,
+          "start": 0,
+          "end": 4187,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/hcu-manual-model-test.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 0,
+          "start": 0,
+          "end": 893,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/labeler.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 4,
+          "start": 0,
+          "end": 227,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/lint-hcu.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 0,
+          "start": 0,
+          "end": 152,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/nightly-test-hcu.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 1,
+          "start": 0,
+          "end": 5088,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/nightly-test-image-hcu.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 1,
+          "start": 0,
+          "end": 249,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/pr-states.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 4,
+          "start": 0,
+          "end": 249,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/pr-test-hcu.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 2,
+          "start": 0,
+          "end": 5364,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/release-docker-hcu.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 3,
+          "start": 0,
+          "end": 221,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/release-pr-hcu.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 3,
+          "start": 0,
+          "end": 335,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": ".github/workflows/release-pypi-nightly-hcu.yml",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 3,
+          "start": 0,
+          "end": 298,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    }
+  ],
+  "limitations": [
+    "E1: 取证不可用或截断，不能声称完整覆盖",
+    "E5: 取证不可用或截断，不能声称完整覆盖",
+    "E7: 取证不可用或截断，不能声称完整覆盖",
+    "E9: 取证不可用或截断，不能声称完整覆盖"
+  ],
+  "coverage": {
+    "code": "not_measured",
+    "functionality": "separate_test_review",
+    "review": "partial"
+  },
+  "complete": false
+}

@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","path":"python/sglang/srt/managers/detokenizer_manager.py","start":350,"end":549},{"tool":"search_code","query":"def find_printable_text","prefix":"python/sglang/"},{"tool":"search_code","query":"BatchTokenIDOutput(","prefix":"python/sglang/srt/managers/"}]}

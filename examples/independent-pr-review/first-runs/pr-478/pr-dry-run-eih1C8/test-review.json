@@ -1,0 +1,12 @@
+{
+  "status": "incomplete",
+  "diagnostic": {
+    "stage": "model",
+    "code": "review_dependency_unavailable"
+  },
+  "report": "测试覆盖审查未完成（阶段：model；原因：review_dependency_unavailable）。不能据此判断没有测试缺口。",
+  "limitations": [
+    "未形成通过校验的测试审查；未执行代码或测试。"
+  ],
+  "validation_status": "incomplete"
+}

@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-473",
+  "repository": "HYGON-AI/sglang-das",
+  "head_sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+  "base_sha": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+  "input_sha256": "c7d3b8d0793e6e1be7fe6ca689195be4fdff1c251227ddf49a8df3bcfa2a53ac",
+  "input_path": "../inputs/pr-473.json",
+  "label_origin": "independent_agent_not_human",
+  "labels": [
+    {
+      "id": "473-code-stall-cap-commits-fresh-partial-utf8",
+      "track": "code",
+      "kind": "defect",
+      "certainty": "confirmed",
+      "description": "stalled_steps 记录旧的 U+FFFD 停滞，却在阈值到达后提交整个当前 tail；tail 末端可能是刚到达的、尚未完成的新 UTF-8 字符，不能据旧停滞时长判定它已经完整。",
+      "evidence": [
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "python/sglang/srt/managers/detokenizer_manager.py",
+          "start": 439,
+          "end": 439
+        },
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "python/sglang/srt/managers/detokenizer_manager.py",
+          "start": 473,
+          "end": 487
+        },
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "python/sglang/srt/managers/detokenizer_manager.py",
+          "start": 505,
+          "end": 543
+        },
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+          "start": 30,
+          "end": 60
+        },
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "python/sglang/utils.py",
+          "start": 345,
+          "end": 361
+        }
+      ],
+      "reason": "静态反例使用PR自身byte-fallback模型：prompt=[256]；连续8步各[0x80]使stalled_steps=8且没有clean boundary；第9步只送[0xE4]，所有候选边界仍以U+FFFD结尾，代码强制提交8个旧U+FFFD加新leading-byte的U+FFFD，并把read_offset推进到0xE4之后。随后[0xB8]、[0xAD]虽然组成“中”，surr_text已包含0xE4的replacement，按长度切片会剥掉新完成的“中”；流输出无法撤回已经发送的replacement。应保留可能未完成的最后UTF-8尾部，而非把当前整窗作为已确认文字提交。此为源码逐步推导，未执行目标代码。"
+    },
+    {
+      "id": "473-tests-claimed-branches-not-entered",
+      "track": "tests",
+      "kind": "coverage_gap",
+      "certainty": "confirmed",
+      "description": "新增测试的输入粒度没有触发其名称声称的关键分支：incomplete-character 一次送齐3字节；clean-boundary 用例每步以ASCII结尾；stall-reset 用例每步送完整CJK+ASCII。因此没有覆盖跨stream step UTF-8、_find_clean_commit 成功路径或已累计stall后新部分字符。",
+      "evidence": [
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+          "start": 85,
+          "end": 105
+        },
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+          "start": 108,
+          "end": 132
+        },
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+          "start": 134,
+          "end": 162
+        },
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "python/sglang/srt/managers/detokenizer_manager.py",
+          "start": 445,
+          "end": 478
+        }
+      ],
+      "reason": "_stream 把steps中的每个list作为一次消息。完整字节串立即走clean fast path；pure replacement用例确实覆盖阈值提交和窗口上界，但assert len(text)>0不核对每个输出字节，也未混入新未完成字符，无法发现上述缺陷。"
+    },
+    {
+      "id": "473-tests-registration-vs-execution",
+      "track": "tests",
+      "kind": "evidence_gap",
+      "certainty": "unknown",
+      "description": "新增用例注册到 base-a-test-cpu，但固定head capture未提供该用例被选中并执行的证据；HCU Stage A成功、Stage B失败都不能代替这项CPU增量解码回归的执行结果。",
+      "evidence": [
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+          "start": 20,
+          "end": 28
+        },
+        {
+          "sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+          "path": ".github/workflows/pr-test.yml",
+          "start": 324,
+          "end": 337
+        },
+        {
+          "path": "../inputs/pr-473.json",
+          "json_pointer": "/snapshot/checks",
+          "head_sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49"
+        },
+        {
+          "path": "../inputs/pr-473.json",
+          "json_pointer": "/snapshot/runs"
+        },
+        {
+          "path": "../inputs/pr-473.json",
+          "json_pointer": "/artifacts"
+        }
+      ],
+      "reason": "注册只证明潜在suite归属，workflow仍有触发/选择/依赖条件；capture没有相应具体assertion日志。此处不能断言测试一定没跑，也不能把HCU失败归因于detokenizer。"
+    }
+  ],
+  "reviewed_scope": {
+    "code": [
+      "完整detokenizer diff、DecodeStatus状态、输入追加、surrogate/read decode、pending与finish路径",
+      "find_printable_text完整实现",
+      "按现有byte-fallback tokenizer契约静态演算8次stall后新3字节字符"
+    ],
+    "tests": [
+      "新增test_detokenizer_incremental.py全文及全部4个test的具体assertions/step粒度"
+    ],
+    "ci": [
+      "CPU注册与base-a workflow调用条件",
+      "fixture固定head checks/runs概要、artifact缺失情况"
+    ]
+  },
+  "limitations": [
+    "静态确认反例；遵守不运行目标代码要求，未实测真实tokenizer/GPU",
+    "缺陷定位依赖标准byte-fallback UTF-8 errors=replace语义，PR测试stub明确具备该语义",
+    "没有把未捕获日志等同于测试未执行",
+    "未读取PR评论、历史AI答案或其他reviewer输出"
+  ],
+  "frozen_at": "2026-10-08 07:17:06 UTC"
+}

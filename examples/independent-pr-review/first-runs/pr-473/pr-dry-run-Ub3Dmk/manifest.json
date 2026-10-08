@@ -1,0 +1,65 @@
+{
+  "manifest_version": 1,
+  "repository": "HYGON-AI/sglang-das",
+  "pull_number": 473,
+  "base_sha": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+  "head_sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+  "diff_base": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+  "rules_hash": "2b7e77082f9c6e73e8e6be5b5d685d5f514d3a21491f7e03e2f9492949b003d6",
+  "skill_hash": "ba07d971f79f59689aa1f87842f6a31529d8f137d574280296de197a0bb393d9",
+  "evidence_hash": "f5bdfeae2cf33b0ca2277dec766780b6c0e06d4a2873ae68914e9d24aab3d288",
+  "groups": [
+    [
+      "python/sglang/srt/managers/detokenizer_manager.py",
+      "test/registered/unit/managers/test_detokenizer_incremental.py"
+    ]
+  ],
+  "total_files": 2,
+  "files": [
+    {
+      "path": "python/sglang/srt/managers/detokenizer_manager.py",
+      "previous_path": null,
+      "change": "modified",
+      "rule_source": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 0,
+          "start": 0,
+          "end": 6871,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    },
+    {
+      "path": "test/registered/unit/managers/test_detokenizer_incremental.py",
+      "previous_path": null,
+      "change": "added",
+      "rule_source": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "rule_ids": [],
+      "state": "reviewed",
+      "reason": null,
+      "fragments": [
+        {
+          "batch": 1,
+          "start": 0,
+          "end": 6437,
+          "state": "reviewed"
+        }
+      ],
+      "truncated": false
+    }
+  ],
+  "limitations": [
+    "E3: 取证不可用或截断，不能声称完整覆盖"
+  ],
+  "coverage": {
+    "code": "not_measured",
+    "functionality": "separate_test_review",
+    "review": "partial"
+  },
+  "complete": false
+}

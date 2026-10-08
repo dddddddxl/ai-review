@@ -14,6 +14,7 @@ export function scoreEvaluation(data) {
   requireValue(data.evaluation_version === 1 && data.annotation_source === 'independent_agents_with_root_adjudication', 'unsupported_evaluation');
   requireValue(Number.isInteger(data.expected_samples) && data.expected_samples > 0 && Array.isArray(data.samples), 'invalid_sample_count');
   const unique = new Set();
+  const observability = { samples_recorded: 0, model_turns: 0, tool_request_rounds: 0, requested_tools: 0, retained_evidence_records: 0 };
   const totals = Object.fromEntries(['code', 'tests'].map(track => [track, {
     samples: 0, completed: 0, supported: 0, unsupported: 0, incorrect: 0, unknown: 0,
     detected: 0, missed: 0, expected_unknown: 0, location_correct: 0, location_incorrect: 0,
@@ -22,6 +23,13 @@ export function scoreEvaluation(data) {
   for (const sample of data.samples) {
     requireValue(typeof sample.id === 'string' && sample.id && !unique.has(sample.id), 'duplicate_or_missing_sample');
     unique.add(sample.id);
+    if (sample.observability) {
+      for (const key of ['model_turns', 'tool_request_rounds', 'requested_tools', 'retained_evidence_records']) {
+        requireValue(Number.isSafeInteger(sample.observability[key]) && sample.observability[key] >= 0, 'invalid_observability');
+        observability[key] += sample.observability[key];
+      }
+      observability.samples_recorded++;
+    }
     requireValue(/^[0-9a-f]{40}$/.test(sample.head_sha) && typeof sample.repository === 'string', 'sample_identity_missing');
     requireValue(Array.isArray(sample.sources) && ['input', 'labels', 'first_run'].every(role => sample.sources.some(ref => ref.role === role)), 'evaluation_sources_missing');
     for (const track of ['code', 'tests']) {
@@ -48,16 +56,19 @@ export function scoreEvaluation(data) {
     total.precision = ratio(total.supported, total.adjudicable_findings);
     total.labeled_issue_recall = ratio(total.detected, total.detected + total.missed);
     total.location_accuracy = ratio(total.location_correct, total.location_correct + total.location_incorrect);
+    total.location_resolution_rate = ratio(total.location_correct + total.location_incorrect, total.location_correct + total.location_incorrect + total.location_unknown);
     total.completion_rate = ratio(total.completed, total.samples);
   }
   return {
     metrics_version: 1, annotation_source: data.annotation_source, human_certified: false,
     expected_samples: data.expected_samples, observed_samples: data.samples.length,
-    sample_shortfall: data.expected_samples - data.samples.length, tracks: totals,
+    sample_shortfall: data.expected_samples - data.samples.length, tracks: totals, observability,
     definitions: {
       precision: 'supported / (supported + unsupported + incorrect); unknown 单列',
       labeled_issue_recall: 'detected / (detected + missed); 仅对预先标注且可裁定的问题计算',
       location_accuracy: 'correct / (correct + incorrect); 不适用和无法验证项单列',
+      location_resolution_rate: '已给出可核验定位 / (已定位 + 无法定位)；防止只报已定位项准确率而隐藏大量未定位',
+      observability: 'model_turns 包含分组/候选复核；requested_tools 不是成功取证数，retained_evidence_records 是保留的成功/拒绝/截断工具记录数',
       completion_rate: '形成该阶段完整审查结果的样本比例；不是 CI 或硬件通过率',
       empty_denominator: 'null，不能把没有可判定项写成 100%',
     },

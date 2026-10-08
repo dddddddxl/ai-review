@@ -1,0 +1,1 @@
+{"action":"final","result":{"overview":["PR HCU 工作流的变更检测、门禁、配置验证、wheel 等待、两阶段测试及结果汇总统一选择 ci 与 bw1100 双标签 runner，取消 Ubuntu fallback 和动态标签输出。","workflow_dispatch 与 workflow_call 的 runner_label 输入保留兼容入口，但标记为弃用且不再参与调度。"],"findings":[]}}

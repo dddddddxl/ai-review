@@ -1,0 +1,1 @@
+{"action":"final","result":{"overview":["同步 CP token 数仅传递给 Zigzag 策略；Interleave 在准备 CP-v2 元数据后按各秩物理长度之和调整 DP 本地缓冲长度。","新增 decode TP 权重轴识别、单例 scale 保留以及转置权重切片布局的单元测试。"],"findings":[]}}

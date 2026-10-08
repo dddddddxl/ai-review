@@ -1,0 +1,12 @@
+{
+  "status": "partial",
+  "findings": [],
+  "overview": [
+    "HCU 全量验证、手动模型测试和 lint 改为使用 ci 与 bw1100 双标签 runner；runner_label 输入保留但忽略，全量验证不再解析或输出动态 runner 标签。",
+    "手动模型测试记录的 runner 标签同步更新为 ci,bw1100，全量验证的未触发提示移除旧验证分支限定。",
+    "夜间 HCU 验证、wheel 构建及等待、结果汇总和通知作业统一选择同时具备 ci 与 bw1100 标签的 runner，移除动态 runner_label 输出及校验。",
+    "镜像 CI 测试由 nmz4 标签切换为 ci 与 bw1100 标签；手动 runner_label 输入保留但标记为忽略。"
+  ],
+  "findings_count": 0,
+  "report": "## AI Review\n\n审查尚未完整完成，无法给出整体结论；当前没有可发布的已确认问题，不代表代码没有问题。\n\n> 审查未完整完成：以 GitHub 返回的 PR diff 为主体，关联上下文仅用于核验，未运行代码。\n\n> 覆盖情况：共 12 个文件，已审查 12 个。"
+}

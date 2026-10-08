@@ -1,0 +1,16 @@
+{
+  "calls": 24,
+  "characters": 119230,
+  "limits": {
+    "tools": 24,
+    "characters": 120000,
+    "rounds_per_stage": 1,
+    "duration_ms": 1800000
+  },
+  "exhausted": true,
+  "reason": "evidence_tool_budget",
+  "limitations": [
+    "单独的人工编排收尾窗口；不增加取证、不覆盖首次盲审、不算生产接口延迟或完整审查。",
+    "evidence_tool_budget: 取证预算耗尽，仅可基于已取得证据收尾，不能声称完整覆盖"
+  ]
+}

@@ -1,0 +1,1 @@
+{"action":"final","result":{"overview":["Ragged TopK v2 增加 fp32、二维及行步长对齐门槛，HCU 的 paged v2 路由增加独立开关。","DSA 旧版轮转分片拒绝不整除的 token 数，注意力元数据仅允许已激活 CP-v2 的不均匀分片。"],"findings":[]}}

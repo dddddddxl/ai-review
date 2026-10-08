@@ -1,0 +1,1098 @@
+{
+  "evaluation_version": 1,
+  "annotation_source": "independent_agents_with_root_adjudication",
+  "expected_samples": 6,
+  "review_basis": "first_attempt_only",
+  "human_certified": false,
+  "target_tests_executed": false,
+  "root_adjudication": {
+    "agrees_with_independent_scope_limited_decisions": true,
+    "notes": [
+      "源码静态反例不冒充运行结果。",
+      "#463 selection_gap 降级为运行身份/证据未知。",
+      "evidence_gap 获支持不能算确认产品 bug。",
+      "#473 代码通道中的测试缺口不补算测试通道召回。"
+    ],
+    "independent_original_sha256": "5cbacf77dc938e426e5f0ffec9d295feb99abfcdd10033749e03679e8e7e1a2f",
+    "independent_exported_sha256": "267a363dd540fc589cb6b29a900f7a835d28539882cc28271f5b8acabddd3234"
+  },
+  "samples": [
+    {
+      "id": "pr-478",
+      "repository": "HYGON-AI/sglang-das",
+      "head_sha": "4343158c539992308a0ec9fcf9da7e4f38426f0f",
+      "base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "sources": [
+        {
+          "role": "input",
+          "path": "inputs/pr-478.json",
+          "sha256": "a42e9b6bd2d53f8b18fa71c36ac60bb1b38d0deda6f85ff8e3cb520f4f4a72e3"
+        },
+        {
+          "role": "labels",
+          "path": "labels/pr-478.json",
+          "sha256": "e0d493dcdd2bb903065140c9d5e9671ff192f6573669b6778823fd872283f2b4"
+        },
+        {
+          "role": "first_run",
+          "path": "first-runs/pr-478/pr-dry-run-eih1C8/status.json",
+          "sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb"
+        },
+        {
+          "role": "code_output",
+          "path": "first-runs/pr-478/pr-dry-run-eih1C8/code-review.json",
+          "sha256": "66f4d676a5701d9c9a6bcecbfee4054900a6a76ac5fe5be45ae48cb5662cb7db"
+        },
+        {
+          "role": "test_output",
+          "path": "first-runs/pr-478/pr-dry-run-eih1C8/test-review.json",
+          "sha256": "941df9c5dc5f00c1077d8ae21c75eee448531459db4c5daaeefa41d3a7ea926d"
+        },
+        {
+          "role": "evidence",
+          "path": "first-runs/pr-478/pr-dry-run-eih1C8/evidence-index.json",
+          "sha256": "7db638e7692a4951223c8f9be0f75cfc38eb73004a7e5f9da3105fa9b74183be"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-478/pr-dry-run-eih1C8/model-replies/reply-001.json",
+          "sha256": "d378dc6fe497e0b4dab6f6db22aa6addfa3e0860d63577164aa3c45b5a52d66b"
+        }
+      ],
+      "code": {
+        "status": "partial",
+        "completed": false,
+        "findings": [],
+        "expected": [],
+        "excluded_labels": [
+          {
+            "id": "478-code-serial-fallback",
+            "reason": "这是局部写入语义的 supported 标签，不是缺陷。快照保留两处原索引和同流顺序写入，不能把未报告问题计作漏报或真阴性。"
+          }
+        ],
+        "notes": [
+          "首次 code 批没有 final，code-review 保留空 findings；不能据空输出推断无缺陷。"
+        ]
+      },
+      "tests": {
+        "status": "incomplete",
+        "completed": false,
+        "final_submitted": false,
+        "analysis_source": null,
+        "host_diagnostic": {
+          "stage": "model",
+          "code": "review_dependency_unavailable"
+        },
+        "findings": [],
+        "expected": [
+          {
+            "id": "478-tests-fallback-coverage",
+            "outcome": "missed",
+            "reason": "首次 tests 没有 final。复核 test_asymmetric_mha_pool.py:36-48 明确关闭 alt_stream，119-124 要求 fused store_cache 可用；memory_pool.py:172-185 在此提前返回，避开201-202回退；另一个修改点为2697-2708的 HCU FA 布局。该特定测试绕过修改分支的缺口成立，但首次无对应论点。"
+          },
+          {
+            "id": "478-ci-failure-cause-unknown",
+            "outcome": "unknown",
+            "observed_in_output": false,
+            "reason": "冻结 head 的 HCU run 37727763205 为 failure，但汇总状态不足以确认 KV 修改致错或具体覆盖；这是未知证据项，不进入缺陷召回分母。"
+          }
+        ],
+        "unknown_expectations": [
+          {
+            "id": "478-ci-failure-cause-unknown",
+            "outcome": "unknown",
+            "observed_in_output": false,
+            "reason": "冻结 head 的 HCU run 37727763205 为 failure，但汇总状态不足以确认 KV 修改致错或具体覆盖；这是未知证据项，不进入缺陷召回分母。"
+          }
+        ],
+        "notes": [
+          "不使用后续补交或重跑补齐本轮测试结论。"
+        ]
+      },
+      "cross_track": [],
+      "notes": [
+        "首次 overall=partial。"
+      ],
+      "observability": {
+        "model_turns": 1,
+        "tool_request_rounds": 1,
+        "requested_tools": 4,
+        "retained_evidence_records": 4
+      }
+    },
+    {
+      "id": "pr-477",
+      "repository": "HYGON-AI/sglang-das",
+      "head_sha": "3b7049f294910ae75265c5dc66d2a93798460afc",
+      "base_sha": "cfa865d339c0d7191dd044e6980006be799a570a",
+      "sources": [
+        {
+          "role": "input",
+          "path": "inputs/pr-477.json",
+          "sha256": "59e3509894969c793129bd930f3f8ba19e942ce094b6d8dd0c78d0a54fe6537b"
+        },
+        {
+          "role": "labels",
+          "path": "labels/pr-477.json",
+          "sha256": "2faa3dbf37965697bb4fe5d8e07b4c394174be12a7f161426cb5c32a63148b8e"
+        },
+        {
+          "role": "first_run",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/status.json",
+          "sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb"
+        },
+        {
+          "role": "code_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/code-review.json",
+          "sha256": "ee1eb486ab406209265cc0bd1ce32d9c851e954038266ab08cee688521e7f890"
+        },
+        {
+          "role": "test_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/test-review.json",
+          "sha256": "3123466711b689f21fc9b8c791c46f5536435d6085d5c81ab126c524d851f846"
+        },
+        {
+          "role": "evidence",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/evidence-index.json",
+          "sha256": "e97d9193ae76a274ffb9f1efc56feb03f0f950b1b98c2747828835c9dc9e78a5"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-001.json",
+          "sha256": "7fd68fc39f2987fa722ae0a80361ebbaabab1b66e7f14fa945f9c186a5846356"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-002.json",
+          "sha256": "c6176f605f00dbe3d5b0b2075ee80c35a37ad51328324a1ea079bdba892028aa"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-003.json",
+          "sha256": "6a5c230e811df27348bd5c93f8a32ada3e23b51d92bbca3c57447a9b8efc8d1b"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-004.json",
+          "sha256": "31e294caed14a6649ebdfbdaa84ebf572ec01179a4f942391754844fdea7bebc"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-005.json",
+          "sha256": "10c9930e028bf3de8fe7cb0dee0e22e87ea945b47934763e0de63b510c1c262c"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-006.json",
+          "sha256": "131608493781ec9f8267af1c8e801e4a2eaf526cc2b962410a2db6250705a108"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-007.json",
+          "sha256": "09dfde128898931ae6e29db73a896a0fd81059edea9d8d6ff73e9aad7f974f05"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-008.json",
+          "sha256": "bd4d10961217d1b3c9c8883584633b7a54af76c4d1df3c66a02e34690f6ca400"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-009.json",
+          "sha256": "a755531c56f461d794924c0c88daab8a4050b1ae433603122ed9de9bad60e4f2"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-010.json",
+          "sha256": "56484d3ae52e9c278f4ca14652bfaaa6df6310ee674094e8e55bc91384a9b844"
+        }
+      ],
+      "code": {
+        "status": "partial",
+        "completed": false,
+        "findings": [],
+        "expected": [],
+        "excluded_labels": [
+          {
+            "id": "477-code-factory-contract",
+            "reason": "supported 标签不构成待召回缺陷。draft_utils.py:80-84 明确兼容 tuple/裸实例，364-374 的 HCU 构造返回名称与实例；空缺陷输出不因此获得正确率分数。"
+          }
+        ],
+        "notes": [
+          "4 个文件已审不等于首次 code 状态完整；按 status 保留 completed=false。"
+        ]
+      },
+      "tests": {
+        "status": "incomplete",
+        "completed": false,
+        "final_submitted": true,
+        "analysis_source": "first-runs/pr-477/pr-dry-run-DjmmlW/model-replies/reply-010.json#/result",
+        "host_diagnostic": {
+          "stage": "evidence",
+          "code": "source_not_read"
+        },
+        "findings": [
+          {
+            "id": "F-EVIDENCE-CHAIN",
+            "kind": "evidence_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "该条限定为当前材料没有建立断言、选择与执行证据链，并明确不宣称确定缺测或产品故障。首次 pipeline 确实有候选测试读取失败、workflow content_denied；冻结 run 37726043294 的 required-1/2 失败，37735182751 的 required-1 失败而 required-3 未结束，不能证明目标行为通过。支持的是证据不足，不是发现了确定回归；该条没有定位行号。"
+          }
+        ],
+        "expected": [
+          {
+            "id": "477-tests-hcu-branch-gap",
+            "outcome": "missed",
+            "reason": "预标注核心是已存在通用 factory/worker 测试的替身绕过真实 HCU 分支。复核 factory 测试232-295使用 triton/trtllm 替身，worker 测试79-91及256-284替换整个 DraftBackendFactory，支持这一有限范围的覆盖缺口。首次分析把各行为 design 均记 unknown，未识别这些具体断言及其绕过机制；泛泛列出待验证 HCU 风险不计召回。"
+          },
+          {
+            "id": "477-ci-coverage-unknown",
+            "outcome": "unknown",
+            "observed_in_output": true,
+            "reason": "首次分析明确区分两次运行，未将 smoke 成功视为 DeepSeek MLA EAGLE 通过，也未把失败归因代码。CI 根因与实际场景仍未知，不计确定问题召回。"
+          }
+        ],
+        "unknown_expectations": [
+          {
+            "id": "477-ci-coverage-unknown",
+            "outcome": "unknown",
+            "observed_in_output": true,
+            "reason": "首次分析明确区分两次运行，未将 smoke 成功视为 DeepSeek MLA EAGLE 通过，也未把失败归因代码。CI 根因与实际场景仍未知，不计确定问题召回。"
+          }
+        ],
+        "notes": [
+          "宿主 source_not_read 是首次提交的取证/协议校验失败，不使已提交论点自动成为实质错误；但不能因此把 tests 记为完成。"
+        ]
+      },
+      "cross_track": [],
+      "notes": [
+        "首次 overall=partial。"
+      ],
+      "observability": {
+        "model_turns": 10,
+        "tool_request_rounds": 7,
+        "requested_tools": 24,
+        "retained_evidence_records": 24
+      }
+    },
+    {
+      "id": "pr-467",
+      "repository": "HYGON-AI/sglang-das",
+      "head_sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+      "base_sha": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+      "sources": [
+        {
+          "role": "input",
+          "path": "inputs/pr-467.json",
+          "sha256": "d5df5a850c71062bed912904ee0d5fbf01deb1e5b10ff99c5b8093db39538246"
+        },
+        {
+          "role": "labels",
+          "path": "labels/pr-467.json",
+          "sha256": "b9b346309e1c9815d2783e6e997165c411f35c3f61f5a085dba2331168ac7d76"
+        },
+        {
+          "role": "first_run",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/status.json",
+          "sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb"
+        },
+        {
+          "role": "code_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/code-review.json",
+          "sha256": "978976d57f68933a3592d7dd5053b37620ecdf7713193036f300b7efb26949e6"
+        },
+        {
+          "role": "test_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/test-review.json",
+          "sha256": "b6f8d80ef6fc6a23b430e175847dd5ed5f2c89a84a6f2c0694a82b60451d91d1"
+        },
+        {
+          "role": "evidence",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/evidence-index.json",
+          "sha256": "f09bde945a5dc6a8e936db72f8c75b7c0d904dc9dbcdbd46911040db64c75664"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-001.json",
+          "sha256": "1e7418c66307e0fb46b8189a660fca7adc50947106d1d2d5cceebacec4e1f9a6"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-002.json",
+          "sha256": "ce38ca540c7ada2c1c74d05afd2d8842cf2ae65fe45e2a5e84b2baca53d2c893"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-003.json",
+          "sha256": "85d9868423de9db2411268abb2b28fdef1e197cff5973f18a60ae5139be15834"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-004.json",
+          "sha256": "946fc271cdf7f8008618c368f2d4b1e4a187d94da8f52ffb4cfc192fd45201f5"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-005.json",
+          "sha256": "c84ca9190c00d4224db4c5af8f8867873dc8ef48a6728df9e08ba572d18154d0"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-006.json",
+          "sha256": "22edcb4d0bc94c631369e3a3206bc9fc1aebc767b0a4abba2be3f05f2162824a"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-007.json",
+          "sha256": "d3e0a160434ed21cb5f37567745ed253352cd4366924bfb0d00b0a73019c0c7e"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-008.json",
+          "sha256": "6bb60d2601b9a98443b43f5276dfb58a4dbfc7820d01a517e6d068a6a6faf8fa"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-009.json",
+          "sha256": "5fe41fc4bddaf5046bd28385b0c3a6b4859d6300ca097bde5b6a4f7031d0b18a"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-010.json",
+          "sha256": "3f79b6a94d632cfc5503dcab2799199b0efdc7975db2bf200c2ccc695b6d82b5"
+        }
+      ],
+      "code": {
+        "status": "partial",
+        "completed": false,
+        "findings": [],
+        "expected": [],
+        "excluded_labels": [
+          {
+            "id": "467-code-local-global-index",
+            "reason": "这是局部/全局索引一致性的 supported 标签，不是缺陷。源码3420-3429按局部可见列取 top-k 后加 ks，3440-3445再映射 page/raw，不能把此正向语义证明当作缺陷召回目标。"
+          }
+        ],
+        "notes": [
+          "有代码 final/已审文件说明，首次宿主状态仍为 partial。"
+        ]
+      },
+      "tests": {
+        "status": "incomplete",
+        "completed": false,
+        "final_submitted": true,
+        "analysis_source": "first-runs/pr-467/pr-dry-run-JB4H4y/model-replies/reply-010.json#/result",
+        "host_diagnostic": {
+          "stage": "validation",
+          "code": "skill_validation_failed"
+        },
+        "findings": [
+          {
+            "id": "F_HCU_EVIDENCE",
+            "kind": "evidence_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "实质内容明确指出已读 fused TopK 断言不能验证新的 backend HCU 回退及局部到扁平索引转换。源码3417-3433显示 HCU 走 torch 分支，test_topk_v2.py:358-363、444-445仍直接调用被绕过的 topk_transform_ragged_v2；该有限范围论点成立。冻结 wheel/等待失败且 Stage A/B 取消，也支持执行未核验。没有发现条目行号，不以证据范围代填定位。"
+          }
+        ],
+        "expected": [
+          {
+            "id": "467-tests-bypass-not-covered",
+            "outcome": "detected",
+            "reason": "F_HCU_EVIDENCE、B_LOCAL_TO_FLAT 的 counterevidence 和 summary 都明确识别 fused 测试不调用新 HCU torch fallback，并指出非零 ks 与 page/raw 映射尚未被其验证。虽采用 evidence_gap 枚举并谨慎保留全仓替代覆盖未知，核心已确认风险被明确识别，故计 detected。"
+          },
+          {
+            "id": "467-ci-incomplete-runtime-evidence",
+            "outcome": "unknown",
+            "observed_in_output": true,
+            "reason": "输出正确指出 wheel run 36681595245 的容器初始化失败和 PR run 36681595281 的等待失败、Stage A/B 取消；这些不是算法错误或通过证明。TP8/LayerSplit 实际数值仍未知。"
+          }
+        ],
+        "unknown_expectations": [
+          {
+            "id": "467-ci-incomplete-runtime-evidence",
+            "outcome": "unknown",
+            "observed_in_output": true,
+            "reason": "输出正确指出 wheel run 36681595245 的容器初始化失败和 PR run 36681595281 的等待失败、Stage A/B 取消；这些不是算法错误或通过证明。TP8/LayerSplit 实际数值仍未知。"
+          }
+        ],
+        "notes": [
+          "首次 final 的 skill_validation_failed 与内容正确性分开：本轮 tests 仍 incomplete，实质覆盖论点仍 supported。"
+        ]
+      },
+      "cross_track": [],
+      "notes": [
+        "首次 overall=partial。"
+      ],
+      "observability": {
+        "model_turns": 10,
+        "tool_request_rounds": 8,
+        "requested_tools": 23,
+        "retained_evidence_records": 23
+      }
+    },
+    {
+      "id": "pr-473",
+      "repository": "HYGON-AI/sglang-das",
+      "head_sha": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49",
+      "base_sha": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60",
+      "sources": [
+        {
+          "role": "input",
+          "path": "inputs/pr-473.json",
+          "sha256": "c7d3b8d0793e6e1be7fe6ca689195be4fdff1c251227ddf49a8df3bcfa2a53ac"
+        },
+        {
+          "role": "labels",
+          "path": "labels/pr-473.json",
+          "sha256": "c43fff0097f6c1c6187ffc758ce7b1e87859ef57f27f3c0c89680348f0fc3c2e"
+        },
+        {
+          "role": "first_run",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/status.json",
+          "sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb"
+        },
+        {
+          "role": "code_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/code-review.json",
+          "sha256": "4ca3fa17dbe9e47e81805049292baacfb411e202cab13e1f100e5442e45535bf"
+        },
+        {
+          "role": "test_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/test-review.json",
+          "sha256": "f4255c2038b296cd08d92cbdefff92f43e17a726a416ab3a8327a8139b0ea067"
+        },
+        {
+          "role": "evidence",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/evidence-index.json",
+          "sha256": "05594fbf087a286bfea306dee08b4eab9eca0fabaae1a5f9857a754f2dcb2c9c"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-001.json",
+          "sha256": "5fb56d2039bd1e552760cf3837168b4b89f8f414b9b190f7c9a906ecc5a83b6b"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-002.json",
+          "sha256": "d06a1fdfedfcefdf3f8d93e7e9422898032b9e5b188f8e3981c2f9d3642973bc"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-003.json",
+          "sha256": "f4f69157c7a0f150f709d5cfb734614420f307fddebd1a4874bade5f2e4a1a6f"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-004.json",
+          "sha256": "fa26015d8d22fbc9ce6c4220e851fe2beb7afd3da0d4a7386e97e2ffb4be59d5"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-005.json",
+          "sha256": "00e056bd56f3b270b80a22e4fff7e5585b97bd725d9c5a5ca089a67589dd427c"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-006.json",
+          "sha256": "f2b6a4d11ec9b2f97c04dfec701e76c82e9d432eeed22c9bb2650e1cf2696202"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-007.json",
+          "sha256": "5f8f3cf21654910565fb252cb3908bf34dd87f0f85771567bddb532355c7828f"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-008.json",
+          "sha256": "3b342c7e4f83155b0718faeb5342b507ac3b617abcad1dcba09d4f06f4418741"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-009.json",
+          "sha256": "1ae25b7d0bb89e2e747dcb71f9e8224eb979653622af8966baf9307279d40345"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-010.json",
+          "sha256": "bc40b2d534e5470f6f4b84d6a89ada427f1632790bdad1bd38f088d59ef74b8d"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-011.json",
+          "sha256": "ce7b0097f45e10fbfcfb0c6bb8e5b8f10fc32da286f567490e29b95ce7e47219"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-012.json",
+          "sha256": "8b8b8d820dc51d9baf43210fc8bd9ece588723639090fcb876dda5aefe4601e7"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-473/pr-dry-run-Ub3Dmk/model-replies/reply-013.json",
+          "sha256": "12edeccde87c155d3b44e3981af76a3515823a624001fd55c2693588917faa47"
+        }
+      ],
+      "code": {
+        "status": "partial",
+        "completed": false,
+        "findings": [
+          {
+            "id": "pr-473-code-001",
+            "source_index": 0,
+            "title": "停滞上限会提交刚开始的不完整字符",
+            "kind": "defect",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "静态复核确认：8次孤立0x80后 stalled_steps=8，第9次新到0xE4仍无干净候选，473-478按旧计数提交整个当前 new_text，510-511推进 read_offset；后续0xB8、0xAD补齐后，surrogate中末尾replacement占去新完成的字符长度，439的切片吞掉“中”。测试stub的UTF-8 errors=replace契约明确支持该反例。原 finding.line=null，虽能事后定位473-478，仍记 location unknown。"
+          },
+          {
+            "id": "pr-473-code-002",
+            "source_index": 1,
+            "title": "不完整字符测试一次发送了全部字节",
+            "kind": "coverage_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "_stream在101-103按一个list一次feed；115把完整CJK_BYTES一次发送，159的每步也是完整CJK+ASCII，所以不触发跨步不完整字符，也没有先累积stall再验证reset。此具体测试设计缺口成立。原 finding.line=null，不能因事后核对到115/159就算定位正确。"
+          },
+          {
+            "id": "pr-473-code-003",
+            "source_index": 2,
+            "title": "干净边界用例没有进入回溯提交分支",
+            "kind": "coverage_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "test_detokenizer_incremental.py:127的[STRAY_BYTE,TEXT_TOKEN]解码为replacement+a，末尾不是replacement，直接命中detokenizer_manager.py:446-450；不会进入460的_find_clean_commit。即使回溯函数始终返回None该用例仍不能发现，论点成立。原 finding.line=null，定位未知。"
+          }
+        ],
+        "expected": [
+          {
+            "id": "473-code-stall-cap-commits-fresh-partial-utf8",
+            "outcome": "detected",
+            "reason": "pr-473-code-001明确给出8个0x80后分步E4/B8/AD的同一核心反例、旧stall错误提交新尾字节及随后切片吞字机制；无需执行目标程序也可由源码和PR自身stub契约确认。"
+          }
+        ],
+        "notes": [
+          "三个finding全部保留；其中两个是测试设计问题，但来源仍是code轨道。",
+          "所有finding均无行号，location_status=not_in_added_diff不能自动改写为已定位正确或错误。"
+        ]
+      },
+      "tests": {
+        "status": "incomplete",
+        "completed": false,
+        "final_submitted": false,
+        "analysis_source": null,
+        "host_diagnostic": {
+          "stage": "model",
+          "code": "evidence_character_budget"
+        },
+        "findings": [],
+        "expected": [
+          {
+            "id": "473-tests-claimed-branches-not-entered",
+            "outcome": "missed",
+            "reason": "测试粒度绕过不完整UTF-8、stall-reset及回溯成功分支的预标注经静态复核成立，但本轮tests没有review_version=1 final。code轨道已经发现该风险不能充作tests轨道召回。"
+          },
+          {
+            "id": "473-tests-registration-vs-execution",
+            "outcome": "unknown",
+            "observed_in_output": false,
+            "reason": "用例27行注册base-a-test-cpu只证明潜在suite归属；冻结HCU状态不能证明这个CPU用例被执行。首次tests无final，执行真实性仍未知，不记确定漏选。"
+          }
+        ],
+        "unknown_expectations": [
+          {
+            "id": "473-tests-registration-vs-execution",
+            "outcome": "unknown",
+            "observed_in_output": false,
+            "reason": "用例27行注册base-a-test-cpu只证明潜在suite归属；冻结HCU状态不能证明这个CPU用例被执行。首次tests无final，执行真实性仍未知，不记确定漏选。"
+          }
+        ],
+        "notes": [
+          "evidence_character_budget导致测试阶段无final；不使用rerun或后补analysis。"
+        ]
+      },
+      "cross_track": [
+        {
+          "label_id": "473-tests-claimed-branches-not-entered",
+          "found_in_track": "code",
+          "finding_ids": [
+            "pr-473-code-002",
+            "pr-473-code-003"
+          ],
+          "outcome": "detected",
+          "counts_for_tests_recall": false,
+          "reason": "代码审查确实找出了测试设计缺口，单列跨轨道收获，但不改变tests无final的事实。"
+        }
+      ],
+      "notes": [
+        "首次 overall=partial；发现正确与协议完成度、定位质量是三个不同维度。"
+      ],
+      "observability": {
+        "model_turns": 13,
+        "tool_request_rounds": 9,
+        "requested_tools": 24,
+        "retained_evidence_records": 23
+      }
+    },
+    {
+      "id": "pr-463",
+      "repository": "HYGON-AI/sglang-das",
+      "head_sha": "bd01fc60d46266c47710784dd7051320edbbe002",
+      "base_sha": "ab43824b09055fc790bd5a9166a6a6182b1bccc3",
+      "sources": [
+        {
+          "role": "input",
+          "path": "inputs/pr-463.json",
+          "sha256": "c523fa2acaacde681deba95f43acaf23ee239f048c19d9aa628cd32060f5a76d"
+        },
+        {
+          "role": "labels",
+          "path": "labels/pr-463.json",
+          "sha256": "4d19860269e3942af3db776ab3270a8fc0a9fef2530cb0246f6d45a2b4cae973"
+        },
+        {
+          "role": "first_run",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/status.json",
+          "sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb"
+        },
+        {
+          "role": "code_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/code-review.json",
+          "sha256": "5b7bd7029939225dc16cfa76a6ed898085ef28a98188b7956d4b6f71a6359182"
+        },
+        {
+          "role": "test_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/test-review.json",
+          "sha256": "3123466711b689f21fc9b8c791c46f5536435d6085d5c81ab126c524d851f846"
+        },
+        {
+          "role": "evidence",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/evidence-index.json",
+          "sha256": "6edb4b1dc0e2c16873132344c185021fc2eeb03f9103c1d20851322a35d8fc51"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-001.json",
+          "sha256": "07be8073921604b70d911eebbb8c9b8afdb50c3794c607173b043434ed65ca05"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-002.json",
+          "sha256": "feb004414937f71a9e0ddb398c84e1d06036bbb1df4a1ec579796b0db3736dfb"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-003.json",
+          "sha256": "ccd869f73e3d40d0efc54ab46dc31094b69361a3581db0cb858e6766427814a3"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-004.json",
+          "sha256": "03d90c983a2b6e562e4a2079858b6de9c896c061ecda53fe8008498c49e773c0"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-005.json",
+          "sha256": "9d1f69d2cde5189489b732030df17babc16c170d2c25677fc8601755185939cc"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-006.json",
+          "sha256": "dad7970896094032389829dfd301c442f3b5113466362eeade245991849b6da6"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-007.json",
+          "sha256": "1eb79914b2b0e2bb303914d12b28ffa40024cd4420faf910df0dbd38cb285b10"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-008.json",
+          "sha256": "e31ebaf378df77d96a6b7eb539ab66635ff53eb07d12823cb41598d135f51a88"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-009.json",
+          "sha256": "e34ff5469c7f63871541bef15960c2cc4db1f265e42a7f088ed4edafe4e4ab60"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-010.json",
+          "sha256": "e797b64075dd99aa0469a5934792852da58096e59fd56c0f8020aaec6ffa0077"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-011.json",
+          "sha256": "a49e78b1461cecbb81439a8a4bc6036822db96d245177989e9099b76ed7f6ca2"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-012.json",
+          "sha256": "fdb8ac9a36978eec07a1216a27ab4726166bcade7ce009adb83c5e55a82e72a1"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-013.json",
+          "sha256": "36efca2f8d286967b125e2d94b4cfe58e089d50abcf9dc07bbe94024c27f4f27"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-014.json",
+          "sha256": "2d66a58393134c7a1baada7bdaeb19643a7f33f2d48c044c62fe4803d75dce5c"
+        }
+      ],
+      "code": {
+        "status": "partial",
+        "completed": false,
+        "findings": [],
+        "expected": [],
+        "excluded_labels": [
+          {
+            "id": "463-code-runner-migration-consistent",
+            "reason": "runner迁移引用一致是supported标签，不是问题。所查pr/full/manual/nightly文件未残留outputs.runner_label消费者，保留输入明确deprecated/ignored；该有限静态结论不证明组织runner与环境可用。"
+          }
+        ],
+        "notes": [
+          "12个文件已审不覆盖首次status的partial状态。"
+        ]
+      },
+      "tests": {
+        "status": "incomplete",
+        "completed": false,
+        "final_submitted": true,
+        "analysis_source": "first-runs/pr-463/pr-dry-run-5GUDcT/model-replies/reply-014.json#/result",
+        "host_diagnostic": {
+          "stage": "evidence",
+          "code": "source_not_read"
+        },
+        "findings": [
+          {
+            "id": "F_PR_EVIDENCE",
+            "kind": "evidence_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "源码pr-test-hcu.yml:123/336请求[ci,bw1100]，冻结run36663007558及36663736701所列实际控制job标签只有[bw1100]，且Stage A/B跳过或取消；新配置验证链没有闭合。test_hcu_smoke.py仅检查版本/环境标记，不能证明迁移。输出没有由此断言确定漏测或代码错误，范围适当；发现条目未给行号。"
+          },
+          {
+            "id": "F_BUILD_EVIDENCE",
+            "kind": "evidence_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "test_hcu_build_alignment.py的临时目录与mock正反例能验证版本/manifest规则，但不能证明新runner的设备和跨机器共享产物可访问；冻结PR wheel run36663007650取消且jobs详情不完整。该条合理保留真实环境未验证，不是断言环境实际坏了。无发现定位行号。"
+          },
+          {
+            "id": "F_ADMIN_EVIDENCE",
+            "kind": "evidence_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "冻结PR States与Auto Label PRs的成功job同样只记录[bw1100]，与head改为双标签的配置不同；成功状态本身不能证明新配置已运行及预期外部结果已验证。此新增项的有限证据论点可以成立，但管理副作用实际是否正确仍未知，不能当作确认功能缺陷。无发现定位行号。"
+          }
+        ],
+        "expected": [
+          {
+            "id": "463-tests-captured-runner-selection-mismatch",
+            "outcome": "unknown",
+            "original_kind": "selection_gap",
+            "adjudicated_kind": "evidence_gap",
+            "observed_in_output": true,
+            "reason": "标签差异本身可确认，首次summary/limitations也明确识别；但pull_request_target下实际workflow版本未确定，新head的job选择未获验证不等于已证明某个应跑用例被selector漏掉。故纠正预标注的确定selection_gap分类，从确定测试缺口召回分母移出，保留为已识别的运行身份/证据未知项。"
+          },
+          {
+            "id": "463-tests-environment-and-completion-unknown",
+            "outcome": "unknown",
+            "observed_in_output": true,
+            "reason": "输出正确区分Check changes失败、关闭后取消和未完成环境验证，未将未知runner库存推断为不存在，也未将失败归因于本次代码。硬件环境、真实部署与完整结果仍未知。"
+          }
+        ],
+        "unknown_expectations": [
+          {
+            "id": "463-tests-captured-runner-selection-mismatch",
+            "outcome": "unknown",
+            "original_kind": "selection_gap",
+            "adjudicated_kind": "evidence_gap",
+            "observed_in_output": true,
+            "reason": "标签差异本身可确认，首次summary/limitations也明确识别；但pull_request_target下实际workflow版本未确定，新head的job选择未获验证不等于已证明某个应跑用例被selector漏掉。故纠正预标注的确定selection_gap分类，从确定测试缺口召回分母移出，保留为已识别的运行身份/证据未知项。"
+          },
+          {
+            "id": "463-tests-environment-and-completion-unknown",
+            "outcome": "unknown",
+            "observed_in_output": true,
+            "reason": "输出正确区分Check changes失败、关闭后取消和未完成环境验证，未将未知runner库存推断为不存在，也未将失败归因于本次代码。硬件环境、真实部署与完整结果仍未知。"
+          }
+        ],
+        "notes": [
+          "source_not_read为宿主首次证据校验失败；被拒绝的final仍有可支持的谨慎论点，tests完成度仍为false。",
+          "本样本没有经复核可纳入确定问题召回的tests预标注；不得给出0/0或凭空补造确定漏测。"
+        ]
+      },
+      "cross_track": [],
+      "notes": [
+        "关键事后纠偏：已知运行身份不匹配，并非确定选择漏测；原预标注文件未改动。"
+      ],
+      "observability": {
+        "model_turns": 14,
+        "tool_request_rounds": 7,
+        "requested_tools": 24,
+        "retained_evidence_records": 24
+      }
+    },
+    {
+      "id": "pr-475",
+      "repository": "HYGON-AI/sglang-das",
+      "head_sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+      "base_sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+      "sources": [
+        {
+          "role": "input",
+          "path": "inputs/pr-475.json",
+          "sha256": "e8a3cea6fc83e416fce0f282264e41ed428a44426a3649c47fb15a6075020bed"
+        },
+        {
+          "role": "labels",
+          "path": "labels/pr-475.json",
+          "sha256": "752985fd64490e1591ceddb0628edb93ff020786ef44c7131d07d27a5a3755e1"
+        },
+        {
+          "role": "first_run",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/status.json",
+          "sha256": "f92845a7aec095ece7c38e75a4c2851607c6e726d66fd852a1ac4a9a2bb632cb"
+        },
+        {
+          "role": "code_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/code-review.json",
+          "sha256": "84daca304778dd582d46bb5de910f41f6983c4ea262339bf7969cbc796cb2b27"
+        },
+        {
+          "role": "test_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/test-review.json",
+          "sha256": "3123466711b689f21fc9b8c791c46f5536435d6085d5c81ab126c524d851f846"
+        },
+        {
+          "role": "evidence",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/evidence-index.json",
+          "sha256": "4046eec8288fc1fe65b6c188de89920a8211fd9d5e3b17a91928f0c160e9b9b0"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-001.json",
+          "sha256": "d8a5371ec645a8f2160e15f97d4556d819f5d648428c74843f4859a83498c8fb"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-002.json",
+          "sha256": "92798ff2fbc5e43f198f02d913f66074d7df7d94c31faec4f25f676c025dc866"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-003.json",
+          "sha256": "8002b5df46bb81e295548e3e2eab5da62192295c2ec0ba4db1b9ea7d76f18e2c"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-004.json",
+          "sha256": "14ae67224647087772e9346ff549376e45a223185094d38cdd4cc50593d850ba"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-005.json",
+          "sha256": "f47d39d12fafb40d396deefb2eed85227d95c127f0eadb1736db466305fe2d01"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-006.json",
+          "sha256": "19150c0db8b795425185436aeaf40e2b18b536d4d723c65488d45911d75712ac"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-007.json",
+          "sha256": "ed3038ae4e9e42d0f7dd4969d4bb43b511af8d38ccadb933d3df0c7f9a81b774"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-008.json",
+          "sha256": "311cc6b5b66e708b725a948adba80493de98da5b1d3ecb0bf9ac3947224bfd76"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-009.json",
+          "sha256": "aaf9cceef219b7dcd947ed5bd10f427b612899d83cdc7880da89d2a93f485467"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-010.json",
+          "sha256": "4e59c2d298a273e76610a41621065fc68e53e6c231dbac4e9620873a019c56be"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-011.json",
+          "sha256": "f7b6d797fb27766ee94c78ddb7c10ed8e14fad70261422d6747f30e488e7688f"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-012.json",
+          "sha256": "51ca2da6178bdbcc31803e3a4290607d4348a00eb52c8d6f6d80567800851479"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-013.json",
+          "sha256": "3edc485f228634053462771ceb6885ef1d6acc8afdb4740b912a7c168f0ddd63"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-014.json",
+          "sha256": "e28168f31569a6c4c2af754b7fa185c4e642e3d08dcf55b8ea69ddeb2f7f1197"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-015.json",
+          "sha256": "d0a9f941d7d4c2e1414909e5189de42bc4fd69e1db1092061aba7a31144471a9"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-016.json",
+          "sha256": "4372863355258017428c5c32ec8ee4c43e3f74e3733767e2721dabbfa42cd98a"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-017.json",
+          "sha256": "4b1dc9d6db44cdf1df941fd1129d3073e54580b9fca94934b8ec156af9fce988"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-018.json",
+          "sha256": "5c94be8103444645ea53a5cfc2ab1683a935fa9e8ecbeeeb46bd729f0453854d"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-019.json",
+          "sha256": "afb0d51a7576b56097c28e136e5c0075c2642c7295858034a8b5f8c2ac623571"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-020.json",
+          "sha256": "d38b61cbc65bb80e08c69574e0d548d0c829f49fef4efefa275cbcb647bdf7da"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-021.json",
+          "sha256": "8a97a18503a41a34b0c19d9c25b457c77076adea0358e6add892ee74c5194d16"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-022.json",
+          "sha256": "dde4b5e5e4634601fe6b243661163173115281fc25919aae978bb5443c8a4683"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-023.json",
+          "sha256": "41ea40a7b44c34232da2e6b5ed3e6dcf02008c7888ee40c8ab9f774337e7c171"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-024.json",
+          "sha256": "f42d53a4ca9ed88ca6c732e5297aeb3d6faa96eeed6db601fe5db38bdcbf7bd2"
+        },
+        {
+          "role": "model_output",
+          "path": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-025.json",
+          "sha256": "e814346c3df52c8d54e45629d93d1f21545055e11ed36d0e65fce89b65533478"
+        }
+      ],
+      "code": {
+        "status": "partial",
+        "completed": false,
+        "findings": [],
+        "expected": [],
+        "excluded_labels": [
+          {
+            "id": "475-code-explicit-guards",
+            "reason": "明确guard及局部回退是supported标签，不是待报告代码缺陷；不能以空findings认定31文件整体正确。"
+          }
+        ],
+        "notes": [
+          "本轮仅使用821fca93对应冻结新版，未以原pr-475旧快照替代。"
+        ]
+      },
+      "tests": {
+        "status": "incomplete",
+        "completed": false,
+        "final_submitted": true,
+        "analysis_source": "first-runs/pr-475/pr-dry-run-99STpQ/model-replies/reply-025.json#/result",
+        "host_diagnostic": {
+          "stage": "evidence",
+          "code": "source_not_read"
+        },
+        "findings": [
+          {
+            "id": "F_CI",
+            "kind": "evidence_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "冻结run37740760621为queued、Validate HCU config job113191452216为queued，wheel与Quality Gate亦未完成；成功的PR状态更新并非功能验证。该条将执行记not_verified且不声称通过/失败，符合冻结事实。没有发现定位行号。"
+          },
+          {
+            "id": "F_H16",
+            "kind": "coverage_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "test_hcu_flashmla_decode_h16.py:49-67用替身op和元数据函数，96-107只调用抽取的选择函数；memory测试160-188以mock记录同步/清缓存顺序，190-202只搜清理调用字符串。它们确有局部断言，但没有执行真实H16内核或capture/replay输出比较。finding限定于这一行为层，未误称测试全无价值；原条目无定位行号。"
+          },
+          {
+            "id": "F_SYNC",
+            "kind": "coverage_gap",
+            "judgment": "supported",
+            "location": "unknown",
+            "reason": "test_hcu_eagle_verify_sync.py:37-83全部是ast.parse/unparse后的字符串、次数、文本顺序断言，没有实际tensor别名写入、buffer边界或多rank广播后状态断言。AST可检测若干直接文本改错，但无法证明真实共享存储与collective效果；finding的核心缺口成立。原条目没有行号。"
+          }
+        ],
+        "expected": [
+          {
+            "id": "475-tests-ast-does-not-prove-runtime",
+            "outcome": "detected",
+            "reason": "F_H16与F_SYNC清楚识别真实H16/图重放及EAGLE packed-buffer/跨rank同步只获mock或AST保护；B_MOE、B_EAGLE也说明LightOp ABI和joint采样语义尚未被这些断言验证。已覆盖预标注核心风险，不因未把每个子项独立列finding而判漏报。"
+          },
+          {
+            "id": "475-tests-new-hcu-files-filtered-out",
+            "outcome": "missed",
+            "reason": "复核10个新增文件均注册stage-b-test-1-hcu-small，但pr-test-hcu.yml:749-805的required命令include-file白名单没有它们；run_suite.py:527-532先按suite收集再按382-400取白名单交集，两个flow用例也不间接调用这些新测试。首次分析只称selection unknown、workflow读取受拒绝，未识别这一具体白名单排除，因此不算召回。结论限定该静态required命令，不外推全部外部CI。"
+          },
+          {
+            "id": "475-ci-still-in-progress",
+            "outcome": "unknown",
+            "observed_in_output": true,
+            "reason": "首次分析与冻结新版CI均明确尚未完成，F_CI合理保留未知。仍未取得本次回归通过/失败的逐测例结论，不计确定问题召回。"
+          }
+        ],
+        "excluded_labels": [
+          {
+            "id": "475-tests-local-assertions-supported",
+            "reason": "这是有效局部断言的supported标签，不是覆盖缺口。CP scale测试确实调用生产helper并检查数值切片、identity恢复、stride；首次分析也承认这些局部断言，不能将其计入缺陷召回。"
+          }
+        ],
+        "unknown_expectations": [
+          {
+            "id": "475-ci-still-in-progress",
+            "outcome": "unknown",
+            "observed_in_output": true,
+            "reason": "首次分析与冻结新版CI均明确尚未完成，F_CI合理保留未知。仍未取得本次回归通过/失败的逐测例结论，不计确定问题召回。"
+          }
+        ],
+        "notes": [
+          "首次source_not_read校验拒绝与内容评价分开；不能以本文件的事后源码核验补齐首次证据或把completed改成true。"
+        ]
+      },
+      "cross_track": [],
+      "notes": [
+        "首次 overall=partial；只采用pr-475-captured及匹配SHA的冻结fixture。"
+      ],
+      "observability": {
+        "model_turns": 25,
+        "tool_request_rounds": 10,
+        "requested_tools": 24,
+        "retained_evidence_records": 24
+      }
+    }
+  ]
+}

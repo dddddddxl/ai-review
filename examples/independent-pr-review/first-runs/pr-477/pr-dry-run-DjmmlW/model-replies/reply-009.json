@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","revision":"3b7049f294910ae75265c5dc66d2a93798460afc","path":"test/registered/hcu/spec/eagle/bw1100/test_qwen3_30b_eagle_dp_smoke_hcu.py","start":1,"end":90}]}

@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","path":"scripts/ci/hcu/test_hcu_build_alignment.py","start":201},{"tool":"search_code","query":"test_hcu_build_alignment","prefix":".github/"},{"tool":"read_file","path":".github/workflows/nightly-test-hcu.yml","start":640},{"tool":"read_file","path":"test/registered/hcu/interface/test_hcu_smoke.py"}]}

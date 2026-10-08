@@ -1,0 +1,1 @@
+{"action":"tools","requests":[{"tool":"read_file","revision":"e885e7223180a8ddc2c9aa753a4c884cfc9ba72c","path":".github/workflows/pr-test-hcu.yml","start":662,"end":780},{"tool":"read_file","path":"test/registered/hcu/large_models/bw1100/test_glm51_cookbook_8gpu_server_hcu.py","start":1},{"tool":"read_file","path":"test/registered/models_e2e/test_dsa_glm52_dp_mtp.py","start":1}]}

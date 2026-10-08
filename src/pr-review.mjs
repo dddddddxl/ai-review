@@ -2,7 +2,7 @@ import { PR_INSTRUCTIONS, PR_VERIFICATION_INSTRUCTIONS, decodePrReview, renderPr
 import { digest } from './review-state.mjs';
 import { reviewErrorCode, reviewFailureLabel } from './review-errors.mjs';
 import { prDescriptionContext, repositoryContextForBatch } from './pr-context.mjs';
-import { createEvidenceBudget, evidenceLoop } from './review-evidence.mjs';
+import { createEvidenceBudget, evidenceBudgetState, restoreEvidenceBudget, evidenceLoop } from './review-evidence.mjs';
 import { relatedGroups, rulesFor, sealManifest, finalizeManifest, locateFinding, filterReviewFiles } from './review-planning.mjs';
 
 const ignored = /(?:^|\/)(?:node_modules|vendor|dist|build)\/|\.(?:png|jpe?g|gif|webp|ico|pdf|zip|tar|gz|7z|lock)$/i;
@@ -143,12 +143,13 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     budget.characters += JSON.stringify(saved.evidence).length;
     for (const e of saved.evidence) if (e.status !== 'available' || e.truncated) budget.limitations.push(`${e.id}: 缓存取证不可用或截断`);
   }
+  if (enhancement && saved) restoreEvidenceBudget(budget, saved.evidenceBudget);
   const results = plan.batches.map((_, i) => saved?.results?.[i] || null);
   let attempted = 0, cancelled = false;
   let saveChain = Promise.resolve();
   const persist = () => {
     saveChain = saveChain.then(async () => { if (state) await state.write(key, { results, updatedAt: Date.now(), repository, pullNumber, baseSha, headSha,
-      ...(enhancement ? { manifest: finalizeManifest(sealed, results, budget.limitations), evidence: budget.records } : {}) }); });
+      ...(enhancement ? { manifest: finalizeManifest(sealed, results, budget.limitations), evidence: budget.records, evidenceBudget: evidenceBudgetState(budget) } : {}) }); });
     return saveChain;
   };
   const render = (running = false) => {

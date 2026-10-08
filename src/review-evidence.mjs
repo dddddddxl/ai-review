@@ -74,7 +74,11 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
       if (!revisions.has(revision)) throw new Error('revision_out_of_scope');
       const origin = { revision, tool: request.tool };
       if (request.tool === 'read_file') {
-        const content = await rawFile(revision, request.path); const lines = content.split('\n');
+        const content = await rawFile(revision, request.path);
+        // A terminal line separator does not create another source line. Keep
+        // ranges compatible with the validator's Python str.splitlines().
+        const lines = content ? content.split(/\r\n|[\n\r\v\f\x1c-\x1e\u0085\u2028\u2029]/) : [];
+        if (lines.at(-1) === '') lines.pop();
         const start = request.start ?? 1, end = request.end ?? Math.min(lines.length, start + 199);
         if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || end > lines.length || end - start >= 200) throw new Error('line_range_invalid');
         const excerpt = lines.slice(start - 1, end).join('\n');
@@ -124,7 +128,34 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
 }
 
 export function createEvidenceBudget({ maxTools = 24, maxRounds = 8, maxDurationMs = 180000, maxCharacters = 120000 } = {}) {
-  return { maxTools, maxRounds, maxDurationMs, maxCharacters, started: Date.now(), calls: 0, characters: 0, records: [], limitations: [] };
+  return { maxTools, maxRounds, maxDurationMs, maxCharacters, started: Date.now(), calls: 0, characters: 0, records: [], limitations: [], exhaustedReason: null };
+}
+export function evidenceBudgetState(budget) {
+  const reason = budget.exhaustedReason || (budget.calls >= budget.maxTools ? 'evidence_tool_budget' :
+    budget.characters >= budget.maxCharacters ? 'evidence_character_budget' : null);
+  return { calls: budget.calls, characters: budget.characters, limits: { tools: budget.maxTools, characters: budget.maxCharacters,
+    rounds_per_stage: budget.maxRounds, duration_ms: budget.maxDurationMs }, exhausted: Boolean(reason), reason,
+    limitations: [...budget.limitations] };
+}
+export function restoreEvidenceBudget(budget, saved) {
+  if (saved === undefined) return; // Existing caches predate explicit budget state.
+  const count = n => Number.isSafeInteger(n) && n >= 0;
+  const valid = saved && count(saved.calls) && count(saved.characters) && typeof saved.exhausted === 'boolean' &&
+    (saved.reason === null || ['evidence_tool_budget', 'evidence_character_budget'].includes(saved.reason)) && saved.exhausted === Boolean(saved.reason) &&
+    saved.limits && ['tools', 'characters', 'rounds_per_stage', 'duration_ms'].every(k => Number.isSafeInteger(saved.limits[k]) && saved.limits[k] > 0) &&
+    (saved.exhausted || (saved.calls < saved.limits.tools && saved.characters < saved.limits.characters)) &&
+    Array.isArray(saved.limitations) && saved.limitations.every(v => typeof v === 'string');
+  if (count(saved?.calls)) budget.calls = Math.max(budget.calls, saved.calls);
+  if (count(saved?.characters)) budget.characters = Math.max(budget.characters, saved.characters);
+  if (!valid) {
+    budget.exhaustedReason ||= 'evidence_tool_budget';
+    budget.limitations.push('缓存取证预算状态无效；不恢复额外预算，不能声称完整覆盖');
+    return;
+  }
+  if (saved.exhausted) budget.exhaustedReason ||= saved.reason;
+  for (const limitation of saved.limitations) if (!budget.limitations.includes(limitation)) budget.limitations.push(limitation);
+  if (budget.exhaustedReason && !budget.limitations.length) budget.limitations.push('缓存取证预算已耗尽，不能声称完整覆盖');
+  // Current limits and timer are never replaced by cached limits or timestamps.
 }
 export const TOOL_PROTOCOL = `只返回 JSON：取证时 {"action":"tools","requests":[{"tool":"read_file|find_files|search_code|read_diff|read_ci|read_artifact","revision":"完整SHA","path":"相对路径","query":"字面关键词","prefix":"字面路径前缀","start":1}]}；仅填写所选工具需要的参数。完成时 {"action":"final","result":任务要求的JSON对象}。每轮最多8个请求，总工具次数与共享时间由宿主预算限制，不得自行扩大。
 read_file：start/end是1起始的整数闭区间，start默认1；必须1 <= start <= end <= 文件实际总行数（EOF），end-start+1 <= 200。未知EOF时省略end，宿主默认min(实际总行数, start+199)，不要猜一个超过EOF的end；需要续读时按返回end安排下一段。单文件上限512 KiB，单次内容上限16000字符，截断会明确标记。revision省略时为head，只能使用给定base/head/diff_base的完整SHA；path是仓库内相对路径，不能含..、绝对路径或反斜杠。
@@ -141,17 +172,35 @@ export function deniedToolResult(error, request) {
 }
 export async function evidenceLoop({ client, provider, budget, instructions, input, isCurrent = async () => true, maxOutputTokens = 8000 }) {
   let transcript = '';
+  const exhausted = () => budget.exhaustedReason || (budget.calls >= budget.maxTools ? 'evidence_tool_budget' :
+    budget.characters >= budget.maxCharacters ? 'evidence_character_budget' : null);
+  const noteExhausted = reason => {
+    budget.exhaustedReason ||= reason;
+    const limitation = `${reason}: 取证预算耗尽，仅可基于已取得证据收尾，不能声称完整覆盖`;
+    if (!budget.limitations.includes(limitation)) budget.limitations.push(limitation);
+  };
   for (let round = 0; round < budget.maxRounds; round++) {
     if (!await isCurrent()) throw new Error('stale_review');
     const remaining = budget.maxDurationMs - (Date.now() - budget.started);
     if (remaining <= 0) throw new Error('evidence_time_budget');
-    const text = await client.generateReview({ instructions: `${instructions}\n${TOOL_PROTOCOL}`, input: `${input}\n<tool_evidence>\n${transcript}\n</tool_evidence>`, maxOutputTokens, timeoutMs: remaining, disableThinking: true });
+    const finalOnly = exhausted();
+    if (finalOnly) noteExhausted(finalOnly);
+    const finish = finalOnly ? `\nFINAL_ONLY：取证预算已耗尽（${finalOnly}）。这是唯一一次仅收尾机会，只允许返回 action=final 的完整任务JSON，不得再请求 tools。只使用已取得证据；未取得的证据、未核实行为和未覆盖项须明确标为未知/未完成，不得声称完整覆盖。` : '';
+    const text = await client.generateReview({ instructions: `${instructions}\n${TOOL_PROTOCOL}${finish}`, input: `${input}\n<tool_evidence>\n${transcript}\n</tool_evidence>`, maxOutputTokens, timeoutMs: remaining, disableThinking: true });
+    if (Date.now() - budget.started >= budget.maxDurationMs) throw new Error('evidence_time_budget');
     const decision = JSON.parse(text);
     if (decision.action === 'final' && decision.result && !Array.isArray(decision.result) && typeof decision.result === 'object') return decision.result;
+    // This request already consumed one of the existing maxRounds. Never make
+    // another model/tool call after a final-only refusal or malformed response.
+    if (finalOnly) throw new Error(finalOnly);
     if (decision.action !== 'tools' || !Array.isArray(decision.requests) || !decision.requests.length || decision.requests.length > 8) throw new Error('invalid_tool_protocol');
     for (const request of decision.requests) {
-      if (budget.calls >= budget.maxTools || budget.characters >= budget.maxCharacters) throw new Error('evidence_tool_budget');
       if (!await isCurrent()) throw new Error('stale_review');
+      if (Date.now() - budget.started >= budget.maxDurationMs) throw new Error('evidence_time_budget');
+      const reason = exhausted();
+      if (reason) { noteExhausted(reason); break; }
+      // No await between the shared-budget check and reservation: parallel
+      // review batches cannot both reserve the last available tool call.
       const callNumber = ++budget.calls;
       let result;
       try { result = { status: 'available', ...await provider.execute(request) }; }
@@ -159,9 +208,15 @@ export async function evidenceLoop({ client, provider, budget, instructions, inp
       const entry = { id: `E${callNumber}`, ...result };
       if (result.status === 'unavailable' || result.truncated) budget.limitations.push(`${entry.id}: 取证不可用或截断，不能声称完整覆盖`);
       const serialized = JSON.stringify(entry);
-      if (budget.characters + serialized.length > budget.maxCharacters) throw new Error('evidence_character_budget');
+      if (budget.characters + serialized.length > budget.maxCharacters) {
+        noteExhausted('evidence_character_budget');
+        // Keep prior records/transcript intact; the oversized result is never
+        // appended to either storage or the final-only model input.
+        break;
+      }
       budget.characters += serialized.length; budget.records.push(entry); transcript += serialized + '\n';
     }
+    if (exhausted()) noteExhausted(exhausted());
   }
   throw new Error('evidence_round_budget');
 }

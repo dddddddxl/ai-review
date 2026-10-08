@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "sample_id": "pr-467",
+  "repository": "HYGON-AI/sglang-das",
+  "head_sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+  "base_sha": "258ba9c1601a92f86b09e644a7a2c6953569ecb0",
+  "input_sha256": "d5df5a850c71062bed912904ee0d5fbf01deb1e5b10ff99c5b8093db39538246",
+  "input_path": "../inputs/pr-467.json",
+  "label_origin": "independent_agent_not_human",
+  "labels": [
+    {
+      "id": "467-code-local-global-index",
+      "track": "code",
+      "kind": "supported",
+      "certainty": "confirmed",
+      "description": "fallback 现在以每行局部列号屏蔽 compress_lens 以外的列，并在选中后加 ks 映射至 flattened KV；此索引约定与同文件 row-local logits、下游 k_slots 和 raw_indices 的转换一致。",
+      "evidence": [
+        {
+          "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+          "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+          "start": 395,
+          "end": 397
+        },
+        {
+          "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+          "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+          "start": 3374,
+          "end": 3395
+        },
+        {
+          "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+          "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+          "start": 3415,
+          "end": 3446
+        },
+        {
+          "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+          "path": "python/sglang/kernels/ops/attention/dsv4/topk.py",
+          "start": 158,
+          "end": 181
+        }
+      ],
+      "reason": "原 ks 是请求在展平 KV 中的起点，不应直接作为紧凑 logits 的列起点。新 torch 路径匹配 CUDA 调用 row_starts=None、out_offsets=ks 的局部/全局映射；尚未确认新增缺陷。该静态一致性不是第三方 LightOp 实际输出布局的运行证明。"
+    },
+    {
+      "id": "467-tests-bypass-not-covered",
+      "track": "tests",
+      "kind": "coverage_gap",
+      "certainty": "confirmed",
+      "description": "现有 ragged top-k 测试有多请求偏移、边界和 -inf assertion，但直接调用 topk_transform_ragged_v2；本 PR 在 HCU 上绕过的正是该函数，因此这些测试不能验证新增 torch fallback 及其 k_slots/raw_indices 集成。",
+      "evidence": [
+        {
+          "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+          "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+          "start": 34,
+          "end": 42
+        },
+        {
+          "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+          "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+          "start": 318,
+          "end": 389
+        },
+        {
+          "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+          "path": "test/registered/kernels/ops/attention/test_topk_v2.py",
+          "start": 430,
+          "end": 465
+        },
+        {
+          "sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c",
+          "path": "python/sglang/srt/layers/attention/deepseek_v4_backend.py",
+          "start": 3417,
+          "end": 3446
+        }
+      ],
+      "reason": "测试对 fused kernel 的数值/索引 assertion 有效，但生产 HCU 改走未被该用例调用的分支。PR 没有测试变更，test/ 搜索未找到 _low_ratio_index_topk_dense 的直接测试；不能把 CUDA/AMD 注册推断为 HCU fallback 已验证。"
+    },
+    {
+      "id": "467-ci-incomplete-runtime-evidence",
+      "track": "tests",
+      "kind": "evidence_gap",
+      "certainty": "unknown",
+      "description": "固定 head 的 wheel compile/wait 失败、HCU smoke/Stage B 被取消；capture 无法证明 TP8 normal/LayerSplit fallback 的实际执行或数值通过。",
+      "evidence": [
+        {
+          "path": "../inputs/pr-467.json",
+          "json_pointer": "/snapshot/checks",
+          "check_ids": [
+            109778022011,
+            109778583416,
+            109797115197,
+            109797116292
+          ],
+          "head_sha": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c"
+        },
+        {
+          "path": "../inputs/pr-467.json",
+          "json_pointer": "/snapshot/runs",
+          "run_ids": [
+            36681595281,
+            36681595245
+          ]
+        },
+        {
+          "path": "../inputs/pr-467.json",
+          "json_pointer": "/artifacts"
+        }
+      ],
+      "reason": "取消/前置构建失败不证明算法错误，merge状态也不能替代场景证据。需要匹配 head 的具体运行、模型/TP参数和 assertion 才能消除 unknown。"
+    }
+  ],
+  "reviewed_scope": {
+    "code": [
+      "完整单文件diff",
+      "_low_ratio_index_topk_dense全方法、logits wrapper及候选mask消费者",
+      "topk_transform_ragged_v2接口契约",
+      "mask_topk_scores局部/全局偏移处理"
+    ],
+    "tests": [
+      "test_topk_v2.py ragged多offset、边界、-inf和no-row-starts断言",
+      "全test目录目标函数/关键算子搜索"
+    ],
+    "ci": [
+      "fixture固定head checks/runs/job概要；未读取PR正文artifact"
+    ]
+  },
+  "limitations": [
+    "未执行任何目标代码、测试或GPU",
+    "未安装或验证外部LightOp内核实现",
+    "静态覆盖不是无缺陷证明；没有确认新增defect",
+    "未读取其他reviewer输出或PR评论"
+  ],
+  "frozen_at": "2026-10-08 07:14:27 UTC"
+}

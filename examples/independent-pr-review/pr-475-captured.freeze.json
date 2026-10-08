@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "supersedes_sample_sha_only": "cbb0073c5e5c943a01050d5f9e297822fe919570",
+  "original_freeze_preserved": true,
+  "repository": "https://github.com/HYGON-AI/sglang-das",
+  "verified_at": "2026-10-08T07:19:49.463Z",
+  "fixture": "inputs/pr-475.json",
+  "fixture_sha256": "e8a3cea6fc83e416fce0f282264e41ed428a44426a3649c47fb15a6075020bed",
+  "checkout": "<LOCAL_PATH>",
+  "head_sha": "821fca935ddf628fb26eaf99cfa9592835006b0a",
+  "base_sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+  "merge_base_sha": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c",
+  "head_tree_sha": "13b42ff86b30e78e357f3132a2523fa63ea10da2",
+  "base_tree_sha": "469913280cc151c96671b30f9bfbd9095c96bbd5",
+  "diff_sha256": "f02e63f3e96941bad53f0dc604c415211fb6427770902e97e7489214de859543",
+  "clean": true,
+  "verified": true,
+  "source_method": "Fetched exact real GitHub commit SHA using existing local proxy only for this command; detached worktree in independent bare repository; real shallow ancestry, no constructed commits.",
+  "per_file": [
+    {
+      "path": "python/sglang/srt/distributed/device_communicators/custom_all_reduce.py",
+      "git_blob_sha": "48e7281f3596e4df140ce5ab6403525a1afc9c88",
+      "api_additions": 22,
+      "api_deletions": 2,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/distributed/device_communicators/triton_symm_mem_ag.py",
+      "git_blob_sha": "dfcab03f49675537b699c03786bc34678e48af73",
+      "api_additions": 10,
+      "api_deletions": 1,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/environ.py",
+      "git_blob_sha": "214fa7c15d134deeb650d0e63a3adba58a4d14c1",
+      "api_additions": 4,
+      "api_deletions": 2,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/layers/attention/dsa/dsa_topk_backend.py",
+      "git_blob_sha": "ed4c8dec7036f0397b618991a2fbe3e74fe093c8",
+      "api_additions": 25,
+      "api_deletions": 4,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/layers/attention/dsa/utils.py",
+      "git_blob_sha": "29b46a7143fb81c2969a87fcfbbbc50c18f8eab0",
+      "api_additions": 19,
+      "api_deletions": 3,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/layers/attention/dsa_backend.py",
+      "git_blob_sha": "b99f1a3422503275d4eec882efd6a262ad566c73",
+      "api_additions": 109,
+      "api_deletions": 6,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/layers/cp/cp_decode_attn_tp.py",
+      "git_blob_sha": "1cc27995b095ae19512230c3d0061eb635e56845",
+      "api_additions": 95,
+      "api_deletions": 13,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/layers/cp/interleave.py",
+      "git_blob_sha": "80f2e84787479135cfa22aabdc2ec2abe0195cef",
+      "api_additions": 17,
+      "api_deletions": 2,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/layers/cp/utils.py",
+      "git_blob_sha": "66c9bbac7f9c9d6fbd18c87af0d325472632db6d",
+      "api_additions": 24,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/layers/moe/moe_runner/triton_utils/moe_align_block_size.py",
+      "git_blob_sha": "8863d0e24ffe2f8b49c4069314c9759e310d78bd",
+      "api_additions": 1,
+      "api_deletions": 1,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/layers/quantization/compressed_tensors/schemes/compressed_tensors_w8a8_fp8_moe.py",
+      "git_blob_sha": "83708227ea07d7604f7a5add56f2d1482de3c821",
+      "api_additions": 29,
+      "api_deletions": 4,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/model_executor/forward_batch_info.py",
+      "git_blob_sha": "c131c76a846b9f5780d332adf8664d8194eaaae5",
+      "api_additions": 5,
+      "api_deletions": 1,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/model_executor/model_runner_components/cuda_graph_setup.py",
+      "git_blob_sha": "30edf83cd5eed6e2ddfaf375f994ce3ee40ecb0d",
+      "api_additions": 29,
+      "api_deletions": 1,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/server_args.py",
+      "git_blob_sha": "5c51d0dc3aa8e54aa74d5a1b6f377ba67c61efe1",
+      "api_additions": 64,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/speculative/eagle_utils.py",
+      "git_blob_sha": "38b6c7d67f0433005d885bbf5015ec5839be4aec",
+      "api_additions": 64,
+      "api_deletions": 40,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/speculative/eagle_worker_v2.py",
+      "git_blob_sha": "c0f34a21a04f9c34f05317466e19b120e9a9e374",
+      "api_additions": 14,
+      "api_deletions": 3,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/speculative/frozen_kv_mtp_worker_v2.py",
+      "git_blob_sha": "51fe68f2aff0b308c0bf205deab4651e1cc883f6",
+      "api_additions": 7,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "python/sglang/srt/speculative/multi_layer_eagle_worker_v2.py",
+      "git_blob_sha": "4580f94eb4f182de93ed229862acc26ba63a864f",
+      "api_additions": 8,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_cp_decode_attn_tp_scale.py",
+      "git_blob_sha": "b827106d6411bb7604359c07878f1748bb4404d7",
+      "api_additions": 148,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_dsa_cp_alignment.py",
+      "git_blob_sha": "74a052cf51311e4a5af00639012034e3e9495e90",
+      "api_additions": 79,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_eagle_sampling_compat.py",
+      "git_blob_sha": "dfee6b67b026f802568534a59603f5f57a6c78a1",
+      "api_additions": 50,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_eagle_verify_sync.py",
+      "git_blob_sha": "d228487b3a8c1e523f50f8e2b19181798317896c",
+      "api_additions": 87,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_flashmla_decode_h16.py",
+      "git_blob_sha": "6f497f8a7ba86abe88401a837d4d0b3bc517014c",
+      "api_additions": 128,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_flashmla_decode_h16_memory.py",
+      "git_blob_sha": "ef8472e93ae4c71e712ce3c597b65c614edecf27",
+      "api_additions": 206,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_lightop_moe_routing_api.py",
+      "git_blob_sha": "5e01e07f4315e734c4a2cfb22f499e4c941b39e4",
+      "api_additions": 71,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_multimem_all_gather_guard.py",
+      "git_blob_sha": "d4826f8d877d6bd09ebd39a26825640edff8f17d",
+      "api_additions": 94,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_speculative_w8a8_moe_backend.py",
+      "git_blob_sha": "6310dff2c4662ada866f2cab68d7a66dbd4f3f53",
+      "api_additions": 99,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/hcu/unit/test_hcu_topk_v2_ragged_stride.py",
+      "git_blob_sha": "3a8e26438b1c96d1c907cceb1292e611571adf67",
+      "api_additions": 141,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/unit/distributed/test_aiter_custom_all_reduce_config.py",
+      "git_blob_sha": "34cd2e5cb2f7804f593f130adae2d4058b9c143e",
+      "api_additions": 23,
+      "api_deletions": 0,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/unit/layers/test_dp_attention_cp.py",
+      "git_blob_sha": "2690828c6aced0265cd57954d84ffab2bb60fb78",
+      "api_additions": 91,
+      "api_deletions": 1,
+      "stats_match": true
+    },
+    {
+      "path": "test/registered/unit/spec/test_eagle_worker_v2_topk1_fastpath.py",
+      "git_blob_sha": "df204c326ecc31d32025d0ed804fd62b2dfec189",
+      "api_additions": 35,
+      "api_deletions": 2,
+      "stats_match": true
+    }
+  ]
+}

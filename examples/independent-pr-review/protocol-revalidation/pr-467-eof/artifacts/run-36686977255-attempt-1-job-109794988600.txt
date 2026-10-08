@@ -1,0 +1,123 @@
+来源：/repos/HYGON-AI/sglang-das/actions/jobs/109794988600/logs
+run=36686977255; attempt=1; job=109794988600; head_sha=41dc6cae2d23a40ecf600a89e72e173bd6a4366c
+截断：false
+2026-09-30T07:59:59.6484204Z Current runner version: '2.337.0'
+2026-09-30T07:59:59.6519654Z ##[group]Runner Image Provisioner
+2026-09-30T07:59:59.6521379Z Hosted Compute Agent
+2026-09-30T07:59:59.6522364Z Version: 20260828.587
+2026-09-30T07:59:59.6523479Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-30T07:59:59.6525053Z Build Date: 2026-08-28T16:44:25Z
+2026-09-30T07:59:59.6526235Z Worker ID: {c1663c85-2e9e-4742-a05f-3e57b802e9aa}
+2026-09-30T07:59:59.6527481Z Azure Region: eastus
+2026-09-30T07:59:59.6528374Z ##[endgroup]
+2026-09-30T07:59:59.6530944Z ##[group]Operating System
+2026-09-30T07:59:59.6531996Z Ubuntu
+2026-09-30T07:59:59.6532841Z 24.04.5
+2026-09-30T07:59:59.6533763Z LTS
+2026-09-30T07:59:59.6534881Z ##[endgroup]
+2026-09-30T07:59:59.6535841Z ##[group]Runner Image
+2026-09-30T07:59:59.6536915Z Image: ubuntu-24.04
+2026-09-30T07:59:59.6537821Z Version: 20260920.314.1
+2026-09-30T07:59:59.6540089Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260920.314/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-30T07:59:59.6542894Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260920.314
+2026-09-30T07:59:59.6544933Z ##[endgroup]
+2026-09-30T07:59:59.6546864Z ##[group]GITHUB_TOKEN Permissions
+2026-09-30T07:59:59.6549820Z Actions: write
+2026-09-30T07:59:59.6550929Z Metadata: read
+2026-09-30T07:59:59.6551859Z ##[endgroup]
+2026-09-30T07:59:59.6555339Z Secret source: Actions
+2026-09-30T07:59:59.6556858Z Cache mode: read
+2026-09-30T07:59:59.6557986Z Prepare workflow directory
+2026-09-30T07:59:59.7048222Z Prepare all required actions
+2026-09-30T07:59:59.7206271Z Complete job name: cancel
+2026-09-30T07:59:59.8511689Z ##[group]Run set -euo pipefail
+2026-09-30T07:59:59.8512914Z [36;1mset -euo pipefail[0m
+2026-09-30T07:59:59.8513829Z [36;1m[0m
+2026-09-30T07:59:59.8514940Z [36;1mif [ -z "$HEAD_REPO_ID" ]; then[0m
+2026-09-30T07:59:59.8516440Z [36;1m  echo "Head repo no longer exists (fork deleted), nothing to match"[0m
+2026-09-30T07:59:59.8517815Z [36;1m  exit 0[0m
+2026-09-30T07:59:59.8518613Z [36;1mfi[0m
+2026-09-30T07:59:59.8519368Z [36;1m[0m
+2026-09-30T07:59:59.8520123Z [36;1mFAILURES=0[0m
+2026-09-30T07:59:59.8520964Z [36;1m[0m
+2026-09-30T07:59:59.8521964Z [36;1m# `branch=` matches run.head_branch, shared with same-named[0m
+2026-09-30T07:59:59.8523332Z [36;1m# branches of other forks -- filter by head repo id. Exclude this[0m
+2026-09-30T07:59:59.8524687Z [36;1m# run itself: pull_request_target runs also carry the head branch.[0m
+2026-09-30T07:59:59.8525961Z [36;1m# The status filter takes one value per request, so sweep every[0m
+2026-09-30T07:59:59.8526990Z [36;1m# non-terminal state (pending/waiting/action_required runs would[0m
+2026-09-30T07:59:59.8527923Z [36;1m# otherwise start after the PR is closed). Pass 2 catches runs[0m
+2026-09-30T07:59:59.8528731Z [36;1m# still materializing during pass 1.[0m
+2026-09-30T07:59:59.8529352Z [36;1mfor pass in 1 2; do[0m
+2026-09-30T07:59:59.8529870Z [36;1m  run_ids=""[0m
+2026-09-30T07:59:59.8530622Z [36;1m  for status in queued in_progress waiting pending requested action_required; do[0m
+2026-09-30T07:59:59.8531464Z [36;1m    ids=""[0m
+2026-09-30T07:59:59.8531953Z [36;1m    for attempt in 1 2 3; do[0m
+2026-09-30T07:59:59.8532628Z [36;1m      if ids=$(gh api -X GET "repos/$REPO/actions/runs" \[0m
+2026-09-30T07:59:59.8533339Z [36;1m        --paginate \[0m
+2026-09-30T07:59:59.8534210Z [36;1m        -f branch="$HEAD_BRANCH" \[0m
+2026-09-30T07:59:59.8535023Z [36;1m        -f status="$status" \[0m
+2026-09-30T07:59:59.8535652Z [36;1m        -F per_page=100 \[0m
+2026-09-30T07:59:59.8536247Z [36;1m        --jq ".workflow_runs[][0m
+2026-09-30T07:59:59.8537070Z [36;1m              | select(.head_repository.id == $HEAD_REPO_ID and .id != $GITHUB_RUN_ID)[0m
+2026-09-30T07:59:59.8537882Z [36;1m              | .id"); then[0m
+2026-09-30T07:59:59.8538431Z [36;1m        break[0m
+2026-09-30T07:59:59.8538897Z [36;1m      fi[0m
+2026-09-30T07:59:59.8539346Z [36;1m      ids=""[0m
+2026-09-30T07:59:59.8539853Z [36;1m      if [ "$attempt" -eq 3 ]; then[0m
+2026-09-30T07:59:59.8540909Z [36;1m        echo "::error::Listing $status runs failed after 3 attempts"[0m
+2026-09-30T07:59:59.8541626Z [36;1m        FAILURES=1[0m
+2026-09-30T07:59:59.8542120Z [36;1m      else[0m
+2026-09-30T07:59:59.8542581Z [36;1m        sleep 5[0m
+2026-09-30T07:59:59.8543060Z [36;1m      fi[0m
+2026-09-30T07:59:59.8543492Z [36;1m    done[0m
+2026-09-30T07:59:59.8544226Z [36;1m    run_ids="$run_ids"$'\n'"$ids"[0m
+2026-09-30T07:59:59.8545052Z [36;1m  done[0m
+2026-09-30T07:59:59.8545824Z [36;1m  run_ids=$(echo "$run_ids" | sed '/^$/d' | sort -u)[0m
+2026-09-30T07:59:59.8546469Z [36;1m[0m
+2026-09-30T07:59:59.8546906Z [36;1m  if [ -z "$run_ids" ]; then[0m
+2026-09-30T07:59:59.8547580Z [36;1m    echo "Pass $pass: no unfinished runs found"[0m
+2026-09-30T07:59:59.8548227Z [36;1m    break[0m
+2026-09-30T07:59:59.8548669Z [36;1m  fi[0m
+2026-09-30T07:59:59.8549319Z [36;1m  echo "Pass $pass: cancelling $(echo "$run_ids" | wc -l | tr -d ' ') run(s)"[0m
+2026-09-30T07:59:59.8550142Z [36;1m[0m
+2026-09-30T07:59:59.8550584Z [36;1m  for run_id in $run_ids; do[0m
+2026-09-30T07:59:59.8551325Z [36;1m    echo "Cancelling https://github.com/$REPO/actions/runs/$run_id"[0m
+2026-09-30T07:59:59.8552201Z [36;1m    if gh run cancel "$run_id" --repo "$REPO" 2>/dev/null; then[0m
+2026-09-30T07:59:59.8552949Z [36;1m      continue[0m
+2026-09-30T07:59:59.8553484Z [36;1m    fi[0m
+2026-09-30T07:59:59.8554499Z [36;1m    # Plain cancel fails for runs stuck behind approval /[0m
+2026-09-30T07:59:59.8555601Z [36;1m    # deployment protection rules; force-cancel handles those.[0m
+2026-09-30T07:59:59.8556646Z [36;1m    if gh api -X POST "repos/$REPO/actions/runs/$run_id/force-cancel" >/dev/null 2>&1; then[0m
+2026-09-30T07:59:59.8557515Z [36;1m      echo "  force-cancelled"[0m
+2026-09-30T07:59:59.8558074Z [36;1m      continue[0m
+2026-09-30T07:59:59.8558540Z [36;1m    fi[0m
+2026-09-30T07:59:59.8559088Z [36;1m    # Finished between listing and cancelling is fine.[0m
+2026-09-30T07:59:59.8560072Z [36;1m    state=$(gh api "repos/$REPO/actions/runs/$run_id" --jq '.status' 2>/dev/null || echo "unknown")[0m
+2026-09-30T07:59:59.8561001Z [36;1m    if [ "$state" = "completed" ]; then[0m
+2026-09-30T07:59:59.8561678Z [36;1m      echo "  already finished, nothing to cancel"[0m
+2026-09-30T07:59:59.8562309Z [36;1m    else[0m
+2026-09-30T07:59:59.8562914Z [36;1m      echo "::error::Failed to cancel run $run_id (status: $state)"[0m
+2026-09-30T07:59:59.8563647Z [36;1m      FAILURES=1[0m
+2026-09-30T07:59:59.8564423Z [36;1m    fi[0m
+2026-09-30T07:59:59.8564905Z [36;1m  done[0m
+2026-09-30T07:59:59.8565384Z [36;1m[0m
+2026-09-30T07:59:59.8565834Z [36;1m  if [ "$pass" -eq 1 ]; then[0m
+2026-09-30T07:59:59.8566390Z [36;1m    sleep 20[0m
+2026-09-30T07:59:59.8566853Z [36;1m  fi[0m
+2026-09-30T07:59:59.8567275Z [36;1mdone[0m
+2026-09-30T07:59:59.8567698Z [36;1m[0m
+2026-09-30T07:59:59.8568128Z [36;1mexit "$FAILURES"[0m
+2026-09-30T07:59:59.9690714Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-30T07:59:59.9691946Z env:
+2026-09-30T07:59:59.9697936Z   GH_TOKEN: ***
+2026-09-30T07:59:59.9698439Z   REPO: HYGON-AI/sglang-das
+2026-09-30T07:59:59.9698948Z   HEAD_BRANCH: DSV4.1_1M
+2026-09-30T07:59:59.9699439Z   HEAD_REPO_ID: 1373807891
+2026-09-30T07:59:59.9699930Z ##[endgroup]
+2026-09-30T08:00:03.9097834Z Pass 1: cancelling 1 run(s)
+2026-09-30T08:00:03.9100067Z Cancelling https://github.com/HYGON-AI/sglang-das/actions/runs/36681595281
+2026-09-30T08:00:04.7418370Z ✓ Request to cancel workflow 36681595281 submitted.
+2026-09-30T08:00:26.6191561Z Pass 2: cancelling 1 run(s)
+2026-09-30T08:00:26.6192513Z Cancelling https://github.com/HYGON-AI/sglang-das/actions/runs/36681595281
+2026-09-30T08:00:27.2086299Z ✓ Request to cancel workflow 36681595281 submitted.
+2026-09-30T08:00:27.2253017Z Cleaning up orphan processes

@@ -1,0 +1,12 @@
+{
+  "status": "partial",
+  "findings": [],
+  "overview": [
+    "HCU 上指定 GLM DSA 索引拓扑的 AITER IPC 通信改用图输入拷贝注册模式，并补充配置分支测试。",
+    "Multimem all-gather 仅在启用且为 CUDA 平台时进入初始化路径，增加平台保护测试。",
+    "Ragged TopK v2 增加 fp32、二维及行步长对齐门槛，HCU 的 paged v2 路由增加独立开关。",
+    "DSA 旧版轮转分片拒绝不整除的 token 数，注意力元数据仅允许已激活 CP-v2 的不均匀分片。"
+  ],
+  "findings_count": 0,
+  "report": "## AI Review\n\n审查尚未完整完成，无法给出整体结论；当前没有可发布的已确认问题，不代表代码没有问题。\n\n> 审查未完整完成：以 GitHub 返回的 PR diff 为主体，关联上下文仅用于核验，未运行代码。\n\n> 覆盖情况：共 31 个文件，已审查 31 个。"
+}
