@@ -12,3 +12,4 @@ secrets/
 *.zip
 review-state/
 examples/**/private-run/
+!examples/g4-wrapper-validation/artifacts/*.log

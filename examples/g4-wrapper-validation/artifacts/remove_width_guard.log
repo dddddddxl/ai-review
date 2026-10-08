@@ -1,0 +1,65 @@
+....                                                              [100%]
+=================================== FAILURES ===================================
+_ TestPersistentMQAWrapperContracts.test_rejects_nonpositive_width_before_jit (scenario_id='G4-width', width=-64) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_rejects_nonpositive_width_before_jit>
+
+    def test_rejects_nonpositive_width_before_jit(self):
+        for width in (-64, 0):
+            with self.subTest(scenario_id="G4-width", width=width):
+>               with self.assertRaisesRegex(ValueError, "positive 64-token width"):
+E               AssertionError: ValueError not raised
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:77: AssertionError
+_ TestPersistentMQAWrapperContracts.test_rejects_nonpositive_width_before_jit (scenario_id='G4-width', width=0) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_rejects_nonpositive_width_before_jit>
+
+    def test_rejects_nonpositive_width_before_jit(self):
+        for width in (-64, 0):
+            with self.subTest(scenario_id="G4-width", width=width):
+>               with self.assertRaisesRegex(ValueError, "positive 64-token width"):
+E               AssertionError: ValueError not raised
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:77: AssertionError
+_ TestPersistentMQAWrapperContracts.test_rejects_unaligned_width_before_jit (scenario_id='G4-width', width=1) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_rejects_unaligned_width_before_jit>
+
+    def test_rejects_unaligned_width_before_jit(self):
+        for width in (1, 63, 65):
+            with self.subTest(scenario_id="G4-width", width=width):
+>               with self.assertRaisesRegex(ValueError, "positive 64-token width"):
+E               AssertionError: ValueError not raised
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:85: AssertionError
+_ TestPersistentMQAWrapperContracts.test_rejects_unaligned_width_before_jit (scenario_id='G4-width', width=63) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_rejects_unaligned_width_before_jit>
+
+    def test_rejects_unaligned_width_before_jit(self):
+        for width in (1, 63, 65):
+            with self.subTest(scenario_id="G4-width", width=width):
+>               with self.assertRaisesRegex(ValueError, "positive 64-token width"):
+E               AssertionError: ValueError not raised
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:85: AssertionError
+_ TestPersistentMQAWrapperContracts.test_rejects_unaligned_width_before_jit (scenario_id='G4-width', width=65) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_rejects_unaligned_width_before_jit>
+
+    def test_rejects_unaligned_width_before_jit(self):
+        for width in (1, 63, 65):
+            with self.subTest(scenario_id="G4-width", width=width):
+>               with self.assertRaisesRegex(ValueError, "positive 64-token width"):
+E               AssertionError: ValueError not raised
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:85: AssertionError
+=========================== short test summary info ============================
+SUBFAILED(scenario_id='G4-width', width=-64) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_rejects_nonpositive_width_before_jit
+SUBFAILED(scenario_id='G4-width', width=0) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_rejects_nonpositive_width_before_jit
+SUBFAILED(scenario_id='G4-width', width=1) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit
+SUBFAILED(scenario_id='G4-width', width=63) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit
+SUBFAILED(scenario_id='G4-width', width=65) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit
+5 failed, 4 passed, 2 subtests passed in 1.01s
+

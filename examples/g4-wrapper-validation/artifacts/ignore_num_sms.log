@@ -1,0 +1,79 @@
+....                                                              [100%]
+=================================== FAILURES ===================================
+_ TestPersistentMQAWrapperContracts.test_forwards_4d_query_values_and_exact_arguments (scenario_id='G4-width', width=64) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_forwards_4d_query_values_and_exact_arguments>
+
+    def test_forwards_4d_query_values_and_exact_arguments(self):
+        for width in (64, 128):
+            with self.subTest(scenario_id="G4-width", width=width):
+                self.factory.reset_mock()
+                self.backend.persistent.reset_mock()
+                result = self._call(width, num_sms=17)
+                self.assertIs(result, sentinel.result)
+                self.factory.assert_called_once_with()
+                self.backend.persistent.assert_called_once()
+                args, kwargs = self.backend.persistent.call_args
+                self.assertEqual(kwargs, {})
+                self.assertEqual(len(args), 8)
+                self.assertEqual(tuple(args[0].shape), (2, 64, 128))
+                self.assertEqual(args[0].dtype, self.torch.int8)
+                self.assertEqual(args[0].device.type, "cpu")
+                self.assertTrue(self.torch.equal(args[0].flatten(), self.q.flatten()))
+                for got, original in zip(args[1:5], (self.kv, self.weights, self.lengths, self.pages)):
+                    self.assertIs(got, original)
+>               self.assertEqual(args[5:], (width, 17, 0))
+E               AssertionError: Tuples differ: (64, 320, 0) != (64, 17, 0)
+E               
+E               First differing element 1:
+E               320
+E               17
+E               
+E               - (64, 320, 0)
+E               ?      ^^^
+E               
+E               + (64, 17, 0)
+E               ?      ^^
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:108: AssertionError
+_ TestPersistentMQAWrapperContracts.test_forwards_4d_query_values_and_exact_arguments (scenario_id='G4-width', width=128) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_forwards_4d_query_values_and_exact_arguments>
+
+    def test_forwards_4d_query_values_and_exact_arguments(self):
+        for width in (64, 128):
+            with self.subTest(scenario_id="G4-width", width=width):
+                self.factory.reset_mock()
+                self.backend.persistent.reset_mock()
+                result = self._call(width, num_sms=17)
+                self.assertIs(result, sentinel.result)
+                self.factory.assert_called_once_with()
+                self.backend.persistent.assert_called_once()
+                args, kwargs = self.backend.persistent.call_args
+                self.assertEqual(kwargs, {})
+                self.assertEqual(len(args), 8)
+                self.assertEqual(tuple(args[0].shape), (2, 64, 128))
+                self.assertEqual(args[0].dtype, self.torch.int8)
+                self.assertEqual(args[0].device.type, "cpu")
+                self.assertTrue(self.torch.equal(args[0].flatten(), self.q.flatten()))
+                for got, original in zip(args[1:5], (self.kv, self.weights, self.lengths, self.pages)):
+                    self.assertIs(got, original)
+>               self.assertEqual(args[5:], (width, 17, 0))
+E               AssertionError: Tuples differ: (128, 320, 0) != (128, 17, 0)
+E               
+E               First differing element 1:
+E               320
+E               17
+E               
+E               - (128, 320, 0)
+E               ?       ^^^
+E               
+E               + (128, 17, 0)
+E               ?       ^^
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:108: AssertionError
+=========================== short test summary info ============================
+SUBFAILED(scenario_id='G4-width', width=64) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments
+SUBFAILED(scenario_id='G4-width', width=128) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments
+2 failed, 4 passed, 5 subtests passed in 1.02s
+

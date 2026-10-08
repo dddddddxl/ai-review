@@ -1,0 +1,73 @@
+....                                                              [100%]
+=================================== FAILURES ===================================
+_ TestPersistentMQAWrapperContracts.test_forwards_4d_query_values_and_exact_arguments (scenario_id='G4-width', width=64) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_forwards_4d_query_values_and_exact_arguments>
+
+    def test_forwards_4d_query_values_and_exact_arguments(self):
+        for width in (64, 128):
+            with self.subTest(scenario_id="G4-width", width=width):
+                self.factory.reset_mock()
+                self.backend.persistent.reset_mock()
+                result = self._call(width, num_sms=17)
+                self.assertIs(result, sentinel.result)
+                self.factory.assert_called_once_with()
+                self.backend.persistent.assert_called_once()
+                args, kwargs = self.backend.persistent.call_args
+                self.assertEqual(kwargs, {})
+                self.assertEqual(len(args), 8)
+>               self.assertEqual(tuple(args[0].shape), (2, 64, 128))
+E               AssertionError: Tuples differ: (2, 1, 64, 128) != (2, 64, 128)
+E               
+E               First differing element 1:
+E               1
+E               64
+E               
+E               First tuple contains 1 additional elements.
+E               First extra element 3:
+E               128
+E               
+E               - (2, 1, 64, 128)
+E               ?     ---
+E               
+E               + (2, 64, 128)
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:102: AssertionError
+_ TestPersistentMQAWrapperContracts.test_forwards_4d_query_values_and_exact_arguments (scenario_id='G4-width', width=128) _
+
+self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_forwards_4d_query_values_and_exact_arguments>
+
+    def test_forwards_4d_query_values_and_exact_arguments(self):
+        for width in (64, 128):
+            with self.subTest(scenario_id="G4-width", width=width):
+                self.factory.reset_mock()
+                self.backend.persistent.reset_mock()
+                result = self._call(width, num_sms=17)
+                self.assertIs(result, sentinel.result)
+                self.factory.assert_called_once_with()
+                self.backend.persistent.assert_called_once()
+                args, kwargs = self.backend.persistent.call_args
+                self.assertEqual(kwargs, {})
+                self.assertEqual(len(args), 8)
+>               self.assertEqual(tuple(args[0].shape), (2, 64, 128))
+E               AssertionError: Tuples differ: (2, 1, 64, 128) != (2, 64, 128)
+E               
+E               First differing element 1:
+E               1
+E               64
+E               
+E               First tuple contains 1 additional elements.
+E               First extra element 3:
+E               128
+E               
+E               - (2, 1, 64, 128)
+E               ?     ---
+E               
+E               + (2, 64, 128)
+
+test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:102: AssertionError
+=========================== short test summary info ============================
+SUBFAILED(scenario_id='G4-width', width=64) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments
+SUBFAILED(scenario_id='G4-width', width=128) test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py::TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments
+2 failed, 4 passed, 5 subtests passed in 1.01s
+

@@ -1,0 +1,13 @@
+
+Traceback (most recent call last):
+  File "/audit/g4/checkout/test/run_suite.py", line 697, in <module>
+    main()
+  File "/audit/g4/checkout/test/run_suite.py", line 692, in main
+    exit_code = run_a_suite(args)
+  File "/audit/g4/checkout/test/run_suite.py", line 528, in run_a_suite
+    validate_all_suites(all_tests, checked_backends={hw})
+  File "/audit/g4/checkout/test/run_suite.py", line 330, in validate_all_suites
+    raise ValueError("Tests registered to invalid suites:\n" + "\n".join(errors))
+ValueError: Tests registered to invalid suites:
+  /audit/g4/checkout/test/registered/unit/models/test_minimax_eagle3.py: backend=CPU, suite='stage-a-test-cpu'
+  /audit/g4/checkout/test/registered/unit/layers/attention/dsa/test_hcu_sparse_mqa.py: backend=CPU, suite='stage-a-test-cpu'

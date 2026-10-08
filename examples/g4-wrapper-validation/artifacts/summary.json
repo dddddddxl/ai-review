@@ -1,0 +1,50 @@
+{
+  "status": "local_cpu_positive_and_negative_controls_passed",
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "positive": {
+    "tests": 4,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native_exit_code": 0,
+  "selection_exit_code": 1,
+  "negative_controls": [
+    {
+      "mutation": "remove_width_guard",
+      "target_method": "test_rejects_unaligned_width_before_jit",
+      "patch_sha256": "6f1dde66f6869b7747089603322b58e7fb3bc4dc7ee73f101a48e8e165fc040c",
+      "counts": {
+        "tests": 4,
+        "failed": 2,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "mutation": "remove_reshape",
+      "target_method": "test_forwards_4d_query_values_and_exact_arguments",
+      "patch_sha256": "9c674a215df9f46c7ca97ea3f946d38c08fe49ee31e93d1a7019d7f62ae9cd36",
+      "counts": {
+        "tests": 4,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "mutation": "ignore_num_sms",
+      "target_method": "test_forwards_4d_query_values_and_exact_arguments",
+      "patch_sha256": "c62c756f67df95b7f033f1130c0fdc9d060d6b5b98b4ab731fab87c4f866c986",
+      "counts": {
+        "tests": 4,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "actual_ci_executed": false,
+  "hcu_kernel_executed": false,
+  "original_gap_closed": false
+}

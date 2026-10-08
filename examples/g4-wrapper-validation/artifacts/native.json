@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/audit/g4/checkout/test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py",
+    "-f"
+  ],
+  "exit_code": 0,
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "patch_sha256": "51a58f5a82848101373520d932e3593b57a21d6d20c8c3df30afd0106fdd897c",
+  "raw_artifacts": [
+    {
+      "path": "native.log",
+      "sha256": "2cca55e88ead23666554ed170d30d3273e3a4f628b4aa01ea70921e2923a1a9b"
+    }
+  ]
+}

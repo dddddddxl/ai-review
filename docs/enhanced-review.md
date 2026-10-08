@@ -9,7 +9,7 @@
 | 配置 | 含义 |
 |---|---|
 | `AI_REVIEW_CHECKOUTS` | JSON：仓库全名 → 管理员准备的绝对路径；可用 `{head}` 占位以隔离不同 PR 版本 |
-| `AI_REVIEW_SKILL_REPO` | 受控的 skillhub Git 副本路径，HEAD 必须为 `aaff435e1eb80e4e187b9b71bd0a39a442f6327e` |
+| `AI_REVIEW_SKILL_REPO` | 受控的 skillhub Git 副本路径，HEAD 必须为 `74376c2b1d263d1e26fa052b21e7847706d6651e` |
 | `AI_REVIEW_PYTHON` | Python 可执行文件，默认 `python`，推荐 3.10+ |
 | `AI_REVIEW_MAX_TOOLS` | 每次 PR 审查共享工具预算，默认 24，上限 100 |
 | `AI_REVIEW_STATE_DIR` | 私有运行状态与审查产物目录；不可放进被审 checkout 或公开静态目录 |
@@ -95,4 +95,4 @@ npm run dry-run:codex -- --repo C:\controlled\sglang-pr436 --skill C:\controlled
 
 ## 后续阶段（未执行）
 
-固定样本的 Codex 文件桥接已完成；下一步需对独立 PR 做新上下文盲测，并在有模型 API 配置时验证三种协议、真实延迟与共享预算。确认后再配置独立 GitHub App 测试环境，最后按明确场景和资源预算决定是否运行 HCU 测例。本轮不包含历史 commit 自动学习或生产上线。
+通用入口和独立 PR 评估流程见 [PR 验证说明](pr-validation.md)。后续仍需在有模型 API 配置时验证三种协议、真实延迟与共享预算；确认后再配置独立 GitHub App 测试环境，最后按明确场景和资源预算决定是否运行 HCU 测例。本轮不包含历史 commit 自动学习或生产上线。

@@ -1,0 +1,137 @@
+{
+  "kind": "derived_from_original_junit",
+  "counting_unit": "method_testcase",
+  "explanation": "一个 unittest 方法可有多个 subTest 失败节点；方法存在任一 failure 即记 failed。保留原始 suite 汇总，不用 console passed 数覆盖方法失败。",
+  "records": [
+    {
+      "run": "positive",
+      "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "patch_sha256": "51a58f5a82848101373520d932e3593b57a21d6d20c8c3df30afd0106fdd897c",
+      "junit_suite_summaries": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "11",
+          "time": "1.033",
+          "timestamp": "2026-10-08T02:52:15.490541+00:00",
+          "hostname": "d9036ed4a27a"
+        }
+      ],
+      "method_counts": {
+        "tests": 4,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failure_nodes": 0,
+      "raw_artifact": {
+        "path": "positive.xml",
+        "sha256": "9f11f8b6be4efb859c8a771cbbf5837caf0d4c3898a8ffbd15b6dca9b0ae9f09"
+      }
+    },
+    {
+      "run": "remove_width_guard",
+      "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "patch_sha256": "6f1dde66f6869b7747089603322b58e7fb3bc4dc7ee73f101a48e8e165fc040c",
+      "junit_suite_summaries": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "5",
+          "skipped": "0",
+          "tests": "11",
+          "time": "1.010",
+          "timestamp": "2026-10-08T02:52:22.963464+00:00",
+          "hostname": "d9036ed4a27a"
+        }
+      ],
+      "method_counts": {
+        "tests": 4,
+        "failed": 2,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failure_nodes": 5,
+      "raw_artifact": {
+        "path": "remove_width_guard.xml",
+        "sha256": "ed03ba22f87e5b5f5ef462d059b537e37ab607318704f28a042fe67376394b76"
+      }
+    },
+    {
+      "run": "remove_reshape",
+      "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "patch_sha256": "9c674a215df9f46c7ca97ea3f946d38c08fe49ee31e93d1a7019d7f62ae9cd36",
+      "junit_suite_summaries": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "2",
+          "skipped": "0",
+          "tests": "11",
+          "time": "1.012",
+          "timestamp": "2026-10-08T02:52:25.185378+00:00",
+          "hostname": "d9036ed4a27a"
+        }
+      ],
+      "method_counts": {
+        "tests": 4,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failure_nodes": 2,
+      "raw_artifact": {
+        "path": "remove_reshape.xml",
+        "sha256": "baf848c652fe9c72fb6dcf413f4019dded58eed189db0526e419005399d12210"
+      }
+    },
+    {
+      "run": "ignore_num_sms",
+      "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "patch_sha256": "c62c756f67df95b7f033f1130c0fdc9d060d6b5b98b4ab731fab87c4f866c986",
+      "junit_suite_summaries": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "2",
+          "skipped": "0",
+          "tests": "11",
+          "time": "1.021",
+          "timestamp": "2026-10-08T02:52:27.427219+00:00",
+          "hostname": "d9036ed4a27a"
+        }
+      ],
+      "method_counts": {
+        "tests": 4,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failure_nodes": 2,
+      "raw_artifact": {
+        "path": "ignore_num_sms.xml",
+        "sha256": "4373d2be0385a3b6c155193a84cd7820130507b4ab835807aeb54f9ae667121d"
+      }
+    }
+  ],
+  "raw_artifacts": [
+    {
+      "path": "positive.xml",
+      "sha256": "9f11f8b6be4efb859c8a771cbbf5837caf0d4c3898a8ffbd15b6dca9b0ae9f09"
+    },
+    {
+      "path": "remove_width_guard.xml",
+      "sha256": "ed03ba22f87e5b5f5ef462d059b537e37ab607318704f28a042fe67376394b76"
+    },
+    {
+      "path": "remove_reshape.xml",
+      "sha256": "baf848c652fe9c72fb6dcf413f4019dded58eed189db0526e419005399d12210"
+    },
+    {
+      "path": "ignore_num_sms.xml",
+      "sha256": "4373d2be0385a3b6c155193a84cd7820130507b4ab835807aeb54f9ae667121d"
+    }
+  ]
+}

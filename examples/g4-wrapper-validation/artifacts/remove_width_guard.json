@@ -1,0 +1,76 @@
+{
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "patch_sha256": "6f1dde66f6869b7747089603322b58e7fb3bc4dc7ee73f101a48e8e165fc040c",
+  "patch_identity_mode": "sha256_of_canonical_executed_source_and_new_test_hash_manifest",
+  "source_files": {
+    "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py": "2c7048904d32f7fa984a28800f41fa1c357664b944b2ee527a479651d5b65b12",
+    "test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py": "c170e36fdda90915d681847d644e6ec99cc69e12ec2eb2b71300ba662ec1ef27",
+    "python/sglang/test/ci/ci_register.py": "04e500787b27ed92a73cedec15b0aa112f497b5a7d5e44388328e6732d5ea997"
+  },
+  "command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "-m",
+    "pytest",
+    "--noconftest",
+    "-p",
+    "no:cacheprovider",
+    "-c",
+    "/input/pytest.ini",
+    "--rootdir",
+    "/audit/g4/remove_width_guard",
+    "/audit/g4/remove_width_guard/test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py",
+    "--junitxml",
+    "/output/remove_width_guard.xml",
+    "-q"
+  ],
+  "exit_code": 1,
+  "status": "test_failure",
+  "counts": {
+    "tests": 4,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 0
+  },
+  "cases": [
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_preserves_3d_query_and_default_num_sms",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_nonpositive_width_before_jit",
+      "outcome": "failed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit",
+      "outcome": "failed"
+    }
+  ],
+  "assertion_failures": {
+    "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_nonpositive_width_before_jit": {
+      "type": null,
+      "message": "AssertionError: ValueError not raised",
+      "trace": "self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_rejects_nonpositive_width_before_jit>\n\n    def test_rejects_nonpositive_width_before_jit(self):\n        for width in (-64, 0):\n            with self.subTest(scenario_id=\"G4-width\", width=width):\n>               with self.assertRaisesRegex(ValueError, \"positive 64-token width\"):\nE               AssertionError: ValueError not raised\n\ntest/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:77: AssertionError"
+    },
+    "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit": {
+      "type": null,
+      "message": "AssertionError: ValueError not raised",
+      "trace": "self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_rejects_unaligned_width_before_jit>\n\n    def test_rejects_unaligned_width_before_jit(self):\n        for width in (1, 63, 65):\n            with self.subTest(scenario_id=\"G4-width\", width=width):\n>               with self.assertRaisesRegex(ValueError, \"positive 64-token width\"):\nE               AssertionError: ValueError not raised\n\ntest/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:85: AssertionError"
+    }
+  },
+  "raw_artifacts": [
+    {
+      "path": "remove_width_guard.log",
+      "sha256": "03c4ae4a4f4bc38325dbb7e772060b4aec78c49b71dc1c2bee343b9ad2ec97ad"
+    },
+    {
+      "path": "remove_width_guard.xml",
+      "sha256": "ed03ba22f87e5b5f5ef462d059b537e37ab607318704f28a042fe67376394b76"
+    }
+  ]
+}

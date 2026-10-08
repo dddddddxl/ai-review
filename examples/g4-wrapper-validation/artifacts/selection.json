@@ -1,0 +1,30 @@
+{
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "patch_sha256": "51a58f5a82848101373520d932e3593b57a21d6d20c8c3df30afd0106fdd897c",
+  "lane": "pr-cpu",
+  "command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "/audit/g4/checkout/test/run_suite.py",
+    "--hw",
+    "cpu",
+    "--suite",
+    "base-a-test-cpu",
+    "--include-file",
+    "registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py",
+    "--list"
+  ],
+  "exit_code": 1,
+  "status": "selection_blocked",
+  "selected_ids": [],
+  "unresolved_gates": [
+    "未取得真实 CPU workflow 的触发/gate/matrix 和本次 CI 执行身份"
+  ],
+  "raw_artifacts": [
+    {
+      "path": "selection.log",
+      "sha256": "6f5bb0e0cca14051a00453a6264b3d5d6550ce40de38dbeb076f552ea4eb2d43"
+    }
+  ]
+}

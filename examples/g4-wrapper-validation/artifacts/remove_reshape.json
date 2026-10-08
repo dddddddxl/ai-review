@@ -1,0 +1,71 @@
+{
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "patch_sha256": "9c674a215df9f46c7ca97ea3f946d38c08fe49ee31e93d1a7019d7f62ae9cd36",
+  "patch_identity_mode": "sha256_of_canonical_executed_source_and_new_test_hash_manifest",
+  "source_files": {
+    "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py": "35090c527e02f332082818c32ce8f0e94285f4f2ec568e234c328e40c34853d6",
+    "test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py": "c170e36fdda90915d681847d644e6ec99cc69e12ec2eb2b71300ba662ec1ef27",
+    "python/sglang/test/ci/ci_register.py": "04e500787b27ed92a73cedec15b0aa112f497b5a7d5e44388328e6732d5ea997"
+  },
+  "command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "-m",
+    "pytest",
+    "--noconftest",
+    "-p",
+    "no:cacheprovider",
+    "-c",
+    "/input/pytest.ini",
+    "--rootdir",
+    "/audit/g4/remove_reshape",
+    "/audit/g4/remove_reshape/test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py",
+    "--junitxml",
+    "/output/remove_reshape.xml",
+    "-q"
+  ],
+  "exit_code": 1,
+  "status": "test_failure",
+  "counts": {
+    "tests": 4,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0
+  },
+  "cases": [
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments",
+      "outcome": "failed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_preserves_3d_query_and_default_num_sms",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_nonpositive_width_before_jit",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit",
+      "outcome": "passed"
+    }
+  ],
+  "assertion_failures": {
+    "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments": {
+      "type": null,
+      "message": "AssertionError: Tuples differ: (2, 1, 64, 128) != (2, 64, 128)\n\nFirst differing element 1:\n1\n64\n\nFirst tuple contains 1 additional elements.\nFirst extra element 3:\n128\n\n- (2, 1, 64, 128)\n?     ---\n\n+ (2, 64, 128)",
+      "trace": "self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_forwards_4d_query_values_and_exact_arguments>\n\n    def test_forwards_4d_query_values_and_exact_arguments(self):\n        for width in (64, 128):\n            with self.subTest(scenario_id=\"G4-width\", width=width):\n                self.factory.reset_mock()\n                self.backend.persistent.reset_mock()\n                result = self._call(width, num_sms=17)\n                self.assertIs(result, sentinel.result)\n                self.factory.assert_called_once_with()\n                self.backend.persistent.assert_called_once()\n                args, kwargs = self.backend.persistent.call_args\n                self.assertEqual(kwargs, {})\n                self.assertEqual(len(args), 8)\n>               self.assertEqual(tuple(args[0].shape), (2, 64, 128))\nE               AssertionError: Tuples differ: (2, 1, 64, 128) != (2, 64, 128)\nE               \nE               First differing element 1:\nE               1\nE               64\nE               \nE               First tuple contains 1 additional elements.\nE               First extra element 3:\nE               128\nE               \nE               - (2, 1, 64, 128)\nE               ?     ---\nE               \nE               + (2, 64, 128)\n\ntest/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:102: AssertionError"
+    }
+  },
+  "raw_artifacts": [
+    {
+      "path": "remove_reshape.log",
+      "sha256": "67edcea1e03d0aa43ff1346bdee378c6ff946dff7e4ee5cd845f021eddad7320"
+    },
+    {
+      "path": "remove_reshape.xml",
+      "sha256": "baf848c652fe9c72fb6dcf413f4019dded58eed189db0526e419005399d12210"
+    }
+  ]
+}

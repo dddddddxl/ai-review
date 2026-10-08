@@ -1,0 +1,129 @@
+diff --git a/test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py b/test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py
+new file mode 100644
+--- /dev/null
++++ b/test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py
+@@ -0,0 +1,124 @@
++# SPDX-License-Identifier: Apache-2.0
++"""G4-width：真实 JIT 包装器的 CPU 接口合同，不验证 HCU 数值。
++
++目标提交：6f0f185a691c16b0134a26f2ff172c7e2af31edb。
++拟放置：test/registered/unit/layers/attention/dsv4/ 本文件。
++原生入口：python3 test_file.py -f；pytest 可采集同一 unittest 类。
++原创测试；不复制上游 CUDA/HCU 内核测试。所有 JIT 调用只允许 spy。
++"""
++
++import importlib.util
++from pathlib import Path
++import sys
++import unittest
++from unittest.mock import Mock, patch, sentinel
++
++
++def _load_file(name, path):
++    spec = importlib.util.spec_from_file_location(name, path)
++    if spec is None or spec.loader is None:
++        raise RuntimeError(f"无法加载目标文件：{path}")
++    module = importlib.util.module_from_spec(spec)
++    sys.modules[name] = module
++    spec.loader.exec_module(module)
++    return module
++
++
++# 注册模块只有 stdlib 与运行时 no-op 标记；不导入完整 sglang 服务。
++_REPO = Path(__file__).resolve().parents[6]
++_registry = _load_file(
++    "sglang.test.ci.ci_register",
++    _REPO / "python/sglang/test/ci/ci_register.py",
++)
++register_cpu_ci = _registry.register_cpu_ci
++register_cpu_ci(est_time=5, suite="base-a-test-cpu")
++
++
++class TestPersistentMQAWrapperContracts(unittest.TestCase):
++    """各故障机制单独命名，宽度变体使用 unittest subTest。"""
++
++    def setUp(self):
++        import torch
++
++        self.torch = torch
++        # ROCm/HCU 镜像也能执行 CPU 张量接口；禁止任何延迟设备初始化。
++        if torch.cuda.is_initialized():
++            raise RuntimeError("CPU 合同测试进程不应已经初始化设备")
++        for name in ("_lazy_init", "init"):
++            guard = patch.object(torch.cuda, name, side_effect=AssertionError("禁止初始化设备"))
++            guard.start()
++            self.addCleanup(guard.stop)
++        self.subject = _load_file(
++            "_g4_persistent_mqa_subject",
++            _REPO / "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
++        )
++        self.q = (torch.arange(2 * 64 * 128, dtype=torch.int32, device="cpu") % 127).to(
++            torch.int8
++        ).view(2, 1, 64, 128)
++        self.kv = torch.zeros((4, 64, 1, 132), dtype=torch.int8, device="cpu")
++        self.weights = torch.ones((2, 64), dtype=torch.float32, device="cpu")
++        self.lengths = torch.tensor([1, 63], dtype=torch.int32, device="cpu")
++        self.pages = torch.tensor([[0, 1], [2, 3]], dtype=torch.int32, device="cpu")
++        self.backend = Mock()
++        self.backend.persistent.return_value = sentinel.result
++        self.factory = Mock(return_value=self.backend)
++        factory_patch = patch.object(self.subject, "_module", self.factory)
++        factory_patch.start()
++        self.addCleanup(factory_patch.stop)
++
++    def _call(self, width, **kwargs):
++        return self.subject.persistent_int8_paged_mqa_logits(
++            self.q, self.kv, self.weights, self.lengths, self.pages, width, **kwargs
++        )
++
++    def test_rejects_nonpositive_width_before_jit(self):
++        for width in (-64, 0):
++            with self.subTest(scenario_id="G4-width", width=width):
++                with self.assertRaisesRegex(ValueError, "positive 64-token width"):
++                    self._call(width)
++                self.factory.assert_not_called()
++                self.backend.persistent.assert_not_called()
++
++    def test_rejects_unaligned_width_before_jit(self):
++        for width in (1, 63, 65):
++            with self.subTest(scenario_id="G4-width", width=width):
++                with self.assertRaisesRegex(ValueError, "positive 64-token width"):
++                    self._call(width)
++                self.factory.assert_not_called()
++                self.backend.persistent.assert_not_called()
++
++    def test_forwards_4d_query_values_and_exact_arguments(self):
++        for width in (64, 128):
++            with self.subTest(scenario_id="G4-width", width=width):
++                self.factory.reset_mock()
++                self.backend.persistent.reset_mock()
++                result = self._call(width, num_sms=17)
++                self.assertIs(result, sentinel.result)
++                self.factory.assert_called_once_with()
++                self.backend.persistent.assert_called_once()
++                args, kwargs = self.backend.persistent.call_args
++                self.assertEqual(kwargs, {})
++                self.assertEqual(len(args), 8)
++                self.assertEqual(tuple(args[0].shape), (2, 64, 128))
++                self.assertEqual(args[0].dtype, self.torch.int8)
++                self.assertEqual(args[0].device.type, "cpu")
++                self.assertTrue(self.torch.equal(args[0].flatten(), self.q.flatten()))
++                for got, original in zip(args[1:5], (self.kv, self.weights, self.lengths, self.pages)):
++                    self.assertIs(got, original)
++                self.assertEqual(args[5:], (width, 17, 0))
++                self.assertIs(type(args[5]), int)
++                self.assertIs(type(args[6]), int)
++
++    def test_preserves_3d_query_and_default_num_sms(self):
++        self.q = self.q.view(2, 64, 128)
++        result = self._call(64)
++        self.assertIs(result, sentinel.result)
++        self.backend.persistent.assert_called_once()
++        args, kwargs = self.backend.persistent.call_args
++        self.assertEqual(kwargs, {})
++        self.assertIs(args[0], self.q)
++        self.assertEqual(args[5:], (64, 320, 0))
++
++
++if __name__ == "__main__":
++    unittest.main()

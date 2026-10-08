@@ -1,0 +1,71 @@
+{
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "patch_sha256": "c62c756f67df95b7f033f1130c0fdc9d060d6b5b98b4ab731fab87c4f866c986",
+  "patch_identity_mode": "sha256_of_canonical_executed_source_and_new_test_hash_manifest",
+  "source_files": {
+    "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py": "83785e812f2d143d97dbdda1f21921dd3f4fc8545eb0cf509903f9bceee48259",
+    "test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py": "c170e36fdda90915d681847d644e6ec99cc69e12ec2eb2b71300ba662ec1ef27",
+    "python/sglang/test/ci/ci_register.py": "04e500787b27ed92a73cedec15b0aa112f497b5a7d5e44388328e6732d5ea997"
+  },
+  "command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "-m",
+    "pytest",
+    "--noconftest",
+    "-p",
+    "no:cacheprovider",
+    "-c",
+    "/input/pytest.ini",
+    "--rootdir",
+    "/audit/g4/ignore_num_sms",
+    "/audit/g4/ignore_num_sms/test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py",
+    "--junitxml",
+    "/output/ignore_num_sms.xml",
+    "-q"
+  ],
+  "exit_code": 1,
+  "status": "test_failure",
+  "counts": {
+    "tests": 4,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0
+  },
+  "cases": [
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments",
+      "outcome": "failed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_preserves_3d_query_and_default_num_sms",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_nonpositive_width_before_jit",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit",
+      "outcome": "passed"
+    }
+  ],
+  "assertion_failures": {
+    "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments": {
+      "type": null,
+      "message": "AssertionError: Tuples differ: (64, 320, 0) != (64, 17, 0)\n\nFirst differing element 1:\n320\n17\n\n- (64, 320, 0)\n?      ^^^\n\n+ (64, 17, 0)\n?      ^^",
+      "trace": "self = <test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts testMethod=test_forwards_4d_query_values_and_exact_arguments>\n\n    def test_forwards_4d_query_values_and_exact_arguments(self):\n        for width in (64, 128):\n            with self.subTest(scenario_id=\"G4-width\", width=width):\n                self.factory.reset_mock()\n                self.backend.persistent.reset_mock()\n                result = self._call(width, num_sms=17)\n                self.assertIs(result, sentinel.result)\n                self.factory.assert_called_once_with()\n                self.backend.persistent.assert_called_once()\n                args, kwargs = self.backend.persistent.call_args\n                self.assertEqual(kwargs, {})\n                self.assertEqual(len(args), 8)\n                self.assertEqual(tuple(args[0].shape), (2, 64, 128))\n                self.assertEqual(args[0].dtype, self.torch.int8)\n                self.assertEqual(args[0].device.type, \"cpu\")\n                self.assertTrue(self.torch.equal(args[0].flatten(), self.q.flatten()))\n                for got, original in zip(args[1:5], (self.kv, self.weights, self.lengths, self.pages)):\n                    self.assertIs(got, original)\n>               self.assertEqual(args[5:], (width, 17, 0))\nE               AssertionError: Tuples differ: (64, 320, 0) != (64, 17, 0)\nE               \nE               First differing element 1:\nE               320\nE               17\nE               \nE               - (64, 320, 0)\nE               ?      ^^^\nE               \nE               + (64, 17, 0)\nE               ?      ^^\n\ntest/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py:108: AssertionError"
+    }
+  },
+  "raw_artifacts": [
+    {
+      "path": "ignore_num_sms.log",
+      "sha256": "5dcf5ca0238a2cada048688169ba153c2593423717e95fa3839ce459dc8f1e8b"
+    },
+    {
+      "path": "ignore_num_sms.xml",
+      "sha256": "4373d2be0385a3b6c155193a84cd7820130507b4ab835807aeb54f9ae667121d"
+    }
+  ]
+}

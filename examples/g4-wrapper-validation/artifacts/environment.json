@@ -1,0 +1,11 @@
+{
+  "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+  "torch": "2.11.0",
+  "hip_build": "6.3.26113",
+  "cuda_build": null,
+  "device_initialized_before": false,
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "archive_sha256": "63a5f78ae5094d7339e0060ff3d1a76a1f7b0409bf9fea07772e4713e9326bdb",
+  "environment_scope": "CPU tensors, hidden devices, no kernel/JIT execution",
+  "device_initialized_after": false
+}

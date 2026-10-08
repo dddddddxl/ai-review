@@ -8,6 +8,8 @@
     "test:acceptance": "node scripts/offline-acceptance.mjs",
     "replay:sglang": "node --import ./test/deny-network.mjs scripts/replay-sglang.mjs",
     "dry-run:codex": "node --import ./test/deny-network.mjs scripts/dry-run-codex.mjs",
+    "dry-run:pr": "node --import ./test/deny-network.mjs scripts/dry-run-pr.mjs",
+    "capture:pr": "node scripts/capture-pr.mjs",
     "start": "node src/index.mjs",
     "preview:dashboard": "node scripts/preview-dashboard.mjs"
   },

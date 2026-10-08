@@ -12,4 +12,6 @@ Install dependencies with `npm ci`. Runtime configuration and secrets must be su
 
 配置、边界和离线验收见 [增强审查说明](docs/enhanced-review.md)。固定历史样本见 [SGLang PR #436 回放报告](examples/sglang-pr436/report.md)，它不是一次新的真实模型/硬件实测。
 
+通用 `capture:pr` / `dry-run:pr` 命令、三种审查模式、独立样本评估及补测 v2 协议见 [PR 验证说明](docs/pr-validation.md)。
+
 运行 `npm test` 执行离线回归；设置 `AI_REVIEW_SKILL_REPO` 后同时运行真实 Python 校验与交接测试。没有外部 skill 时会明确跳过集成项，不应当作完整验收。

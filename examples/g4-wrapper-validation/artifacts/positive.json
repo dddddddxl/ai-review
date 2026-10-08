@@ -1,0 +1,65 @@
+{
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "patch_sha256": "51a58f5a82848101373520d932e3593b57a21d6d20c8c3df30afd0106fdd897c",
+  "patch_identity_mode": "sha256_of_canonical_executed_source_and_new_test_hash_manifest",
+  "source_files": {
+    "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py": "ed628d65140de2793052309a43ea53616d63a49ad83aa2cb140210c0566b8c56",
+    "test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py": "c170e36fdda90915d681847d644e6ec99cc69e12ec2eb2b71300ba662ec1ef27",
+    "python/sglang/test/ci/ci_register.py": "04e500787b27ed92a73cedec15b0aa112f497b5a7d5e44388328e6732d5ea997"
+  },
+  "command": [
+    "/usr/bin/python3",
+    "-I",
+    "-B",
+    "-m",
+    "pytest",
+    "--noconftest",
+    "-p",
+    "no:cacheprovider",
+    "-c",
+    "/input/pytest.ini",
+    "--rootdir",
+    "/audit/g4/checkout",
+    "/audit/g4/checkout/test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py",
+    "--junitxml",
+    "/output/positive.xml",
+    "-q"
+  ],
+  "exit_code": 0,
+  "status": "pass",
+  "counts": {
+    "tests": 4,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "cases": [
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_preserves_3d_query_and_default_num_sms",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_nonpositive_width_before_jit",
+      "outcome": "passed"
+    },
+    {
+      "id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit",
+      "outcome": "passed"
+    }
+  ],
+  "assertion_failures": {},
+  "raw_artifacts": [
+    {
+      "path": "positive.log",
+      "sha256": "55eb3374fe2a51d2daf36ea5d633f42c37afa908e50635147efc6e95ac903523"
+    },
+    {
+      "path": "positive.xml",
+      "sha256": "9f11f8b6be4efb859c8a771cbbf5837caf0d4c3898a8ffbd15b6dca9b0ae9f09"
+    }
+  ]
+}

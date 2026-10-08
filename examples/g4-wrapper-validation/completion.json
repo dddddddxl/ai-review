@@ -1,0 +1,197 @@
+{
+  "schema_version": 2,
+  "repository": "https://github.com/HYGON-AI/sglang-das",
+  "audit_source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "evidence": [
+    {
+      "id": "POS",
+      "path": "artifacts/positive.json",
+      "sha256": "37ecc5cc17efba37cdfaf656117a084f9b5406e28527851c6b9d8c99c3fbf0ec"
+    },
+    {
+      "id": "NATIVE",
+      "path": "artifacts/native.json",
+      "sha256": "e1b2803e1a26c1225fa8aac67acafdc6f98aacff24067de4e81600c5fa45db17"
+    },
+    {
+      "id": "SEL",
+      "path": "artifacts/selection.json",
+      "sha256": "5e734f946e6bcd9f650ba80c2ad8d6a9c0597ade3445fbf7e366152fcfad9b2e"
+    },
+    {
+      "id": "ENV",
+      "path": "artifacts/environment.json",
+      "sha256": "b102b84476682c4b086d6af1cd4080bbf23f188c9137afbf26894ec4631eb8b1"
+    },
+    {
+      "id": "SUMMARY",
+      "path": "artifacts/summary.json",
+      "sha256": "ef0509060d377f27e7ab5f61593b661d89098bcd0cb18c72620f7c376195e2fb"
+    },
+    {
+      "id": "COUNTING",
+      "path": "artifacts/result-counting.json",
+      "sha256": "a0cf1cbe460b902b5333c25e22026c9d4efa072012609376622af43a73d2f45f"
+    },
+    {
+      "id": "NC_WIDTH",
+      "path": "artifacts/remove_width_guard.json",
+      "sha256": "56fd01949143ec288fa0538d37a213a865f38095fd2ad248e34dd42523026150"
+    },
+    {
+      "id": "NC_RESHAPE",
+      "path": "artifacts/remove_reshape.json",
+      "sha256": "941cde8913d952543d51015ce1b13f49512ff1b783e3cf4dee1d9d8ef0a35ec5"
+    },
+    {
+      "id": "NC_SMS",
+      "path": "artifacts/ignore_num_sms.json",
+      "sha256": "9e50057d434fa9ba54b1059fd644abbcc612aa71d0b7402665ad8dd5b6bc9225"
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "G4",
+      "status": "implemented_unverified",
+      "validated_scope": "仅验证固定提交的 CPU 包装器宽度防卫、4D→3D 和参数转发；不包含真实 CI、HCU 数值、graph 或生产路由",
+      "tested_revision": {
+        "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+        "patch_sha256": "51a58f5a82848101373520d932e3593b57a21d6d20c8c3df30afd0106fdd897c"
+      },
+      "scenario_results": [
+        {
+          "scenario_id": "G4-width",
+          "tests": [
+            {
+              "test_id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments",
+              "outcome": "passed",
+              "evidence": "POS"
+            },
+            {
+              "test_id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_preserves_3d_query_and_default_num_sms",
+              "outcome": "passed",
+              "evidence": "POS"
+            },
+            {
+              "test_id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_nonpositive_width_before_jit",
+              "outcome": "passed",
+              "evidence": "POS"
+            },
+            {
+              "test_id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit",
+              "outcome": "passed",
+              "evidence": "POS"
+            }
+          ]
+        }
+      ],
+      "acceptance_results": [
+        {
+          "condition": "非法宽度抛 ValueError 且工厂未调用；合法64/128宽度只经 mock persistent 转发，核对4D→3D及int参数。",
+          "status": "met",
+          "evidence": [
+            "POS",
+            "NATIVE",
+            "NC_WIDTH",
+            "NC_RESHAPE",
+            "NC_SMS"
+          ]
+        },
+        {
+          "condition": "注册适合CPU的suite，按实际selector与nodeid验证；此任务完成只关闭包装器合同，不关闭HCU数值/graph缺口。",
+          "status": "unmet",
+          "evidence": [
+            "SEL"
+          ],
+          "reason": "全局注册校验在 include-file 过滤前发现两个已有无效 CPU suite，选择器退出；未获得真实 CI 运行身份"
+        }
+      ],
+      "negative_controls": [
+        {
+          "scenario_id": "G4-width",
+          "test_id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_rejects_unaligned_width_before_jit",
+          "baseline_evidence": "POS",
+          "tested_revision": {
+            "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+            "patch_sha256": "6f1dde66f6869b7747089603322b58e7fb3bc4dc7ee73f101a48e8e165fc040c"
+          },
+          "mutation": "在隔离副本禁用非法宽度防卫",
+          "target_assertion": "非法宽度必须抛 ValueError；工厂和后端不得被调用",
+          "failure_kind": "target_assertion",
+          "evidence": "NC_WIDTH",
+          "agent_review": "Codex 已阅读原始失败日志：目标断言失败，非导入/setup 错误；未经人类独立复核"
+        },
+        {
+          "scenario_id": "G4-width",
+          "test_id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments",
+          "baseline_evidence": "POS",
+          "tested_revision": {
+            "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+            "patch_sha256": "9c674a215df9f46c7ca97ea3f946d38c08fe49ee31e93d1a7019d7f62ae9cd36"
+          },
+          "mutation": "在隔离副本删除 4D→3D reshape",
+          "target_assertion": "后端 Q 必须为 (2,64,128)，不能保留单例维度",
+          "failure_kind": "target_assertion",
+          "evidence": "NC_RESHAPE",
+          "agent_review": "Codex 已阅读原始失败日志：目标断言失败，非导入/setup 错误；未经人类独立复核"
+        },
+        {
+          "scenario_id": "G4-width",
+          "test_id": "test.registered.unit.layers.attention.dsv4.test_persistent_int8_paged_mqa_wrapper.TestPersistentMQAWrapperContracts::test_forwards_4d_query_values_and_exact_arguments",
+          "baseline_evidence": "POS",
+          "tested_revision": {
+            "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+            "patch_sha256": "c62c756f67df95b7f033f1130c0fdc9d060d6b5b98b4ab731fab87c4f866c986"
+          },
+          "mutation": "在隔离副本以 320 替代调用方 num_sms=17",
+          "target_assertion": "后端参数尾部必须严格等于 (width,17,0)",
+          "failure_kind": "target_assertion",
+          "evidence": "NC_SMS",
+          "agent_review": "Codex 已阅读原始失败日志：目标断言失败，非导入/setup 错误；未经人类独立复核"
+        }
+      ],
+      "ci_selection": "SEL",
+      "ci_execution": null,
+      "unresolved_prerequisites": [
+        "原生 CPU selector 被两个已有 stage-a-test-cpu 注册阻塞；未改动无关测试",
+        "尚未核对完整 workflow 的触发/gate/matrix，未执行真实 CPU CI"
+      ],
+      "disposition": "write_original",
+      "framework": "unittest.TestCase；pytest 运行同一类，并实测原生 python 文件入口 -f",
+      "test_paths": [
+        "test/registered/unit/layers/attention/dsv4/test_persistent_int8_paged_mqa_wrapper.py"
+      ],
+      "environment": {
+        "evidence": "ENV",
+        "image": "sha256:3ba7d7248f7e082e179f3b8064104232d6fcb5fa3f4398cb0e641810ee6b978f",
+        "cpus": 1,
+        "memory_bytes": 2147483648,
+        "network": "none",
+        "privileged": false,
+        "devices": [],
+        "readonly_root": true,
+        "installation": "镜像已有 PyTorch；未安装或更新节点依赖"
+      },
+      "upstream": {
+        "repository": "https://github.com/sgl-project/sglang",
+        "revision": "25f2e430acb914c793307a5139b9b2a2055a2547",
+        "revision_basis": "目标仓库 THIRD_PARTY_NOTICES 的声明基线，不代表当前上游 head",
+        "search_status": "GitHub 上游树查询不可用，不能断言不存在可复用上游测试",
+        "local_search": "固定 head 下 test 与 python/sglang/test 的包装器/入口名检索未找到直接测试；已检查 DSA 及 DSV4 候选，不是全仓语义穷举",
+        "copied_source": false,
+        "test_license": "Apache-2.0"
+      },
+      "rationale": "沿用仓库原生 unittest 风格。导入真实文件，使用真实 CPU 张量，仅替换 JIT 工厂；不复制被测函数，也不加载完整服务。",
+      "patch_identity_mode": "sha256_of_canonical_executed_source_and_new_test_hash_manifest",
+      "patch_identity_limitation": "该身份是实际执行文件哈希清单，不是 git diff 的 SHA256；测试文件为新增文件，安装 wheel 不充当产品源码",
+      "authorization": "用户授权生成、隔离实测及将本轮脱敏产物推送个人 fork；不修改业务仓库/CI、不发布业务评论"
+    }
+  ],
+  "provenance": {
+    "generation_skill_commit": "aaff435e1eb80e4e187b9b71bd0a39a442f6327e",
+    "completion_validator_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+    "schema_migration": "v1_to_v2_without_reexecuting_or_modifying_original_run_artifacts",
+    "source_archive_sha256": "63a5f78ae5094d7339e0060ff3d1a76a1f7b0409bf9fea07772e4713e9326bdb",
+    "archive_scope": "固定 Git 对象的包装器、注册模块、原生选择器、registered 测试目录和许可证；未打包模型/凭据"
+  }
+}

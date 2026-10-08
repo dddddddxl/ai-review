@@ -1,0 +1,274 @@
+{
+  "plan_schema_version": 1,
+  "status": "ready_for_review",
+  "repository": "https://github.com/HYGON-AI/sglang-das",
+  "source_commit": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+  "platform": "HCU gfx936",
+  "tasks": [
+    {
+      "id": "G4",
+      "feature_id": "B4",
+      "route": "write",
+      "priority": "P2",
+      "reason": "新增包装器的 CPU 接口边界适合低成本稳定回归。",
+      "evidence": [
+        "JIT"
+      ],
+      "prerequisites": [
+        "CPU PyTorch 和 pytest；隔离导入，patch模块工厂，禁止真实 load_inline 与任何设备初始化。"
+      ],
+      "acceptance": [
+        "非法宽度抛 ValueError 且工厂未调用；合法64/128宽度只经 mock persistent 转发，核对4D→3D及int参数。",
+        "注册适合CPU的suite，按实际selector与nodeid验证；此任务完成只关闭包装器合同，不关闭HCU数值/graph缺口。"
+      ],
+      "cases": [
+        {
+          "id": "G4-width",
+          "name": "宽度防卫与合法转发",
+          "inputs": "宽度-64/0/1/63/65，及合法64/128；合法Q为[2,1,64,128]，factory返回spy模块。",
+          "expected": "非法值在模块加载前拒绝；合法调用Q为[2,64,128]，其余参数身份、max_seq_len、num_sms与fill_upto=0符合接口。",
+          "oracle": "pytest.raises 与 factory.assert_not_called；合法分支 exact-call 断言，不用assert True或只查输出shape。",
+          "negative_control": "删除宽度防卫或错误reshape/转发，至少一个相应断言失败。"
+        }
+      ],
+      "lanes": [
+        "pr-cpu"
+      ],
+      "required_evidence": [
+        "positive",
+        "negative_control",
+        "ci_selection",
+        "ci_execution"
+      ]
+    }
+  ],
+  "scope": {
+    "platform": "HCU gfx936",
+    "extent": "bounded",
+    "lanes": [
+      "pr-cpu",
+      "pr-hcu"
+    ],
+    "limitations": [
+      "当前 Codex 对固定历史输入进行只读分析；不是新 agent 盲测，不是模型 API 适配验收；未运行目标代码、collection、HCU 测试或重跑 CI。",
+      "实际 tool 预算为 24 次。完整读取新增内核与包装器，并审阅变更路由/TopK 片段；替代覆盖检索有明确边界，没有穷举全仓全部测试语义。",
+      "一次读取 base workflow 1–180 行不可用，缩小至 1–80 行成功；中间 gate 与所有矩阵配置未全部取证，不声称审查完整选择链。",
+      "base workflow 只作静态对照，未确认它就是当次 pull_request_target 实际工作流 revision；当次 required-2 的选择命令以日志工件为依据。",
+      "仅有一个失败分片的脱敏日志摘录及元数据，没有逐 nodeid 报告或全部分片日志。10/15 是该分片的测试文件汇总，不是功能或代码覆盖率。",
+      "无匹配 head 的 coverage 工件，代码行/分支覆盖率未测量；外部开关、其他调度路径及完整安装身份仍存在未知项。",
+      "元数据不证明测试源码、安装 wheel 或具体测例实际执行；需要 job 日志及逐测试结果。",
+      "head/merge SHA 查询可能遗漏 pull_request_target、workflow_dispatch 和外部调度；按 workflow、PR checks 链接及调度系统补查。",
+      "合并提交上的 push/release 构建属于合入后证据，不能回填为 PR head 的测试通过。",
+      "checks 保留重跑记录，statuses 保留历史；分析时核对最新 attempt、同名 check 的 app 身份和时间。",
+      "权限不足、404、分页预算用未知表示，不推断门禁不存在。"
+    ]
+  },
+  "source_fingerprints": {
+    "python/sglang/srt/layers/attention/dsv4/indexer.py": "7577d46bb347468ba728fbebba5a8d90aeb43c9f4cb975fa3ef3d584a095fcba",
+    "python/sglang/srt/environ.py": "56233ff61abd6be17465dd93a95a3c75e8fea808f712b3d829a5eb8512c27db0",
+    "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py": "ed628d65140de2793052309a43ea53616d63a49ad83aa2cb140210c0566b8c56",
+    "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu": "f51ad5e90a529bf2587b916ef12015ed82bf04c961dd3d3a425ac7a73e1a40aa",
+    "test/registered/unit/layers/attention/dsa/test_hcu_indexer.py": "474355dd85755d31ae7cca27f835262b4231cd7a2bd42937c315e9a4c737ee31",
+    "test/registered/attention/unittests/dsv4/test_deepseek_v4.py": "785776f59c51b2a80d59434ec7fd34a0ed89b8e362d1951eb697cfa19cc924f0",
+    "test/run_suite.py": "80d5294076d4f411da4e6131b8cc6ec1b65b99722749d0716eb0c0c0779f2735"
+  },
+  "evidence": [
+    {
+      "id": "ROUTE",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "start": 80,
+      "end": 179,
+      "claim": "估长包含 speculative/ragged/extend；eager 容量比门槛 2.0；graph 路由跳过该门槛，仍检查硬件、dtype、shape、contiguous 和 device。",
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1"
+    },
+    {
+      "id": "CALL",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "start": 901,
+      "end": 1100,
+      "claim": "生产调用区分 nonpaged、INT8、其他后端，处理 Q 量化与权重，选择 Persistent 或 dense；下游 TopK 传入 c4_seq_lens。",
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1"
+    },
+    {
+      "id": "TOPK",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "start": 1101,
+      "end": 1140,
+      "claim": "其他 TopK 后端亦接收长度；需要验证实际目标后端不会读取未初始化尾部，传参本身不是执行证明。",
+      "sha256": "69227d1c223a54d6385657c29d37c8f4bb4b20b5b9ec9df0eb71da1921da62e1"
+    },
+    {
+      "id": "OLD",
+      "kind": "source",
+      "revision": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+      "path": "python/sglang/srt/layers/attention/dsv4/indexer.py",
+      "start": 820,
+      "end": 980,
+      "claim": "改前 INT8 分支调用现有 fn dense producer，不存在本 PR 的 Persistent 选择。",
+      "sha256": "b7d97000736ed6325682c2f853f38040b7548c263fda5aa0abba88e940f60ec0"
+    },
+    {
+      "id": "ENV",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "python/sglang/srt/environ.py",
+      "start": 1390,
+      "end": 1400,
+      "claim": "INT8 K-cache 和 Persistent 开关默认 False；普通 smoke 不保证命中。",
+      "sha256": "f54cc37c70eedf2f47062336d287563334294cbf208fe68d5bd11f9aba481f09"
+    },
+    {
+      "id": "JIT",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "python/sglang/srt/layers/attention/dsv4/paged_mqa_pers_jit.py",
+      "start": 1,
+      "end": 54,
+      "claim": "缓存 JIT 模块、加载 CU；入口在加载前拒绝非正或非 64 倍数的宽度，reshape Q 并调用 persistent。",
+      "sha256": "bc300beb36b11f07b1102755996c745892df4b01acc712cd408396af55d87809"
+    },
+    {
+      "id": "K1",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+      "start": 1,
+      "end": 190,
+      "claim": "任务按真实长度循环；空行填 -INF；非空尾部不保证全容量初始化；读取 Q、权重、页表和 scale。",
+      "sha256": "7b6c6ae78d8c22eee7b8484caa4b789d22663e8c1e1ca5d7a3e236b286947a5d"
+    },
+    {
+      "id": "K2",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+      "start": 191,
+      "end": 375,
+      "claim": "INT8 dot、ReLU、head 权重求和和 K scale 构成数值合同，不能用仅 shape 断言代替。",
+      "sha256": "7b6c6ae78d8c22eee7b8484caa4b789d22663e8c1e1ca5d7a3e236b286947a5d"
+    },
+    {
+      "id": "K3",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "python/sglang/srt/layers/attention/dsv4/csrc/paged_mqa_pers_jit.cu",
+      "start": 376,
+      "end": 480,
+      "claim": "有效区写回；设备上压缩任务数；每次同一 stream 启动 prologue 和主 kernel；宽度/批次与临时分配影响 graph 验证。",
+      "sha256": "7b6c6ae78d8c22eee7b8484caa4b789d22663e8c1e1ca5d7a3e236b286947a5d"
+    },
+    {
+      "id": "DSA",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "test/registered/unit/layers/attention/dsa/test_hcu_indexer.py",
+      "start": 1,
+      "end": 195,
+      "claim": "实际断言是 dsa_indexer 的 LightOp 调用 ABI、后端选择与缓存 shape，不调用本 PR DSV4 Persistent producer。",
+      "sha256": "3783340edca3a2d096ece78c9e2abf4db22894ddea5a2e362f3bc52bb2e80a4a"
+    },
+    {
+      "id": "DSV4",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "test/registered/attention/unittests/dsv4/test_deepseek_v4.py",
+      "start": 1,
+      "end": 100,
+      "claim": "候选显式绕过生产 C4Indexer，注册 CUDA B200/large runner，不能证明 HCU Persistent 路由或 graph producer 覆盖。",
+      "sha256": "b8a70cb62fd5327f15cb0f78e18df7cc4acfbba70fc9dbd06eaaf572242388c5"
+    },
+    {
+      "id": "WF",
+      "kind": "source",
+      "revision": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+      "path": ".github/workflows/pr-test-hcu.yml",
+      "start": 740,
+      "end": 850,
+      "claim": "静态 Stage B include-file 清单及分片参数；静态配置不冒充实际执行版本。",
+      "sha256": "1ef88cfc496da803b15f4e98994482da3d1dbdd7effa30572915a8855ac84775"
+    },
+    {
+      "id": "TRIGGER",
+      "kind": "source",
+      "revision": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+      "path": ".github/workflows/pr-test-hcu.yml",
+      "start": 1,
+      "end": 80,
+      "claim": "pull_request_target 对 release/** 及 python/** 触发；另有 dispatch，不能以路径命中推断 gate 已放行或场景通过。",
+      "sha256": "1ef88cfc496da803b15f4e98994482da3d1dbdd7effa30572915a8855ac84775"
+    },
+    {
+      "id": "SELECT",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "test/run_suite.py",
+      "start": 362,
+      "end": 430,
+      "claim": "include-file 进行精确路径过滤；不匹配 suite 的指定文件会报错。",
+      "sha256": "c7b9ca795455da167ac77b568b1311c1127986e8fe6d2b98b4c3904eadc8d87b"
+    },
+    {
+      "id": "RUNNER",
+      "kind": "source",
+      "revision": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+      "path": "test/run_suite.py",
+      "start": 480,
+      "end": 550,
+      "claim": "注册扫描后按硬件/suite 过滤，再 include-file，最后分片；注册不代表实际执行。",
+      "sha256": "c7b9ca795455da167ac77b568b1311c1127986e8fe6d2b98b4c3904eadc8d87b"
+    },
+    {
+      "id": "LOG",
+      "kind": "artifact",
+      "path": "artifacts/job-excerpts.txt",
+      "claim": "run 35820902721 attempt 2 required-2 的 checkout/wheel、实际白名单命令及失败症状；仅文件汇总，没有逐 nodeid。",
+      "sha256": "a8d881665501450df725e95a3b3cc5de3bbc152ffc2446c6678552069b856e00"
+    },
+    {
+      "id": "SEARCH",
+      "kind": "artifact",
+      "path": "artifacts/search-evidence.txt",
+      "claim": "固定 head 的历史阴性检索与候选范围记录；阴性关键词检索不是全仓无覆盖证明。本次宿主还读取候选源码并做局部路径搜索。",
+      "sha256": "418ebabbc59679e056530e04d6561275426ffa183667d24ca0e3e63a3bbaf4e6"
+    }
+  ],
+  "unselected_dependencies": [],
+  "planning": [
+    {
+      "task_id": "G4",
+      "next_action": "design_then_write",
+      "framework": "inspect_repository",
+      "test_location": "prefer_existing_test",
+      "scenarios": [
+        {
+          "id": "G4-width",
+          "name": "宽度防卫与合法转发",
+          "inputs": "宽度-64/0/1/63/65，及合法64/128；合法Q为[2,1,64,128]，factory返回spy模块。",
+          "expected": "非法值在模块加载前拒绝；合法调用Q为[2,64,128]，其余参数身份、max_seq_len、num_sms与fill_upto=0符合接口。",
+          "oracle": "pytest.raises 与 factory.assert_not_called；合法分支 exact-call 断言，不用assert True或只查输出shape。",
+          "negative_control": "删除宽度防卫或错误reshape/转发，至少一个相应断言失败。",
+          "scenario_id": "G4-width",
+          "identity_mode": "explicit"
+        }
+      ]
+    }
+  ],
+  "authorization": "No code, CI or execution changes authorized by this check",
+  "origin_mode": "pr_ci_review",
+  "pr_context": {
+    "number": 436,
+    "url": "https://github.com/HYGON-AI/sglang-das/pull/436",
+    "base_sha": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+    "head_sha": "6f0f185a691c16b0134a26f2ff172c7e2af31edb",
+    "diff_base": "50beda6a90ba4dd7c85d667530c2614b13122fbf",
+    "head_repository": "dyq-w/sglang-das",
+    "captured_at": "2026-09-28T12:33:00.489051+00:00",
+    "snapshot_sha256": "8646a88fb9568778e600625c95586f5e4c080145316346727f0a52be57aef249"
+  }
+}
