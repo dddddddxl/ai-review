@@ -102,3 +102,5 @@ node scripts/score-blind-review.mjs examples/independent-pr-review/evaluation.js
 公开包是脱敏导出，不含桥接 request、私有 skill 正文或令牌。绝对路径替换、#463 workflow 中的内部 IPv4 替换均记录于 `export-provenance.json`，它同时保留原始/导出 SHA-256；原始预标注中的 input_sha256 指原件，导出件身份需使用映射核对。实际被引用的日志字节未修改，均随包保存。保留的原始模型回复是审查结果，不是经过格式校验的可信结论。
 
 本轮 ai-review 离线自动化：93/93 通过、0 跳过；skillhub 审计集 136/136、PR 审查校验 23/23 通过。完整测试名和源码指纹见 [offline-validation.json](../../docs/offline-validation.json)。这些自动化结果验证编排、协议和约束，不证明真实模型判断、SGLang CI 或 HCU 效果。
+
+交付前在独立 Git checkout 再次核对了 222 份导出文件摘要、指标重算、G4 工件及四份实际 Python 补测交接，共 10 个待审任务；均通过相应一致性检查。记录见 [next-round-validation.json](../../docs/next-round-validation.json)。这不改变首次完成率、G4 未关闭状态或上述两份后续协议失败。

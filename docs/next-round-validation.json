@@ -1,0 +1,57 @@
+{
+  "validation_version": 1,
+  "date": "2026-10-08",
+  "code_and_evidence_commit": "617a8f2e229195afa91e952d99c38ea6f6aca459",
+  "skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+  "ai_review_automated_tests": {"tests": 93, "passed": 93, "failed": 0, "skipped": 0, "source_fingerprints": "offline-validation.json"},
+  "skillhub_automated_tests": {
+    "test_star_audit_py": {"tests": 136, "passed": 136},
+    "test_pr_ci_review_py": {"tests": 23, "passed": 23},
+    "published_catalog_validation": "passed_1_skill_1_component",
+    "catalog_generation_and_check": "passed_no_changes",
+    "changed_experimental_generation_skill_quick_validation": "passed_with_python_utf8_mode",
+    "encoding_note": "Windows default GBK quick_validate attempt failed to decode Chinese SKILL.md; rerun with python -X utf8 passed. No skill content was changed to bypass validation."
+  },
+  "fresh_checkout": {
+    "kind": "separate_no_hardlinks_git_clone_then_fast_forward",
+    "exported_file_hashes_verified": 222,
+    "json_files_parsed": 189,
+    "artifact_references_verified": 10,
+    "evaluation_samples_source_hash_verified": 6,
+    "metrics_recomputed_equal": true,
+    "acceptance_source_fingerprints_verified": true,
+    "private_bridge_requests_exported": 0,
+    "sensitive_pattern_matches": 0,
+    "privacy_scan_limitation": "High-confidence token/private-key/internal-IPv4/local-path patterns plus controlled export; not a formal DLP certification.",
+    "g4_completion": {"status": "evidence_consistent", "validated_tasks": [], "gap_closed": false},
+    "actual_python_handoff_checks": [
+      {"pr": 467, "tasks": 2, "status": "ready_for_review"},
+      {"pr": 478, "tasks": 2, "status": "ready_for_review"},
+      {"pr": 463, "tasks": 2, "status": "ready_for_review"},
+      {"pr": 477, "tasks": 4, "status": "ready_for_review"}
+    ]
+  },
+  "blind_evaluation": {
+    "real_pr_samples": 6,
+    "synthetic_pr_samples": 0,
+    "code_complete_first_attempts": 0,
+    "tests_complete_first_attempts": 0,
+    "code_labeled_defects_detected": "1/1",
+    "tests_labeled_gaps_detected": "2/6",
+    "unknown_expectations": 7,
+    "human_certified": false,
+    "quality_gate": "not_passed",
+    "remaining_protocol_failures": ["PR473 continued-context source_not_read", "PR475 continued-context empty selection_evidence rejected"],
+    "report": "../examples/independent-pr-review/README.md"
+  },
+  "boundaries": {
+    "model_api_calls": false,
+    "production_deployment": false,
+    "business_pr_comments": false,
+    "ci_triggered": false,
+    "hcu_used": false,
+    "target_tests_executed_this_round": false,
+    "sglang_business_checkout_modified": false,
+    "main_branches_merged": false
+  }
+}
