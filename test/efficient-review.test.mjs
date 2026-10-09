@@ -56,6 +56,14 @@ test('queued model requests are removed on abort, not executed later', async () 
   await assert.rejects(second); release('done'); await first; assert.equal(calls, 1);
 });
 
+test('early validation starts one shared capped window instead of minting two fresh timeouts', async () => {
+  let time = 20; const c = createReviewControl({ durationMs: 180, now: () => time });
+  await c.run('validation', 'python', async (_signal, ms) => { assert.equal(ms, 30); time += 20; });
+  await c.run('validation', 'python', async (_signal, ms) => { assert.equal(ms, 10); time += 9; });
+  assert.equal(c.remaining('validation'), 1); time++;
+  assert.throws(() => c.assert('validation'), /stage_time_budget/); assert.ok(c.remaining('main') > 0);
+});
+
 test('CI view is paginated, bounded, preserves SHA/attempt and never calls a green job method proof', () => {
   const snapshot = { pr: { head_sha: 'a'.repeat(40), base_sha: 'b'.repeat(40), body: 'private body'.repeat(5000) }, checks: [],
     runs: Array.from({ length: 300 }, (_, n) => ({ id: n + 1, run_attempt: 2, head_sha: 'a'.repeat(40), jobs: [{ id: n + 1000, status: 'completed', conclusion: 'success' }] })) };
@@ -193,4 +201,54 @@ test('efficient code/test completion stays independent; unresolved test validati
   assert.equal(reviewCompletion(result).tests, 'incomplete');
   assert.equal(reviewCompletion({ ...result, codeReviewPartial: false, manifest: { complete: true }, testReview: { status: 'incomplete', validation_status: 'validated' } }, { strategy: 'efficient' }).tests, 'incomplete');
   assert.equal(reviewCompletion(result, { strategy: 'efficient', current: false }).tests, 'incomplete');
+});
+
+test('fast Git search honors exact path, uses literal pathspecs, filters secrets and avoids per-file processes', async t => {
+  const f = await fixture(t);
+  await f.write('literal[1].py', 'needle here\n'); await f.write('peer.py', 'needle peer\n'); await f.write('.env', 'needle hidden\n');
+  await f.write('large.py', 'needle\n'.repeat(80000)); await f.commit(); const head = (await f.git('rev-parse', 'HEAD')).trim();
+  const p = await createGitEvidence({ repo: f.repo, baseSha: f.base, headSha: head, files: f.files, cacheObjects: true, fastSearch: true });
+  const before = p.metrics.physical_executions;
+  const r = await p.execute({ tool: 'search_code', query: 'needle', path: 'literal[1].py' });
+  assert.equal(r.searchedFiles, 1); assert.equal(r.matches[0]?.path, 'literal[1].py'); assert.equal(r.matches[0]?.line, 1); assert.equal(r.truncated, false);
+  assert.equal(p.metrics.physical_executions - before, 2); // one tree and one grep, not 100 size/blob pairs
+  await assert.rejects(p.execute({ tool: 'search_code', query: 'needle', path: '.env' }), /path_denied/);
+  const big = await p.execute({ tool: 'search_code', query: 'needle', path: 'large.py' }); assert.equal(big.skipped, 1); assert.equal(big.truncated, true);
+  const absent = await p.execute({ tool: 'search_code', query: 'does-not-exist', path: 'peer.py' }); assert.deepEqual(absent.matches, []);
+  await assert.rejects(p.execute(null), /tool_denied/);
+});
+
+test('fast search page and excerpt limits preserve unknowns rather than absence claims', async t => {
+  const f = await fixture(t);
+  for (let i = 0; i < 105; i++) await f.write(`pages/${String(i).padStart(3, '0')}.py`, 'needle\n');
+  await f.commit(); const head = (await f.git('rev-parse', 'HEAD')).trim();
+  const p = await createGitEvidence({ repo: f.repo, baseSha: f.base, headSha: head, files: f.files, fastSearch: true });
+  const a = await p.execute({ tool: 'search_code', query: 'needle', prefix: 'pages/' });
+  assert.equal(a.searchedFiles, 100); assert.equal(a.next_cursor, 100); assert.equal(a.truncated, true);
+  const b = await p.execute({ tool: 'search_code', query: 'needle', prefix: 'pages/', cursor: 100 });
+  assert.equal(b.searchedFiles, 5); assert.equal(b.next_cursor, null); assert.equal(b.truncated, false);
+});
+
+test('bounded default source reads do not trim an explicitly wrong requested range', async t => {
+  const f = await fixture(t); await f.write('long.py', Array.from({ length: 240 }, (_, n) => `line_${n}`).join('\n') + '\n'); await f.commit();
+  const head = (await f.git('rev-parse', 'HEAD')).trim(), p = await createGitEvidence({ repo: f.repo, baseSha: f.base, headSha: head, files: f.files });
+  const a = await p.execute({ tool: 'read_file', path: 'long.py', start: 1, max_lines: 80 }); assert.equal(a.end, 80); assert.equal(a.next_start, 81); assert.equal(a.total_lines, 240);
+  await assert.rejects(p.execute({ tool: 'read_file', path: 'long.py', start: 100, end: 308, max_lines: 80 }), /line_range_invalid/);
+});
+
+test('free scheduler slot starts the next batch without waiting for a slow peer', async t => {
+  const f = await fixture(t); await f.write('peer1.py', 'one = 1\n'); await f.write('peer2.py', 'two = 2\n'); await f.commit();
+  const head = (await f.git('rev-parse', 'HEAD')).trim(), files = [...f.files, ...['peer1', 'peer2'].map((p, n) => ({ filename: `${p}.py`, status: 'added', patch: `@@ -0,0 +1 @@\n+${n ? 'two' : 'one'} = ${n + 1}` }))];
+  const final = JSON.stringify({ action: 'final', result: { code_review: { overview: [], findings: [] } } });
+  let release, ready; const slowReady = new Promise(resolve => { ready = resolve; }); let thirdStarted = false;
+  const keepAlive = setTimeout(() => {}, 15000);
+  try {
+    const result = await runReviewPipeline({ repository: 'fixture/repo', baseSha: f.base, headSha: head, files, client: { async generateReview(options) {
+      const input = JSON.parse(options.input.split('\n<tool_evidence>')[0]);
+      if (input.diff.includes('FILE: api.py')) { const pending = new Promise(resolve => { release = resolve; }); ready(); return pending; }
+      if (input.diff.includes('FILE: peer2.py')) { await slowReady; thirdStarted = true; release(final); }
+      return final;
+    } } }, { config: { strategy: 'efficient', deadlineMs: 12000, enabled: true, testEnabled: false, checkouts: { 'fixture/repo': f.repo }, maxTools: 24 } });
+    assert.ok(thirdStarted); assert.equal(result.partial, false); assert.equal(result.completed, 3);
+  } finally { clearTimeout(keepAlive); }
 });

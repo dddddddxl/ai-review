@@ -35,12 +35,15 @@ export function safeProcessEnvironment() {
     GIT_CONFIG_COUNT: '2', GIT_CONFIG_KEY_0: 'core.fsmonitor', GIT_CONFIG_VALUE_0: 'false', GIT_CONFIG_KEY_1: 'core.hooksPath', GIT_CONFIG_VALUE_1: '' };
 }
 export async function gitRead(repo, args, { maxBuffer = 4 * 1024 * 1024, signal, timeoutMs = 15000 } = {}) {
-  const { stdout } = await exec('git', ['-c', 'core.hooksPath=', '-c', 'core.fsmonitor=false', '-c', 'diff.external=',
+  try { const { stdout } = await exec('git', ['-c', 'core.hooksPath=', '-c', 'core.fsmonitor=false', '-c', 'diff.external=',
     '--no-pager', '-C', repo, ...args], { env: safeProcessEnvironment(), timeout: timeoutMs, signal, maxBuffer, windowsHide: true });
-  return stdout;
+  return stdout; } catch (error) {
+    if (error.killed || error.code === 'ETIMEDOUT') error.code = 'tool_timeout';
+    throw error;
+  }
 }
 
-export async function createGitEvidence({ repo, baseSha, headSha, diffBase = baseSha, files, ci = {}, cacheObjects = false, read = gitRead, ciReader, checkpoint = () => {} }) {
+export async function createGitEvidence({ repo, baseSha, headSha, diffBase = baseSha, files, ci = {}, cacheObjects = false, fastSearch = false, read = gitRead, ciReader, checkpoint = () => {} }) {
   if (![baseSha, headSha, diffBase].every(isSha)) throw new Error('invalid_revision');
   const revisions = new Set([baseSha, headSha, diffBase]);
   const metrics = { physical_executions: 0, cache_hits: 0, physical_ms: 0 };
@@ -65,10 +68,10 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
   async function tree(revision) {
     if (!revisions.has(revision)) throw new Error('revision_out_of_scope');
     if (!cache.has(revision)) {
-      const pending = physical(['ls-tree', '-rz', '--full-tree', revision]).then(raw => {
+      const pending = physical(['ls-tree', fastSearch ? '-rlz' : '-rz', '--full-tree', revision]).then(raw => {
       const entries = raw.split('\0').filter(Boolean).map(row => {
-        const [header, path] = row.split('\t'); const [mode, type, oid] = header.split(' ');
-        return { mode, type, oid, path };
+        const [header, path] = row.split('\t'); const [mode, type, oid, size] = header.trim().split(/\s+/);
+        return { mode, type, oid, path, ...(size === undefined ? {} : { size: Number(size) }) };
       });
         return entries;
       });
@@ -82,7 +85,7 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
     if (!safePath(path) || secretPath(path)) throw new Error('path_denied');
     const entry = (await tree(revision)).find(item => item.path === path);
     if (!entry || !['100644', '100755'].includes(entry.mode) || entry.type !== 'blob') throw new Error('not_regular_git_file');
-    const size = Number((await object(`size:${entry.oid}`, ['cat-file', '-s', entry.oid])).trim());
+    const size = entry.size ?? Number((await object(`size:${entry.oid}`, ['cat-file', '-s', entry.oid])).trim());
     if (!Number.isFinite(size) || size > 512 * 1024) throw new Error('file_size_limit');
     const content = await object(`blob:${entry.oid}`, ['cat-file', 'blob', entry.oid]);
     if (content.includes('\0')) throw new Error('content_denied');
@@ -91,6 +94,7 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
   return { rawFile, tree, metrics, repo, baseSha, headSha, diffBase,
     identity: sha256({ baseSha, headSha, diffBase, files, ci }),
     async execute(request) {
+      if (!request || typeof request !== 'object' || Array.isArray(request)) throw new Error('tool_denied');
       const revision = request.revision || headSha;
       if (!revisions.has(revision)) throw new Error('revision_out_of_scope');
       const origin = { revision, tool: request.tool };
@@ -100,14 +104,16 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
         // ranges compatible with the validator's Python str.splitlines().
         const lines = content ? content.split(/\r\n|[\n\r\v\f\x1c-\x1e\u0085\u2028\u2029]/) : [];
         if (lines.at(-1) === '') lines.pop();
-        const start = request.start ?? 1, end = request.end ?? Math.min(lines.length, start + 199);
+        const maxLines = request.max_lines ?? 200;
+        if (!Number.isSafeInteger(maxLines) || maxLines < 1 || maxLines > 200) throw new Error('line_range_invalid');
+        const start = request.start ?? 1, end = request.end ?? Math.min(lines.length, start + maxLines - 1);
         if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || end > lines.length || end - start >= 200) throw Object.assign(new Error('line_range_invalid'), { range: { total_lines: lines.length, min_start: 1, max_end: lines.length, max_lines: 200 } });
         const excerpt = lines.slice(start - 1, end).join('\n');
         if (sensitiveText(excerpt)) throw new Error('content_denied');
         return { ...origin, path: request.path, start, end, total_lines: lines.length, next_start: end < lines.length ? end + 1 : null, content: excerpt.slice(0, 16000), sha256: sha256(content), truncated: excerpt.length > 16000 };
       }
       if (request.tool === 'find_files' || request.tool === 'search_code') {
-        if (typeof request.query !== 'string' || !request.query.length || request.query.length > 200) throw new Error('query_invalid');
+        if (typeof request.query !== 'string' || !request.query.length || request.query.length > 200 || request.query.includes('\0')) throw new Error('query_invalid');
         const entries = (await tree(revision)).filter(e => ['100644', '100755'].includes(e.mode) && safePath(e.path) && !secretPath(e.path));
         if (request.tool === 'find_files') {
           const found = entries.filter(e => e.path.includes(request.query));
@@ -115,16 +121,46 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
         }
         // A caller may constrain the literal path prefix; no glob, shell or regex execution.
         if (request.prefix && (!safePath(request.prefix.replace(/\/$/, '')) || secretPath(request.prefix))) throw new Error('path_denied');
-        const candidates = entries.filter(e => !request.prefix || e.path.startsWith(request.prefix));
+        if (request.path !== undefined && (!safePath(request.path) || secretPath(request.path))) throw new Error('path_denied');
+        const candidates = entries.filter(e => (request.path === undefined || e.path === request.path) && (!request.prefix || e.path.startsWith(request.prefix)));
+        const cursor = request.cursor ?? 0;
+        if (!Number.isSafeInteger(cursor) || cursor < 0 || cursor > candidates.length) throw new Error('query_invalid');
+        const slice = candidates.slice(cursor, cursor + 100);
+        if (fastSearch) {
+          const eligible = slice.filter(e => Number.isFinite(e.size) && e.size <= 512 * 1024);
+          const skippedSize = slice.length - eligible.length;
+          let raw = '';
+          if (eligible.length) try {
+            // Literal Git pathspecs, fixed revision, no textconv/external command.
+            raw = await physical(['grep', '--no-textconv', '-z', '-n', '-I', '-F', '-m', '100', '-e', request.query, revision, '--', ...eligible.map(e => `:(literal)${e.path}`)]);
+          } catch (error) { if (error.code !== 1) throw error; }
+          const matches = []; let skipped = skippedSize, count = 0, cut = false;
+          const allowed = new Set(eligible.map(e => e.path));
+          for (const row of raw.split('\n').filter(Boolean)) {
+            checkpoint();
+            const [location, number, text] = row.split('\0');
+            const path = location?.slice(revision.length + 1), line = Number(number);
+            if (!location?.startsWith(revision + ':') || !allowed.has(path) || !Number.isSafeInteger(line) || line < 1 || text === undefined) { skipped++; continue; }
+            count++;
+            if (sensitiveText(text)) { skipped++; continue; }
+            const item = { path, line, text: text.slice(0, 300) };
+            if (matches.length >= 100 || JSON.stringify([...matches, item]).length > 15000) { cut = true; break; }
+            matches.push(item);
+          }
+          const nextCursor = cursor + slice.length < candidates.length ? cursor + slice.length : null;
+          return { ...origin, matches, searchedFiles: eligible.length, skipped, total_files: candidates.length, cursor, next_cursor: nextCursor,
+            truncated: nextCursor !== null || cut || count >= 100 || skipped > 0, search_method: 'fixed_git_literal' };
+        }
         const matches = []; let skipped = 0;
-        for (const e of candidates.slice(0, 100)) {
+        for (const e of slice) {
           checkpoint();
           try {
             const content = await rawFile(revision, e.path);
             content.split('\n').forEach((line, i) => { if (line.includes(request.query) && matches.length < 100) { if (sensitiveText(line)) skipped++; else matches.push({ path: e.path, line: i + 1, text: line.slice(0, 300) }); } });
           } catch (error) { if (['global_time_budget', 'stage_time_budget'].includes(error.code)) throw error; skipped++; }
         }
-        return { ...origin, matches, searchedFiles: Math.min(candidates.length, 100), skipped, truncated: candidates.length > 100 || matches.length === 100 || skipped > 0 };
+        return { ...origin, matches, searchedFiles: slice.length, skipped, total_files: candidates.length, cursor,
+          next_cursor: cursor + slice.length < candidates.length ? cursor + slice.length : null, truncated: cursor + slice.length < candidates.length || matches.length === 100 || skipped > 0 };
       }
       if (request.tool === 'read_diff') {
         if (!safePath(request.path) || secretPath(request.path)) throw new Error('path_denied');
@@ -196,6 +232,8 @@ export function deniedToolResult(error, request) {
     ...(tools.includes(request?.tool) ? { tool: request.tool } : {}),
     ...(isSha(request?.revision) ? { revision: request.revision } : {}),
     ...(safePath(request?.path) && !secretPath(request.path) && !sensitiveText(request.path) ? { path: request.path } : {}),
+    ...(error?.message === 'line_range_invalid' ? { requested_range: { start: Number.isSafeInteger(request?.start) ? request.start : 1,
+      end: Number.isSafeInteger(request?.end) ? request.end : null } } : {}),
     ...(error?.message === 'line_range_invalid' && Number.isInteger(error.range?.total_lines) ? { legal_range: error.range } : {}) };
 }
 export async function evidenceLoop({ client, provider, budget, instructions, input, isCurrent = async () => true, maxOutputTokens = 8000 }) {

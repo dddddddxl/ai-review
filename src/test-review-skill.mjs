@@ -23,6 +23,7 @@ export async function loadTestSkill(skillRepo, { read = gitRead } = {}) {
   }
   // Keep the worked historical answer out of model inputs to avoid answer leakage.
   return { repo: skillRepo, commit: SKILL_COMMIT, hash: sha256(contents), instructions: contents.slice(0, 2).join('\n\n'),
+    prInstructions: contents[0].split('\n## 分支测试缺口审计')[0] + '\n\n' + contents[1],
     validator: path.join(skillRepo, scriptFiles[0]), handoff: path.join(skillRepo, scriptFiles[1]) };
 }
 
@@ -46,6 +47,7 @@ export async function validateTestAnalysis({ skill, repo, snapshot, analysis, ar
   if (sensitiveData(analysis)) throw new Error('sensitive_analysis');
   for (const e of analysis.evidence || []) if (e.kind === 'artifact' && !Object.hasOwn(artifacts, e.path)) throw new Error('artifact_not_collected');
   for (const [name, content] of Object.entries(artifacts)) {
+    control?.assert('validation');
     if (!safePath(name) || !name.startsWith('artifacts/') || typeof content !== 'string' || sensitiveText(content)) throw new Error('artifact_denied');
     const target = path.join(dir, name); await fs.mkdir(path.dirname(target), { recursive: true, mode: 0o700 }); await fs.writeFile(target, content, { flag: 'wx', mode: 0o600 });
   }
@@ -57,14 +59,14 @@ export async function validateTestAnalysis({ skill, repo, snapshot, analysis, ar
     : exec(python, args, { env: safeProcessEnvironment(), timeout: 30000, maxBuffer: 1024 * 1024, windowsHide: true });
   try { await runPython(['-I', '-B', skill.validator, '--repo', repoRoot, '--snapshot', path.join(dir, 'snapshot.json'),
     '--input', path.join(dir, 'analysis.json'), '--output', resultDir]);
-  } catch (error) { if (['global_time_budget', 'stage_time_budget'].includes(error.code)) throw error; throw Object.assign(new Error('skill_validation_failed'), { reviewStage: 'validation' }); }
+  } catch (error) { if (['global_time_budget', 'stage_time_budget'].includes(error.code)) throw error; throw Object.assign(new Error(error.killed || error.code === 'ETIMEDOUT' ? 'validation_timeout' : 'skill_validation_failed'), { reviewStage: 'validation' }); }
   const review = JSON.parse(await fs.readFile(path.join(resultDir, 'review.json'), 'utf8'));
   const backlog = JSON.parse(await fs.readFile(path.join(resultDir, 'test-backlog.json'), 'utf8'));
   let handoff = 'no_tasks';
   if (backlog.tasks.length) {
     try { await runPython(['-I', '-B', skill.handoff, '--repo', repoRoot, '--backlog', path.join(resultDir, 'test-backlog.json'),
       ...backlog.tasks.flatMap(t => ['--task', t.id]), '--output', path.join(dir, 'generation-plan.json')]);
-    } catch (error) { if (['global_time_budget', 'stage_time_budget'].includes(error.code)) throw error; throw Object.assign(new Error('handoff_validation_failed'), { reviewStage: 'handoff' }); }
+    } catch (error) { if (['global_time_budget', 'stage_time_budget'].includes(error.code)) throw error; throw Object.assign(new Error(error.killed || error.code === 'ETIMEDOUT' ? 'validation_timeout' : 'handoff_validation_failed'), { reviewStage: 'handoff' }); }
     handoff = 'validated_not_executed';
   }
   return { status: 'validated', review, backlog, handoff, directory: dir, report: await fs.readFile(path.join(resultDir, 'report.md'), 'utf8'), skill_hash: skill.hash };

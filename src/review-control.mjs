@@ -15,7 +15,7 @@ export function createReviewControl({ durationMs = 180000, maxTools = 24, now = 
   const ends = { main: started + durationMs * 2 / 3, incremental: started + durationMs * 5 / 6, validation: deadline };
   const models = { main: 0, incremental: 0, validation: 0 }, tools = { main: 0, incremental: 0, validation: 0 };
   const reserve = Math.min(4, maxTools - 1), stops = [], operations = [];
-  let characterCount = 0;
+  let characterCount = 0, validationStarted = null;
   const error = (code, stage) => {
     if (!stops.some(s => s.code === code && s.stage === stage)) stops.push({ code, stage, elapsed_ms: Math.max(0, now() - started) });
     return Object.assign(new Error(code), { code, reviewStage: stage });
@@ -23,6 +23,10 @@ export function createReviewControl({ durationMs = 180000, maxTools = 24, now = 
   function remaining(stage) { return Math.max(0, Math.min(deadline, ends[stage] ?? deadline) - now()); }
   function assert(stage) {
     if (!Object.hasOwn(ends, stage)) throw new Error('invalid_review_stage');
+    // One shared validation window even when model phases finish early.
+    if (stage === 'validation' && validationStarted === null) {
+      validationStarted = now(); ends.validation = Math.min(deadline, validationStarted + durationMs / 6);
+    }
     if (now() >= deadline) throw error('global_time_budget', stage);
     if (remaining(stage) <= 0) throw error('stage_time_budget', stage);
   }
@@ -58,6 +62,7 @@ export function createReviewControl({ durationMs = 180000, maxTools = 24, now = 
         main_ms: durationMs * 2 / 3, incremental_ms: durationMs / 6, validation_reserved_ms: durationMs / 6,
         main_tools: maxTools - reserve, incremental_tools: reserve, model_calls_per_stage: 8, characters: 120000 },
         model_calls: { ...models }, tool_calls: { ...tools }, characters: characterCount,
+        validation_started_ms: validationStarted === null ? null : validationStarted - started,
         exhausted: stops.length > 0 || now() >= deadline, reason: stops.at(-1)?.code || (now() >= deadline ? 'global_time_budget' : null), stops: [...stops], operations: [...operations] };
     } };
 }
@@ -66,7 +71,7 @@ export function efficientDiagnostic(error) {
   const known = ['global_time_budget', 'stage_time_budget', 'model_round_budget', 'evidence_tool_budget', 'evidence_character_budget',
     'source_not_read', 'artifact_not_read', 'source_revision_invalid', 'fragment_conflict', 'fragment_identity_mismatch', 'invalid_test_fragment',
     'skill_validation_failed', 'handoff_validation_failed', 'stale_review', 'invalid_tool_protocol', 'ci_item_size_limit', 'sensitive_analysis',
-    'checkout_not_configured', 'checkout_not_clean_or_pinned', 'diff_scope_mismatch', 'stale_snapshot', 'skill_pin_mismatch', 'invalid_code_fragment'];
+    'checkout_not_configured', 'checkout_not_clean_or_pinned', 'diff_scope_mismatch', 'stale_snapshot', 'skill_pin_mismatch', 'invalid_code_fragment', 'tool_timeout', 'validation_timeout'];
   const code = known.includes(error?.code || error?.message) ? error.code || error.message
     : ['TimeoutError', 'AbortError', 'APIConnectionTimeoutError'].includes(error?.name) ? 'model_request_timeout'
     : error?.code === 'ETIMEDOUT' ? 'tool_timeout' : error instanceof SyntaxError ? 'model_json_invalid'

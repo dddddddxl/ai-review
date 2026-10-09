@@ -71,7 +71,11 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
   let stage = 'main';
   const operationStage = new AsyncLocalStorage();
   const read = (directory, command) => control.run(operationStage.getStore() || stage, 'git', (signal, ms) => gitRead(directory, command, { signal, timeoutMs: Math.ceil(Math.min(ms, 15000)) }));
-  const current = () => control.run(stage === 'main' || stage === 'incremental' ? stage : 'validation', 'version_check', (signal, ms) => (args.isCurrent || (async () => true))({ signal, timeoutMs: Math.ceil(Math.min(ms, 15000)) }));
+  const current = () => control.run(stage === 'main' || stage === 'incremental' ? stage : 'validation', 'version_check', async (signal, ms) => {
+    const options = { signal, timeoutMs: Math.ceil(Math.min(ms, 15000)) };
+    if (args.isCurrent) return args.isCurrent(options);
+    return (await gitRead(repo, ['rev-parse', 'HEAD'], options)).trim() === args.headSha && !(await gitRead(repo, ['status', '--porcelain', '--untracked-files=all'], options)).trim();
+  });
   async function evidence(request, batchId) {
     control.reserveCall(stage, 'tool');
     const id = `E${Object.values(control.state().tool_calls).reduce((a, b) => a + b, 0)}`;
@@ -79,7 +83,7 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
     const requestStage = stage;
     try { result = { status: 'available', ...await control.run(requestStage, 'tool', () => operationStage.run(requestStage, () => provider.execute(request))) }; }
     catch (error) {
-      result = { ...deniedToolResult(error, { ...request, revision: request.revision || provider.headSha }), diagnostic: efficientDiagnostic(error) };
+      result = { ...deniedToolResult(error, { ...request, revision: request?.revision || provider.headSha }), diagnostic: efficientDiagnostic(error) };
       if (['global_time_budget', 'stage_time_budget'].includes(error.code)) { records.push({ id, ...result }); throw error; }
     }
     const record = { id, batch_id: batchId, ...result };
@@ -115,7 +119,7 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
     if (bundle && (!bundle.snapshot.capture_consistent || bundle.snapshot.pr.head_sha !== args.headSha || bundle.snapshot.pr.base_sha !== args.baseSha)) throw new Error('stale_snapshot');
     ciView = createCiView(bundle || { snapshot: { pr: { head_sha: args.headSha, base_sha: args.baseSha }, checks: [], runs: [] } });
     provider = await createGitEvidence({ repo, baseSha: args.baseSha, headSha: args.headSha, diffBase, files: args.files,
-      ci: bundle || {}, cacheObjects: true, read, ciReader: ciView.page, checkpoint: () => control.assert(operationStage.getStore() || stage) });
+      ci: bundle || {}, cacheObjects: true, fastSearch: true, read, ciReader: ciView.page, checkpoint: () => control.assert(operationStage.getStore() || stage) });
     rules = await loadRules(provider);
     if (testsRequested) {
       try { skill = await loadTestSkill(config.skillRepo, { read }); }
@@ -136,7 +140,7 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
           const hunk = /@@ -\d+(?:,\d+)? \+(\d+)/.exec(f.patch || '');
           const start = Math.max(1, Number(hunk?.[1] || 1) - 20);
           const existing = records.find(e => e.status === 'available' && e.tool === 'read_file' && e.revision === args.headSha && e.path === f.filename && !e.truncated && e.start <= start && e.end >= start);
-          const e = existing || await evidence({ tool: 'read_file', path: f.filename, start }, batch.id); batch.transcript.push(e);
+          const e = existing || await evidence({ tool: 'read_file', path: f.filename, start, max_lines: 80 }, batch.id); batch.transcript.push(e);
         }
       }
       const methods = specialistMethods(batch.files.map(f => f.filename));
@@ -150,8 +154,8 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
         evidence_index: records.map(({ content, ...r }) => r) };
       const instructions = PR_INSTRUCTIONS + '\n【关联组共同审查】不运行代码。仅审查本批 diff 片段。未提供的相关文件按需读取，优先路径受限搜索；不得把关联线索当完整调用图。' +
         '\n最终 action=final 的 result 结构为 {"code_review":{"overview":[],"findings":[]},"test_analysis":analysis.json或null}。只返回已请求的范围；缺陷须有 existing_code 和 evidence_ids；测试补充建议不作为已确认产品 bug。' +
-        (needsTests ? '\n【测试片段】使用以下固定版本 skill，但 files/behaviors 仅覆盖本批变更文件与片段；它是中间分析不是已通过最终校验。analysis.platform 统一使用 input.platform；behavior.platform 说明实际目标。head_sha 使用完整实际 SHA；所有行为、缺口和任务ID以 batch_id 作前缀，证据ID与引用一致；source 引用必须已通过 read_file 取得，不能引用 diff 猜范围。CI 摘要不是方法执行证明，无日志不要构造 observations；必要语义缺失保留未知、deferred，不编造 oracle。静态充分但运行未核实仍须 evidence_gap，不泛泛要求补测试。\n' + skill.instructions : '') +
-        '\nread_ci 可填写 section=overview|checks|statuses|runs|jobs|check_detail|run_detail，cursor、id、run_id、attempt、job_id；按 next_cursor 续读，has_more 不是整体截断，未读页未知。' + TOOL_PROTOCOL;
+        (needsTests ? '\n【测试片段】使用以下固定版本 skill 的 PR 模式，不执行分支审计；files/behaviors 仅覆盖本批变更文件与片段，它是中间分析不是已通过最终校验。analysis.platform 统一使用 input.platform；behavior.platform 说明实际目标。head_sha 使用完整实际 SHA；所有行为、缺口和任务ID以 batch_id 作前缀，证据ID与引用一致；source 引用必须已通过 read_file 取得，不能引用 diff 猜范围。CI 摘要不是方法执行证明，无日志不要构造 observations；必要语义缺失保留未知、deferred，不编造 oracle。静态充分但运行未核实仍须 evidence_gap，不泛泛要求补测试。\n' + (skill.prInstructions || skill.instructions) : '') +
+        '\nsearch_code 可用 path 限定一个实际文件，或 prefix 限定目录；先限路径，cursor 可分页100个候选文件，未读页未知。read_file 可省略 end，max_lines=80 缩小单次范围；明确 end 仍须最多200行且不越EOF。read_ci 可填写 section=overview|checks|statuses|runs|jobs|check_detail|run_detail，cursor、id、run_id、attempt、job_id；按 next_cursor 续读，has_more 不是整体截断，未读页未知。' + TOOL_PROTOCOL;
       while (true) {
         const state = control.state();
         const remainingTools = state.reason === 'evidence_character_budget' ? 0 : Math.max(0, Math.min(state.limits.tools - Object.values(state.tool_calls).reduce((a, b) => a + b, 0),
@@ -164,7 +168,7 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
           if (!remainingTools) throw control.stop('evidence_tool_budget', stage);
           for (const request of decision.requests.slice(0, remainingTools)) {
             // Path-local first; widening remains an explicit, budgeted action.
-            const scoped = request.tool === 'search_code' && request.prefix === undefined && request.expand_scope !== true
+            const scoped = request?.tool === 'search_code' && request.prefix === undefined && request.path === undefined && request.expand_scope !== true
               ? { ...request, prefix: batch.files[0].filename.includes('/') ? batch.files[0].filename.slice(0, batch.files[0].filename.lastIndexOf('/') + 1) : undefined } : request;
             batch.transcript.push(await evidence(scoped, batch.id));
           }
@@ -209,10 +213,15 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
 
   if (!preparationFailure) {
     // Two concurrent batches share one atomic quota. No recursive split/retry after deadline.
-    for (let offset = 0; offset < batches.length; offset += 2) {
-      try { control.assert('main'); if (control.state().model_calls.main >= 8) { control.stop('model_round_budget', stage); break; } } catch { break; }
-      await Promise.all(batches.slice(offset, offset + 2).map(reviewBatch));
-    }
+    let nextBatch = 0;
+    const worker = async () => {
+      while (nextBatch < batches.length) {
+        try { control.assert('main'); if (control.state().model_calls.main >= 8) { control.stop('model_round_budget', stage); break; } } catch { break; }
+        // Take the next batch when a slot frees, not when both members of a pair finish.
+        const batch = batches[nextBatch++]; await reviewBatch(batch);
+      }
+    };
+    await Promise.all([worker(), worker()]);
     stage = 'incremental';
     for (const batch of batches) {
       if ((!codeRequested || batch.code.complete) && (!testsRequested || !skill || batch.test)) continue;
@@ -240,7 +249,11 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
   let versionCurrent = true;
   try { versionCurrent = await current(); } catch (error) { versionCurrent = false; failures.push({ stage: 'validation', scope: 'both', diagnostic: efficientDiagnostic(error) }); }
   if (!versionCurrent && testReview) testReview = { ...testReview, validation_status: testReview.status, status: 'incomplete', diagnostic: { code: 'stale_or_unverified_head' } };
-  const budget = control.state(), identity = sha256({ strategy: 'efficient-v1', method_version: METHOD_VERSION, instructions: [PR_INSTRUCTIONS, PR_VERIFICATION_INSTRUCTIONS],
+  if (testReview?.status === 'incomplete' && !testReview.diagnostic) {
+    testReview = { ...testReview, diagnostic: failures.at(-1)?.diagnostic || { code: 'incomplete_fragments' },
+      report: `测试覆盖审查未完整完成（${failures.at(-1)?.diagnostic.code || 'incomplete_fragments'}）；不能判断没有测试缺口。\n\n` + testReview.report };
+  }
+  const budget = control.state(), identity = sha256({ strategy: 'efficient-v2.1-offline', search: 'fixed_git_literal', method_version: METHOD_VERSION, instructions: [PR_INSTRUCTIONS, PR_VERIFICATION_INSTRUCTIONS],
     methods: specialistMethods(args.files.map(f => f.filename)), head: args.headSha, base: args.baseSha,
     rules: rules?.hash, skill: skill?.hash, grouping: plan?.fingerprint, evidence_view: ciView?.identity.snapshot_sha256 });
   const sealed = plan ? sealManifest({ ...args, files: plan.files, plan, groups: plan.groups, rules, rulesHash: rules?.hash, skillHash: skill?.hash,
@@ -253,9 +266,9 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
     scope_status: { code: codeRequested ? manifest.complete ? 'complete' : 'partial' : 'not_requested', tests: testsRequested ? testReview.status : 'not_requested' } };
   // Keep failed reads as immutable audit entries. Resolution references only real, same-version successful reads.
   manifest.evidence_resolutions = records.filter(r => r.status !== 'available' && r.tool === 'read_file').map(r => {
-    const related = records.filter(e => e.status === 'available' && e.tool === 'read_file' && !e.truncated && e.revision === r.revision && e.path === r.path);
+    const related = records.slice(records.indexOf(r) + 1).filter(e => e.status === 'available' && e.tool === 'read_file' && !e.truncated && e.revision === r.revision && e.path === r.path);
     return { failed_id: r.id, reason: r.reason, subsequent_read_ids: related.map(e => e.id),
-      resolution: r.reason === 'line_range_invalid' && related.length ? 'range_corrected_not_original_range_claimed_complete' : 'unresolved' };
+      resolution: 'historical_failure_preserved_required_claims_checked_separately' };
   });
   if (!codeRequested) { manifest.complete = false; manifest.coverage.review = 'not_requested'; }
   const findings = batches.flatMap(b => b.code.complete ? b.code.findings : []);

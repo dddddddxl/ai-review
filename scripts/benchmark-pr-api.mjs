@@ -81,6 +81,7 @@ function measuredClient(env, directory, calls, notify, pr) {
       row.error = Number.isInteger(error?.status) ? `http_${error.status}`
         : ['TimeoutError', 'AbortError'].includes(error?.name) ? 'timeout'
         : error?.code === 'incomplete_response' ? 'incomplete_response' : 'model_or_artifact_failure';
+      if (['output_truncated', 'response_refused', 'empty_response', 'response_protocol'].includes(error?.reason)) row.error_reason = error.reason;
       throw error;
     } finally {
       row.elapsed_seconds = round((performance.now() - start) / 1000);
