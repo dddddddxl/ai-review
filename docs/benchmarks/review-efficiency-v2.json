@@ -1,0 +1,57 @@
+{
+  "assessment_version": 1,
+  "date": "2026-10-09",
+  "repository": "dddddddxl/ai-review",
+  "branch": "codex/review-efficiency-v2",
+  "acceptance": "failed_completion_and_quality_gate",
+  "pushed": false,
+  "deployed": false,
+  "production_default": "legacy",
+  "live_review_commit": "38c45190e53471c764cfde427707400426c08e3f",
+  "offline_fix_commit": "f9cafef0cd442e4f5ea529482940e3c1aeb1ec95",
+  "offline_fix_live_verified": false,
+  "skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+  "model": "Kimi-K2.7-01",
+  "api_format": "openai-chat",
+  "conditions": { "mode": "both", "serial": true, "cold_cache_each_pr": true, "same_frozen_inputs": true, "answers_in_model_input": false, "extra_paid_samples": 0, "target_tests_executed": false, "deadline_ms": 180000 },
+  "before": { "strategy": "legacy", "samples": 5, "mean_seconds": 194.479, "complete": 0, "code_complete": 1, "tests_validated": 0, "mean_complete_seconds": null, "mean_first_valid_seconds": null, "first_valid_time_collected": false, "model_requests": 24, "known_input_tokens": 109676, "known_output_tokens": 14956, "usage_complete": false },
+  "after": { "strategy": "efficient", "samples": 5, "mean_seconds": 151.207, "complete": 0, "code_complete": 0, "tests_validated": 0, "mean_complete_seconds": null, "mean_first_valid_seconds": null, "first_valid_time_collected": true, "model_requests": 16, "known_input_tokens": 62653, "known_output_tokens": 6369, "usage_complete": false, "tool_only_responses": 4, "timeouts": 11, "incomplete_responses": 1, "usable_final_responses": 0 },
+  "samples": [
+    { "pr": 478, "head": "4343158c539992308a0ec9fcf9da7e4f38426f0f", "base": "cfa865d339c0d7191dd044e6980006be799a570a", "input_hash": "30f26d971aae87f7aa37e4f9d93b80cda58629a743ad7294e44a4febaf21d2e2", "before_seconds": 181.509, "after_seconds": 151.288, "before_models": 3, "after_models": 3, "before_tools": 8, "after_tools": 4, "code": "partial", "tests": "incomplete" },
+    { "pr": 477, "head": "3b7049f294910ae75265c5dc66d2a93798460afc", "base": "cfa865d339c0d7191dd044e6980006be799a570a", "input_hash": "ec667d09dcf88cdd6804601dc2d48348ab0293873bba98b7515e806f5351e636", "before_seconds": 187.668, "after_seconds": 151.137, "before_models": 4, "after_models": 4, "before_tools": 4, "after_tools": 5, "code": "partial", "tests": "incomplete" },
+    { "pr": 467, "head": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c", "base": "258ba9c1601a92f86b09e644a7a2c6953569ecb0", "input_hash": "7adb54f9e405cee78726baa62f5a876715fbed007c181aab3aecfd4f38f006a1", "before_seconds": 184.524, "after_seconds": 151.206, "before_models": 3, "after_models": 3, "before_tools": 4, "after_tools": 4, "code": "partial", "tests": "incomplete" },
+    { "pr": 473, "head": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49", "base": "756ae5b4fe26cf9ad666d46cda6c45b14b3abc60", "input_hash": "0d445dd989a21e59c4754c7494d5d4fc165e0726e9eefdd48f62f1645da48be4", "before_seconds": 190.56, "after_seconds": 151.263, "before_models": 10, "after_models": 3, "before_tools": 10, "after_tools": 3, "code": "partial", "tests": "incomplete" },
+    { "pr": 475, "head": "821fca935ddf628fb26eaf99cfa9592835006b0a", "base": "e885e7223180a8ddc2c9aa753a4c884cfc9ba72c", "input_hash": "827f11646025d5838661447e81739069408ad95a1a3e8fcfdbe4beca904a8e9c", "before_seconds": 228.135, "after_seconds": 151.142, "before_models": 4, "after_models": 3, "before_tools": 5, "after_tools": 4, "code": "partial", "tests": "incomplete" }
+  ],
+  "post_freeze_quality": {
+    "annotation_origin": "independent_agents_with_static_root_adjudication",
+    "human_certified": false,
+    "scope": "key_subset_pr473_pr467_pr475_not_whole_repository",
+    "known_code_recall": { "detected": 0, "expected": 1 },
+    "known_test_gap_recall": { "detected": 0, "expected": 4 },
+    "precision": null,
+    "location_accuracy": null,
+    "known_labels": ["473-code-stall-cap-commits-fresh-partial-utf8", "473-tests-claimed-branches-not-entered", "467-tests-bypass-not-covered", "475-tests-ast-does-not-prove-runtime", "475-tests-new-hcu-files-filtered-out"],
+    "runtime_identity_and_missing_logs": "unknown_not_product_bug"
+  },
+  "cache_metrics": {
+    "before": null,
+    "before_unavailable_reason": "not_collected_in_same_format",
+    "after": [
+      { "pr": 478, "physical_executions": 6, "cache_hits": 4, "physical_ms": 639 },
+      { "pr": 477, "physical_executions": 206, "cache_hits": 6, "physical_ms": 18004 },
+      { "pr": 467, "physical_executions": 206, "cache_hits": 4, "physical_ms": 17972 },
+      { "pr": 473, "physical_executions": 8, "cache_hits": 2, "physical_ms": 779 },
+      { "pr": 475, "physical_executions": 12, "cache_hits": 0, "physical_ms": 1157 }
+    ]
+  },
+  "offline_tests": { "command": "npm test", "tests": 120, "pass": 120, "fail": 0, "skipped": 0, "duration_seconds": 93.8281093, "network_denied": true, "python_validators_executed": true },
+  "tool_only_replay": { "requests": 10, "available": 9, "denied": 1, "model_api_called": false, "network": false, "denied_reason": "line_range_invalid", "pr477_exact_search_ms": 122, "pr467_first_page_search_ms": 120, "pr467_first_page_truncated": true, "end_to_end_verification": false },
+  "frozen_artifacts": [
+    { "role": "baseline", "directory_name": "live-pr-benchmark-jwyxhp", "file": "benchmark.json", "sha256": "a086e18b22e82a432124a258f0261d32ce90f0c0bbb30dca2899a00b18570194" },
+    { "role": "first_efficient_run", "directory_name": "live-pr-benchmark-UmeVXE", "file": "benchmark.json", "sha256": "28d1b3c6c13a4356ae527c20af5d672e2dc637f79cb01990cf28e1deae2d1c2c" },
+    { "role": "first_comparison", "directory_name": "benchmark-comparison-1TKIY7", "file": "comparison.json", "sha256": "88c5d17508c40edf443e426944a51c75973fa23f0203e70ad3d5ad41be817719" },
+    { "role": "post_freeze_tools", "directory_name": "tool-replay-ehWAcL", "file": "tool-replay.json", "sha256": "35ed8bd4ed7e943aecbcb4c395633971533a5f2e82d5c4d3b3f87842c333997b" }
+  ],
+  "limitations": ["Token usage is a lower bound, not a complete bill.", "Legacy and efficient time limits cover different scopes.", "No final response means no successful review, not no defects.", "Post-freeze tool replay does not verify model quality or whole-PR latency.", "Static analysis reuse across CI refresh is not implemented.", "Requires new authorization for further paid rerun or pre-acceptance experimental push."]
+}
