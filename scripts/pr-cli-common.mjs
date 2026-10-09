@@ -93,7 +93,7 @@ export async function writePrivate(directory, name, value) {
 export async function frozenCheckout(repo, snapshot) {
   if (!repo) fail('repo_required');
   const root = await fs.realpath(repo);
-  const isCurrent = async () => (await gitRead(root, ['rev-parse', 'HEAD'])).trim() === snapshot.pr.head_sha && !(await gitRead(root, ['status', '--porcelain', '--untracked-files=all'])).trim();
+  const isCurrent = async (options = {}) => (await gitRead(root, ['rev-parse', 'HEAD'], options)).trim() === snapshot.pr.head_sha && !(await gitRead(root, ['status', '--porcelain', '--untracked-files=all'], options)).trim();
   if (!await isCurrent()) fail('checkout_not_clean_or_pinned');
   const historyShallow = (await gitRead(root, ['rev-parse', '--is-shallow-repository'])).trim() === 'true';
   for (const sha of [snapshot.pr.base_sha, snapshot.pr.head_sha]) await gitRead(root, ['cat-file', '-e', `${sha}^{commit}`]);
@@ -112,6 +112,7 @@ export async function cliMain(run) {
   catch (error) {
     // Never expose Octokit/provider payloads, subprocess stderr or credentials.
     const safe = new Set(['invalid_arguments', 'invalid_number', 'invalid_repository', 'invalid_snapshot', 'invalid_revision', 'inconsistent_snapshot', 'snapshot_identity_mismatch', 'invalid_files', 'invalid_artifacts', 'sensitive_input', 'fixture_size_limit', 'output_required', 'output_inside_checkout', 'sensitive_output', 'repo_required', 'checkout_not_clean_or_pinned', 'shallow_comparison_unverified', 'invalid_mode', 'legacy_fixture_mismatch', 'capture_timeout', 'request_timeout', 'read_only_route_required', 'invalid_api_response', 'private_directory_unavailable']);
+    for (const reason of ['invalid_strategy', 'conflicting_time_options', 'invalid_deadline']) safe.add(reason);
     console.error(JSON.stringify({ status: 'failed', code: safe.has(error?.message) ? error.message : 'cli_input_or_dependency_failed' }));
     process.exitCode = 2;
   }

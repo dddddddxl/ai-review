@@ -4,6 +4,8 @@ import { createGitEvidence, createEvidenceBudget, evidenceBudgetState, gitRead, 
 import { loadRules } from './review-planning.mjs';
 import { loadTestSkill, reviewTests } from './test-review-skill.mjs';
 import { collectTestSnapshot } from './test-review-snapshot.mjs';
+import { efficientReview } from './efficient-review.mjs';
+import { reviewOptions } from './review-control.mjs';
 
 export function enhancementConfig(env = process.env) {
   const enabled = env.AI_REVIEW_ENHANCED === 'true', testEnabled = env.AI_TEST_REVIEW === 'true';
@@ -11,12 +13,16 @@ export function enhancementConfig(env = process.env) {
   if (!checkouts || Array.isArray(checkouts) || Object.values(checkouts).some(v => typeof v !== 'string' || !path.isAbsolute(v))) throw new Error('invalid_checkout_map');
   const n = Number(env.AI_REVIEW_MAX_TOOLS || 24);
   if (!Number.isInteger(n) || n < 1 || n > 100) throw new Error('invalid_tool_budget');
-  return { enabled, testEnabled, checkouts, maxTools: n, skillRepo: env.AI_REVIEW_SKILL_REPO,
+  const { strategy, deadlineMs } = reviewOptions({ strategy: env.AI_REVIEW_STRATEGY || 'legacy',
+    ...(env.AI_REVIEW_DEADLINE_MS === undefined ? {} : { 'deadline-ms': env.AI_REVIEW_DEADLINE_MS }) });
+  return { enabled, testEnabled, checkouts, maxTools: n, strategy, deadlineMs, skillRepo: env.AI_REVIEW_SKILL_REPO,
     python: env.AI_REVIEW_PYTHON || 'python', outputRoot: path.resolve(env.AI_REVIEW_STATE_DIR || './review-state', 'evidence') };
 }
 
 export async function runReviewPipeline(args, { config = enhancementConfig(), octokit, extraRun = null, testsOnly = false, captured = null } = {}) {
   if (!config.enabled && !config.testEnabled) return reviewPrBatches(args);
+  if (config.strategy === 'efficient') return efficientReview(args, { config, captured, octokit, extraRun, testsOnly });
+  if (config.strategy && config.strategy !== 'legacy') throw new Error('invalid_strategy');
   const empty = { reviewFindings: [], changeOverview: [], findings: 0, partial: false, failures: 0, pending: 0, batches: 0, completed: 0, reviewedFiles: 0 };
   let provider, rules, skill, snapshotBundle = captured, preparationError = null;
   const budget = createEvidenceBudget({ maxTools: config.maxTools,

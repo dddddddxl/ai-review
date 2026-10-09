@@ -10,11 +10,11 @@ const root = 'experiments/hcu-testing/skills/';
 const coverage = root + 'hcu-coverage-analysis/';
 const instructionFiles = ['SKILL.md', 'references/pr-ci-review.md', 'references/pr-ci-example.md'];
 const scriptFiles = [coverage + 'scripts/pr_review.py', root + 'hcu-test-generation/scripts/check_handoff.py'];
-export async function loadTestSkill(skillRepo) {
-  if (!skillRepo || (await gitRead(skillRepo, ['rev-parse', 'HEAD'])).trim() !== SKILL_COMMIT) throw new Error('skill_pin_mismatch');
+export async function loadTestSkill(skillRepo, { read = gitRead } = {}) {
+  if (!skillRepo || (await read(skillRepo, ['rev-parse', 'HEAD'])).trim() !== SKILL_COMMIT) throw new Error('skill_pin_mismatch');
   const paths = [...instructionFiles.map(p => coverage + p), ...scriptFiles]; const contents = [];
   for (const relative of paths) {
-    const expected = await gitRead(skillRepo, ['show', `${SKILL_COMMIT}:${relative}`]);
+    const expected = await read(skillRepo, ['show', `${SKILL_COMMIT}:${relative}`]);
     const full = path.resolve(skillRepo, relative), resolved = await fs.realpath(full);
     if (resolved !== full || !(await fs.lstat(full)).isFile()) throw new Error('skill_path_invalid');
     const actual = await fs.readFile(full, 'utf8');
@@ -26,9 +26,9 @@ export async function loadTestSkill(skillRepo) {
     validator: path.join(skillRepo, scriptFiles[0]), handoff: path.join(skillRepo, scriptFiles[1]) };
 }
 
-export async function validateTestAnalysis({ skill, repo, snapshot, analysis, artifacts = {}, outputRoot, python = 'python' }) {
+export async function validateTestAnalysis({ skill, repo, snapshot, analysis, artifacts = {}, outputRoot, python = 'python', control }) {
   // Revalidate executable provenance immediately before using the trusted scripts.
-  const current = await loadTestSkill(skill.repo);
+  const current = await loadTestSkill(skill.repo, control ? { read: (directory, args) => control.run('validation', 'git', (signal, ms) => gitRead(directory, args, { signal, timeoutMs: Math.ceil(Math.min(ms, 15000)) })) } : {});
   if (current.hash !== skill.hash) throw new Error('skill_changed');
   const repoRoot = await fs.realpath(repo);
   const requestedOutput = path.resolve(outputRoot);
@@ -52,17 +52,19 @@ export async function validateTestAnalysis({ skill, repo, snapshot, analysis, ar
   await fs.writeFile(path.join(dir, 'snapshot.json'), JSON.stringify(snapshot, null, 2), { flag: 'wx', mode: 0o600 });
   await fs.writeFile(path.join(dir, 'analysis.json'), JSON.stringify(analysis, null, 2), { flag: 'wx', mode: 0o600 });
   const resultDir = path.join(dir, 'result');
-  try { await exec(python, ['-I', '-B', skill.validator, '--repo', repoRoot, '--snapshot', path.join(dir, 'snapshot.json'),
-    '--input', path.join(dir, 'analysis.json'), '--output', resultDir], { env: safeProcessEnvironment(), timeout: 30000, maxBuffer: 1024 * 1024, windowsHide: true });
-  } catch { throw Object.assign(new Error('skill_validation_failed'), { reviewStage: 'validation' }); }
+  const runPython = args => control ? control.run('validation', 'python', (signal, ms) => exec(python, args,
+    { env: safeProcessEnvironment(), timeout: Math.ceil(Math.min(ms, 30000)), signal, maxBuffer: 1024 * 1024, windowsHide: true }))
+    : exec(python, args, { env: safeProcessEnvironment(), timeout: 30000, maxBuffer: 1024 * 1024, windowsHide: true });
+  try { await runPython(['-I', '-B', skill.validator, '--repo', repoRoot, '--snapshot', path.join(dir, 'snapshot.json'),
+    '--input', path.join(dir, 'analysis.json'), '--output', resultDir]);
+  } catch (error) { if (['global_time_budget', 'stage_time_budget'].includes(error.code)) throw error; throw Object.assign(new Error('skill_validation_failed'), { reviewStage: 'validation' }); }
   const review = JSON.parse(await fs.readFile(path.join(resultDir, 'review.json'), 'utf8'));
   const backlog = JSON.parse(await fs.readFile(path.join(resultDir, 'test-backlog.json'), 'utf8'));
   let handoff = 'no_tasks';
   if (backlog.tasks.length) {
-    try { await exec(python, ['-I', '-B', skill.handoff, '--repo', repoRoot, '--backlog', path.join(resultDir, 'test-backlog.json'),
-      ...backlog.tasks.flatMap(t => ['--task', t.id]), '--output', path.join(dir, 'generation-plan.json')],
-    { env: safeProcessEnvironment(), timeout: 30000, maxBuffer: 1024 * 1024, windowsHide: true });
-    } catch { throw Object.assign(new Error('handoff_validation_failed'), { reviewStage: 'handoff' }); }
+    try { await runPython(['-I', '-B', skill.handoff, '--repo', repoRoot, '--backlog', path.join(resultDir, 'test-backlog.json'),
+      ...backlog.tasks.flatMap(t => ['--task', t.id]), '--output', path.join(dir, 'generation-plan.json')]);
+    } catch (error) { if (['global_time_budget', 'stage_time_budget'].includes(error.code)) throw error; throw Object.assign(new Error('handoff_validation_failed'), { reviewStage: 'handoff' }); }
     handoff = 'validated_not_executed';
   }
   return { status: 'validated', review, backlog, handoff, directory: dir, report: await fs.readFile(path.join(resultDir, 'report.md'), 'utf8'), skill_hash: skill.hash };

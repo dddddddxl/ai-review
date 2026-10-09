@@ -5,6 +5,7 @@ import path from 'node:path';
 import { runReviewPipeline } from '../src/review-pipeline.mjs';
 import { loadTestSkill, SKILL_COMMIT } from '../src/test-review-skill.mjs';
 import { sensitiveData } from '../src/review-evidence.mjs';
+import { reviewOptions } from '../src/review-control.mjs';
 import { fail, integer, readBundle, frozenCheckout, privateRun, writePrivate, inputIdentity } from './pr-cli-common.mjs';
 
 export function fileBridge({ directory, modelWindowMs, notify = value => console.log(JSON.stringify(value)) }) {
@@ -16,6 +17,7 @@ export function fileBridge({ directory, modelWindowMs, notify = value => console
     notify({ status: 'awaiting_codex_reply', request, reply });
     const deadline = Date.now() + Math.min(options.timeoutMs || modelWindowMs, modelWindowMs);
     while (Date.now() < deadline) {
+      options.signal?.throwIfAborted();
       try {
         if ((await fs.stat(reply)).size > 160000) fail('reply_size_limit');
         const text = await fs.readFile(reply, 'utf8');
@@ -31,6 +33,7 @@ export function fileBridge({ directory, modelWindowMs, notify = value => console
 
 export async function dryRunPr(args, { client, notify, legacy = false } = {}) {
   const mode = args.mode || (legacy ? 'tests' : 'both');
+  const { strategy, deadlineMs } = reviewOptions(args);
   if (!['code', 'tests', 'both'].includes(mode)) fail('invalid_mode');
   const { snapshot, artifacts, repository, pullNumber } = await readBundle(args.fixture);
   if (legacy && (repository !== 'HYGON-AI/sglang-das' || pullNumber !== 436 || snapshot.pr.head_sha !== '6f0f185a691c16b0134a26f2ff172c7e2af31edb' || mode === 'code')) fail('legacy_fixture_mismatch');
@@ -47,7 +50,8 @@ export async function dryRunPr(args, { client, notify, legacy = false } = {}) {
     ci_evidence: 'frozen_snapshot_not_current_live_ci', captured_at: snapshot.captured_at, input_hash: inputIdentity(snapshot, artifacts),
     skill_commit: skill?.commit || null, skill_hash: skill?.hash || null, required_skill_commit: mode === 'code' ? null : SKILL_COMMIT,
     skill_status: mode === 'code' ? 'not_requested' : skill ? 'available' : 'unavailable',
-    target_tests_executed: false, github_writes: false, network: false, model_window_ms: modelWindowMs, max_tools: 24 };
+    target_tests_executed: false, github_writes: false, network: false, strategy,
+    ...(strategy === 'efficient' ? { deadline_ms: deadlineMs } : { model_window_ms: modelWindowMs }), max_tools: 24 };
   await writePrivate(run, 'provenance.json', provenance);
   const model = client || fileBridge({ directory: bridge, modelWindowMs, notify });
   const result = await runReviewPipeline({ client: model, repository, pullNumber, title: snapshot.pr.title || '',
@@ -55,10 +59,10 @@ export async function dryRunPr(args, { client, notify, legacy = false } = {}) {
     totalFiles: snapshot.files_total ?? snapshot.files.length + (snapshot.files_complete ? 0 : 1), isCurrent, log() {} },
   { config: { enabled: mode !== 'tests', testEnabled: mode !== 'code', checkouts: { [repository]: repo },
     ...(args['model-window-ms'] === undefined ? {} : { groupingTimeoutMs: modelWindowMs }),
-    skillRepo: skill?.repo, maxTools: 24, modelWindowMs, python: args.python || 'python', outputRoot: path.join(run, 'skill-output') },
+    skillRepo: skill?.repo, maxTools: 24, strategy, deadlineMs, modelWindowMs, python: args.python || 'python', outputRoot: path.join(run, 'skill-output') },
     testsOnly: mode === 'tests', captured: { snapshot, artifacts } });
   const current = await isCurrent();
-  const evidencePartial = Boolean(result.evidenceBudget?.exhausted) || (result.evidence || []).some(e => e.status !== 'available' || e.truncated);
+  const evidencePartial = strategy === 'efficient' ? result.partial : Boolean(result.evidenceBudget?.exhausted) || (result.evidence || []).some(e => e.status !== 'available' || e.truncated);
   const codeStatus = mode === 'tests' ? 'not_requested' : !(result.codeReviewPartial ?? result.partial) && result.manifest?.complete && current && snapshot.files_complete ? 'complete' : 'partial';
   const testStatus = mode === 'code' ? 'not_requested' : result.testReview?.status === 'validated' && current && snapshot.files_complete && !evidencePartial ? 'validated' : 'incomplete';
   const complete = ['complete', 'not_requested'].includes(codeStatus) && ['validated', 'not_requested'].includes(testStatus);

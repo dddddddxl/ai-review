@@ -34,40 +34,61 @@ export function safeProcessEnvironment() {
     GIT_TERMINAL_PROMPT: '0', GIT_PAGER: 'cat', GIT_OPTIONAL_LOCKS: '0', PYTHONNOUSERSITE: '1',
     GIT_CONFIG_COUNT: '2', GIT_CONFIG_KEY_0: 'core.fsmonitor', GIT_CONFIG_VALUE_0: 'false', GIT_CONFIG_KEY_1: 'core.hooksPath', GIT_CONFIG_VALUE_1: '' };
 }
-export async function gitRead(repo, args, { maxBuffer = 4 * 1024 * 1024 } = {}) {
+export async function gitRead(repo, args, { maxBuffer = 4 * 1024 * 1024, signal, timeoutMs = 15000 } = {}) {
   const { stdout } = await exec('git', ['-c', 'core.hooksPath=', '-c', 'core.fsmonitor=false', '-c', 'diff.external=',
-    '--no-pager', '-C', repo, ...args], { env: safeProcessEnvironment(), timeout: 15000, maxBuffer, windowsHide: true });
+    '--no-pager', '-C', repo, ...args], { env: safeProcessEnvironment(), timeout: timeoutMs, signal, maxBuffer, windowsHide: true });
   return stdout;
 }
 
-export async function createGitEvidence({ repo, baseSha, headSha, diffBase = baseSha, files, ci = {} }) {
+export async function createGitEvidence({ repo, baseSha, headSha, diffBase = baseSha, files, ci = {}, cacheObjects = false, read = gitRead, ciReader, checkpoint = () => {} }) {
   if (![baseSha, headSha, diffBase].every(isSha)) throw new Error('invalid_revision');
   const revisions = new Set([baseSha, headSha, diffBase]);
-  for (const sha of revisions) await gitRead(repo, ['cat-file', '-e', `${sha}^{commit}`]);
+  const metrics = { physical_executions: 0, cache_hits: 0, physical_ms: 0 };
+  async function physical(args) {
+    checkpoint();
+    const started = Date.now(); metrics.physical_executions++;
+    try { return await read(repo, args); } finally { metrics.physical_ms += Date.now() - started; }
+  }
+  for (const sha of revisions) await physical(['cat-file', '-e', `${sha}^{commit}`]);
   const cache = new Map();
+  const objects = new Map();
+  async function object(key, args) {
+    checkpoint();
+    if (!cacheObjects) return physical(args);
+    if (objects.has(key)) { metrics.cache_hits++; return objects.get(key); }
+    // Store in-flight promises too. Identity is immutable Git OID, scoped to this repository/provider.
+    const pending = physical(args); objects.set(key, pending);
+    // At most 64 size/blob entries (each blob <=512 KiB), never unbounded repository caching.
+    while (objects.size > 64) objects.delete(objects.keys().next().value);
+    try { return await pending; } catch (error) { objects.delete(key); throw error; }
+  }
   async function tree(revision) {
     if (!revisions.has(revision)) throw new Error('revision_out_of_scope');
     if (!cache.has(revision)) {
-      const raw = await gitRead(repo, ['ls-tree', '-rz', '--full-tree', revision]);
+      const pending = physical(['ls-tree', '-rz', '--full-tree', revision]).then(raw => {
       const entries = raw.split('\0').filter(Boolean).map(row => {
         const [header, path] = row.split('\t'); const [mode, type, oid] = header.split(' ');
         return { mode, type, oid, path };
       });
-      cache.set(revision, entries);
+        return entries;
+      });
+      cache.set(revision, pending);
+      try { await pending; } catch (error) { cache.delete(revision); throw error; }
     }
     return cache.get(revision);
   }
   async function rawFile(revision, path) {
+    checkpoint();
     if (!safePath(path) || secretPath(path)) throw new Error('path_denied');
     const entry = (await tree(revision)).find(item => item.path === path);
     if (!entry || !['100644', '100755'].includes(entry.mode) || entry.type !== 'blob') throw new Error('not_regular_git_file');
-    const size = Number((await gitRead(repo, ['cat-file', '-s', entry.oid])).trim());
+    const size = Number((await object(`size:${entry.oid}`, ['cat-file', '-s', entry.oid])).trim());
     if (!Number.isFinite(size) || size > 512 * 1024) throw new Error('file_size_limit');
-    const content = await gitRead(repo, ['cat-file', 'blob', entry.oid]);
+    const content = await object(`blob:${entry.oid}`, ['cat-file', 'blob', entry.oid]);
     if (content.includes('\0')) throw new Error('content_denied');
     return content;
   }
-  return { rawFile, repo, baseSha, headSha, diffBase,
+  return { rawFile, tree, metrics, repo, baseSha, headSha, diffBase,
     identity: sha256({ baseSha, headSha, diffBase, files, ci }),
     async execute(request) {
       const revision = request.revision || headSha;
@@ -80,10 +101,10 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
         const lines = content ? content.split(/\r\n|[\n\r\v\f\x1c-\x1e\u0085\u2028\u2029]/) : [];
         if (lines.at(-1) === '') lines.pop();
         const start = request.start ?? 1, end = request.end ?? Math.min(lines.length, start + 199);
-        if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || end > lines.length || end - start >= 200) throw new Error('line_range_invalid');
+        if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || end > lines.length || end - start >= 200) throw Object.assign(new Error('line_range_invalid'), { range: { total_lines: lines.length, min_start: 1, max_end: lines.length, max_lines: 200 } });
         const excerpt = lines.slice(start - 1, end).join('\n');
         if (sensitiveText(excerpt)) throw new Error('content_denied');
-        return { ...origin, path: request.path, start, end, content: excerpt.slice(0, 16000), sha256: sha256(content), truncated: excerpt.length > 16000 };
+        return { ...origin, path: request.path, start, end, total_lines: lines.length, next_start: end < lines.length ? end + 1 : null, content: excerpt.slice(0, 16000), sha256: sha256(content), truncated: excerpt.length > 16000 };
       }
       if (request.tool === 'find_files' || request.tool === 'search_code') {
         if (typeof request.query !== 'string' || !request.query.length || request.query.length > 200) throw new Error('query_invalid');
@@ -97,10 +118,11 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
         const candidates = entries.filter(e => !request.prefix || e.path.startsWith(request.prefix));
         const matches = []; let skipped = 0;
         for (const e of candidates.slice(0, 100)) {
+          checkpoint();
           try {
             const content = await rawFile(revision, e.path);
             content.split('\n').forEach((line, i) => { if (line.includes(request.query) && matches.length < 100) { if (sensitiveText(line)) skipped++; else matches.push({ path: e.path, line: i + 1, text: line.slice(0, 300) }); } });
-          } catch { skipped++; }
+          } catch (error) { if (['global_time_budget', 'stage_time_budget'].includes(error.code)) throw error; skipped++; }
         }
         return { ...origin, matches, searchedFiles: Math.min(candidates.length, 100), skipped, truncated: candidates.length > 100 || matches.length === 100 || skipped > 0 };
       }
@@ -112,6 +134,11 @@ export async function createGitEvidence({ repo, baseSha, headSha, diffBase = bas
         return { ...origin, revision: headSha, diffBase, path: f.filename, content: (f.patch || '').slice(0, 16000), truncated: !f.patch || f.patch.length > 16000 };
       }
       if (request.tool === 'read_ci') {
+        if (ciReader) {
+          const page = ciReader(request);
+          if (sensitiveData(page)) throw new Error('content_denied');
+          return { ...origin, ...page, truncated: false };
+        }
         const content = JSON.stringify(ci.snapshot || ci);
         if (sensitiveData(ci.snapshot || ci)) throw new Error('content_denied');
         return { ...origin, content: content.slice(0, 16000), truncated: content.length > 16000, execution: 'not_verified' };
@@ -168,7 +195,8 @@ export function deniedToolResult(error, request) {
   return { status: 'unavailable', reason: reasons.includes(error?.message) ? error.message : 'tool_denied_or_unavailable',
     ...(tools.includes(request?.tool) ? { tool: request.tool } : {}),
     ...(isSha(request?.revision) ? { revision: request.revision } : {}),
-    ...(safePath(request?.path) && !secretPath(request.path) && !sensitiveText(request.path) ? { path: request.path } : {}) };
+    ...(safePath(request?.path) && !secretPath(request.path) && !sensitiveText(request.path) ? { path: request.path } : {}),
+    ...(error?.message === 'line_range_invalid' && Number.isInteger(error.range?.total_lines) ? { legal_range: error.range } : {}) };
 }
 export async function evidenceLoop({ client, provider, budget, instructions, input, isCurrent = async () => true, maxOutputTokens = 8000 }) {
   let transcript = '';

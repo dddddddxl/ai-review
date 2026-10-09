@@ -72,9 +72,15 @@ export function limitModelConcurrency(client, limit = 2) {
   let active = 0;
   const waiting = [];
   return { ...client, async generateReview(options) {
-    if (active >= limit) await new Promise(resolve => waiting.push(resolve));
+    options.signal?.throwIfAborted();
+    if (active >= limit) await new Promise((resolve, reject) => {
+      const entry = { resolve, signal: options.signal };
+      entry.abort = () => { const at = waiting.indexOf(entry); if (at >= 0) waiting.splice(at, 1); reject(options.signal.reason); };
+      options.signal?.addEventListener('abort', entry.abort, { once: true });
+      waiting.push(entry);
+    });
     else active++;
-    try { return await client.generateReview(options); }
-    finally { const next = waiting.shift(); if (next) next(); else active--; }
+    try { options.signal?.throwIfAborted(); return await client.generateReview(options); }
+    finally { const next = waiting.shift(); if (next) { next.signal?.removeEventListener('abort', next.abort); next.resolve(); } else active--; }
   } };
 }

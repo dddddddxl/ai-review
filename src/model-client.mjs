@@ -68,14 +68,14 @@ export function createModelClient(
       format,
       insecureHttp,
       model,
-      async generateReview({ instructions, input, maxOutputTokens, onMetadata, timeoutMs }) {
+      async generateReview({ instructions, input, maxOutputTokens, onMetadata, timeoutMs, signal }) {
         const response = await client.responses.create({
           model,
           store: false,
           max_output_tokens: maxOutputTokens,
           instructions,
           input,
-        }, { timeout: positiveInteger(timeoutMs, configuredTimeoutMs) });
+        }, { timeout: positiveInteger(timeoutMs, configuredTimeoutMs), signal });
         onMetadata?.(compactMetadata({ status: response.status,
           inputTokens: response.usage?.input_tokens,
           outputTokens: response.usage?.output_tokens,
@@ -90,7 +90,7 @@ export function createModelClient(
     const configuredTimeoutMs = positiveInteger(environment.AI_API_TIMEOUT_MS, DEFAULT_TIMEOUT_MS);
     return {
       configured, format, insecureHttp, model,
-      async generateReview({ instructions, input, maxOutputTokens, onMetadata, disableThinking = false, timeoutMs }) {
+      async generateReview({ instructions, input, maxOutputTokens, onMetadata, disableThinking = false, timeoutMs, signal }) {
         const response = await fetchImpl(endpoint, {
           method: 'POST',
           headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
@@ -103,7 +103,7 @@ export function createModelClient(
             messages: [{ role: 'system', content: instructions + (environment.AI_CHAT_JSON_MODE === 'true'
               ? '\n【JSON 接口约束】没有注册原生 tools 或 functions。工具动作必须写在任务要求的 JSON 字段中，由宿主读取。不得使用原生函数调用、functions.xxx 标记、特殊工具分隔符或 Markdown 围栏；只输出单个合法 JSON 对象。'
               : '') }, { role: 'user', content: input }] }),
-          signal: AbortSignal.timeout(positiveInteger(timeoutMs, configuredTimeoutMs)),
+          signal: requestSignal(signal, positiveInteger(timeoutMs, configuredTimeoutMs)),
         });
         if (!response.ok) {
           // Inspect only explicit context-limit codes, never surface provider
@@ -150,7 +150,7 @@ export function createModelClient(
     format,
     insecureHttp,
     model,
-    async generateReview({ instructions, input, maxOutputTokens, onMetadata, disableThinking = false, timeoutMs: requestTimeoutMs }) {
+    async generateReview({ instructions, input, maxOutputTokens, onMetadata, disableThinking = false, timeoutMs: requestTimeoutMs, signal }) {
       const response = await fetchImpl(messagesUrl, {
         method: "POST",
         headers: {
@@ -166,7 +166,7 @@ export function createModelClient(
           messages: [{ role: "user", content: input }],
           ...(disableThinking ? { thinking: { type: "disabled" } } : {}),
         }),
-        signal: AbortSignal.timeout(positiveInteger(requestTimeoutMs, timeoutMs)),
+        signal: requestSignal(signal, positiveInteger(requestTimeoutMs, timeoutMs)),
       });
 
       if (!response.ok) {
@@ -188,6 +188,11 @@ export function createModelClient(
         .join("\n\n");
     },
   };
+}
+
+function requestSignal(signal, durationMs) {
+  const timeout = AbortSignal.timeout(durationMs);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
 }
 
 function compactMetadata(metadata) {

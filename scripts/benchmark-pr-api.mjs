@@ -10,10 +10,11 @@ import { runReviewPipeline } from '../src/review-pipeline.mjs';
 import { loadTestSkill } from '../src/test-review-skill.mjs';
 import { PR_VERIFICATION_INSTRUCTIONS } from '../src/review-templates.mjs';
 import { gitRead, sha256 } from '../src/review-evidence.mjs';
+import { reviewOptions } from '../src/review-control.mjs';
 import { parseArgs, readBundle, frozenCheckout, privateRun, writePrivate, inputIdentity } from './pr-cli-common.mjs';
 
 const round = n => Math.round(n * 1000) / 1000;
-const stageFor = instructions => instructions.startsWith('按功能关联') ? 'grouping'
+const stageFor = instructions => instructions.includes('【关联组共同审查】') ? 'joint_review' : instructions.startsWith('按功能关联') ? 'grouping'
   : instructions.startsWith(PR_VERIFICATION_INSTRUCTIONS) ? 'code_verification'
   : instructions.includes('执行以下固定版本 skill 的 PR CI Review') ? 'tests' : 'code_generation';
 
@@ -22,6 +23,8 @@ export function summarizeMeasurements(results) {
   const completed = results.filter(r => r.status.overall === 'complete');
   const mean = list => list.length ? round(list.reduce((a, b) => a + b, 0) / list.length) : null;
   return { sample_count: results.length, completed_count: completed.length,
+    code_complete_count: results.filter(r => r.status.code === 'complete').length, test_validated_count: results.filter(r => r.status.tests === 'validated').length,
+    mean_first_valid_result_seconds: mean(results.map(r => r.metrics?.first_valid_result_ms).filter(n => Number.isFinite(n)).map(n => n / 1000)),
     partial_count: results.filter(r => r.status.overall === 'partial').length,
     failed_count: results.filter(r => r.status.overall === 'failed').length,
     total_pr_seconds: round(seconds.reduce((a, b) => a + b, 0)), mean_pr_seconds: mean(seconds),
@@ -87,6 +90,7 @@ function measuredClient(env, directory, calls, notify, pr) {
 }
 
 export async function benchmarkPrApi(args, notify = value => console.log(JSON.stringify(value))) {
+  const { strategy, deadlineMs } = reviewOptions(args);
   const env = dotenv.parse(await fs.readFile(path.resolve(args.config), 'utf8'));
   if (!['openai-chat', 'anthropic-messages'].includes(env.AI_API_FORMAT)) throw new Error('unsupported_benchmark_protocol');
   if (!createModelClient(env).configured) throw new Error('model_not_configured');
@@ -109,7 +113,8 @@ export async function benchmarkPrApi(args, notify = value => console.log(JSON.st
     chat_json_mode: env.AI_CHAT_JSON_MODE === 'true',
     insecure_http: new URL(env.AI_BASE_URL).protocol === 'http:', ai_review_commit: sourceCommit,
     skill_commit: skill.commit, skill_hash: skill.hash, mode: 'both', pr_concurrency: 1, code_batch_concurrency: 2,
-    cache: 'disabled_cold_review', model_window_ms: 180000, grouping_timeout_ms: 10000, max_tools: 24,
+    strategy, cache: strategy === 'efficient' ? 'per_pr_cold_git_object_cache' : 'disabled_cold_review',
+    ...(strategy === 'efficient' ? { deadline_ms: deadlineMs } : { model_window_ms: 180000, grouping_timeout_ms: 10000 }), max_tools: 24,
     agent_context: 'independent_stateless_api_requests_raw_evidence_only', blind: false,
     ci_evidence: 'frozen_snapshot_not_current_live_ci', target_tests_executed: false, github_writes: false,
     sample_selection: '五个已冻结真实 PR：普通逻辑、跨文件、回退开关、测试变更、大 diff；非随机线上样本。',
@@ -135,9 +140,9 @@ export async function benchmarkPrApi(args, notify = value => console.log(JSON.st
         totalFiles: b.snapshot.files_total ?? b.snapshot.files.length + (b.snapshot.files_complete ? 0 : 1),
         isCurrent: c.isCurrent, log() {} },
       { config: { enabled: true, testEnabled: true, checkouts: { [b.repository]: c.repo }, skillRepo: skill.repo,
-        maxTools: 24, python: args.python || 'python', outputRoot: path.join(directory, 'skill-output') }, captured: { snapshot: b.snapshot, artifacts: b.artifacts } });
+        maxTools: 24, strategy, deadlineMs, platform: 'HCU', python: args.python || 'python', outputRoot: path.join(directory, 'skill-output') }, captured: { snapshot: b.snapshot, artifacts: b.artifacts } });
       const current = await c.isCurrent();
-      const evidencePartial = Boolean(result.evidenceBudget?.exhausted) || (result.evidence || []).some(e => e.status !== 'available' || e.truncated);
+      const evidencePartial = strategy === 'efficient' ? result.partial : Boolean(result.evidenceBudget?.exhausted) || (result.evidence || []).some(e => e.status !== 'available' || e.truncated);
       const code = !(result.codeReviewPartial ?? result.partial) && result.manifest?.complete && current && b.snapshot.files_complete ? 'complete' : 'partial';
       const tests = result.testReview?.status === 'validated' && current && b.snapshot.files_complete && !evidencePartial ? 'validated' : 'incomplete';
       status = { overall: code === 'complete' && tests === 'validated' ? 'complete' : 'partial', code, tests,
@@ -150,6 +155,7 @@ export async function benchmarkPrApi(args, notify = value => console.log(JSON.st
       code_findings: result?.findings || 0, reviewed_files: result?.reviewedFiles || 0,
       code_batches: result?.batches || 0, code_batches_completed: result?.completed || 0,
       evidence_calls: result?.evidenceBudget?.calls || 0, evidence_budget: result?.evidenceBudget || null,
+      metrics: result?.metrics || null,
       code_failure_summary: result?.failureSummary || [], test_validation_status: result?.testReview?.validation_status || result?.testReview?.status || null };
     await writePrivate(directory, 'measurement.json', measurement);
     await writePrivate(directory, 'pipeline-result.json', { status, result: result || null });
@@ -170,6 +176,6 @@ export async function benchmarkPrApi(args, notify = value => console.log(JSON.st
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try { console.log(JSON.stringify(await benchmarkPrApi(parseArgs(process.argv.slice(2), ['config', 'plan', 'output', 'python'])))); }
+  try { console.log(JSON.stringify(await benchmarkPrApi(parseArgs(process.argv.slice(2), ['config', 'plan', 'output', 'python', 'strategy', 'deadline-ms', 'model-window-ms'])))); }
   catch { console.error(JSON.stringify({ status: 'failed', code: 'benchmark_configuration_input_or_dependency_failed' })); process.exitCode = 2; }
 }
