@@ -95,8 +95,14 @@ export function createModelClient(
           method: 'POST',
           headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
           body: JSON.stringify({ model, stream: false, max_tokens: maxOutputTokens,
+            // Opt-in for gateways/models that emit native tool delimiters in
+            // plain text. Still parse only the final-answer field and retain
+            // all existing completion/refusal checks; never execute markup.
+            ...(environment.AI_CHAT_JSON_MODE === 'true' ? { response_format: { type: 'json_object' } } : {}),
             ...(disableThinking && /^glm-/i.test(model) ? { thinking: { type: 'disabled' } } : {}),
-            messages: [{ role: 'system', content: instructions }, { role: 'user', content: input }] }),
+            messages: [{ role: 'system', content: instructions + (environment.AI_CHAT_JSON_MODE === 'true'
+              ? '\n【JSON 接口约束】没有注册原生 tools 或 functions。工具动作必须写在任务要求的 JSON 字段中，由宿主读取。不得使用原生函数调用、functions.xxx 标记、特殊工具分隔符或 Markdown 围栏；只输出单个合法 JSON 对象。'
+              : '') }, { role: 'user', content: input }] }),
           signal: AbortSignal.timeout(positiveInteger(timeoutMs, configuredTimeoutMs)),
         });
         if (!response.ok) {
