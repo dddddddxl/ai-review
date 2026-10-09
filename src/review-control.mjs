@@ -22,11 +22,13 @@ export function createReviewControl({ durationMs = 180000, maxTools = 24, now = 
   };
   function remaining(stage) { return Math.max(0, Math.min(deadline, ends[stage] ?? deadline) - now()); }
   function assert(stage) {
+    if (!Object.hasOwn(ends, stage)) throw new Error('invalid_review_stage');
     if (now() >= deadline) throw error('global_time_budget', stage);
     if (remaining(stage) <= 0) throw error('stage_time_budget', stage);
   }
   function reserveCall(stage, kind) {
     assert(stage);
+    if (!['model', 'tool'].includes(kind)) throw new Error('invalid_review_call');
     if (kind === 'model') {
       if (models[stage] >= 8) throw error('model_round_budget', stage);
       models[stage]++;
@@ -53,6 +55,7 @@ export function createReviewControl({ durationMs = 180000, maxTools = 24, now = 
     consumeCharacters(n, stage) { if (characterCount + n > 120000) throw error('evidence_character_budget', stage); characterCount += n; },
     state() {
       return { strategy: 'efficient', elapsed_ms: Math.max(0, now() - started), limits: { duration_ms: durationMs, tools: maxTools,
+        main_ms: durationMs * 2 / 3, incremental_ms: durationMs / 6, validation_reserved_ms: durationMs / 6,
         main_tools: maxTools - reserve, incremental_tools: reserve, model_calls_per_stage: 8, characters: 120000 },
         model_calls: { ...models }, tool_calls: { ...tools }, characters: characterCount,
         exhausted: stops.length > 0 || now() >= deadline, reason: stops.at(-1)?.code || (now() >= deadline ? 'global_time_budget' : null), stops: [...stops], operations: [...operations] };

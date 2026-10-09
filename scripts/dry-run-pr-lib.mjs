@@ -6,6 +6,7 @@ import { runReviewPipeline } from '../src/review-pipeline.mjs';
 import { loadTestSkill, SKILL_COMMIT } from '../src/test-review-skill.mjs';
 import { sensitiveData } from '../src/review-evidence.mjs';
 import { reviewOptions } from '../src/review-control.mjs';
+import { reviewCompletion } from '../src/review-completion.mjs';
 import { fail, integer, readBundle, frozenCheckout, privateRun, writePrivate, inputIdentity } from './pr-cli-common.mjs';
 
 export function fileBridge({ directory, modelWindowMs, notify = value => console.log(JSON.stringify(value)) }) {
@@ -62,9 +63,7 @@ export async function dryRunPr(args, { client, notify, legacy = false } = {}) {
     skillRepo: skill?.repo, maxTools: 24, strategy, deadlineMs, modelWindowMs, python: args.python || 'python', outputRoot: path.join(run, 'skill-output') },
     testsOnly: mode === 'tests', captured: { snapshot, artifacts } });
   const current = await isCurrent();
-  const evidencePartial = strategy === 'efficient' ? result.partial : Boolean(result.evidenceBudget?.exhausted) || (result.evidence || []).some(e => e.status !== 'available' || e.truncated);
-  const codeStatus = mode === 'tests' ? 'not_requested' : !(result.codeReviewPartial ?? result.partial) && result.manifest?.complete && current && snapshot.files_complete ? 'complete' : 'partial';
-  const testStatus = mode === 'code' ? 'not_requested' : result.testReview?.status === 'validated' && current && snapshot.files_complete && !evidencePartial ? 'validated' : 'incomplete';
+  const { evidencePartial, code: codeStatus, tests: testStatus } = reviewCompletion(result, { strategy, mode, current, filesComplete: snapshot.files_complete });
   const complete = ['complete', 'not_requested'].includes(codeStatus) && ['validated', 'not_requested'].includes(testStatus);
   const status = { overall: complete ? 'complete' : 'partial', code: codeStatus, tests: testStatus, checkout_current: current,
     files_complete: snapshot.files_complete, evidence_partial: evidencePartial,

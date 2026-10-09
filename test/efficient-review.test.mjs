@@ -11,6 +11,8 @@ import { aggregateTestFragments } from '../src/efficient-review.mjs';
 import { runReviewPipeline, enhancementConfig } from '../src/review-pipeline.mjs';
 import { limitModelConcurrency } from '../src/review-state.mjs';
 import { createModelClient } from '../src/model-client.mjs';
+import { compareBenchmarks } from '../scripts/compare-pr-benchmarks.mjs';
+import { reviewCompletion } from '../src/review-completion.mjs';
 
 test('strategy/time parameters are explicit and production defaults legacy', () => {
   assert.equal(enhancementConfig({}).strategy, 'legacy');
@@ -160,4 +162,35 @@ test('failed fragments remain deferred rather than complete; model budget is not
   assert.equal(result.partial, true); assert.equal(result.manifest.files[0].state, 'deferred');
   assert.equal(result.evidenceBudget.model_calls.main, 8); assert.equal(result.evidenceBudget.model_calls.incremental, 8); assert.equal(calls, 16);
   assert.ok(result.manifest.attempts.every(a => a.status === 'failed')); assert.ok(result.metrics.cache.cache_hits > 0);
+});
+
+test('joint loop preserves a valid test fragment when code fails; increment only reviews missing scope', { skip: !process.env.AI_REVIEW_SKILL_REPO }, async t => {
+  const f = await fixture(t); let calls = 0;
+  const client = { async generateReview(options) {
+    calls++;
+    if (calls === 1) return JSON.stringify({ action: 'tools', requests: [{ tool: 'read_file', path: 'test_api.py' }, { tool: 'read_file', path: 'ci.yml' }] });
+    if (calls === 2) return JSON.stringify({ action: 'final', result: { code_review: {}, test_analysis: f.analysis } });
+    assert.match(options.input, /"requested":\{"code":true,"tests":false\}/);
+    return JSON.stringify({ action: 'final', result: { code_review: { overview: [], findings: [] }, test_analysis: null } });
+  } };
+  const result = await runReviewPipeline({ repository: 'fixture/repo', baseSha: f.base, headSha: f.head, files: f.files, client },
+    { config: { strategy: 'efficient', enabled: true, testEnabled: true, checkouts: { 'fixture/repo': f.repo }, maxTools: 24,
+      skillRepo: process.env.AI_REVIEW_SKILL_REPO, outputRoot: path.join(f.directory, 'output') }, captured: { snapshot: f.snapshot, artifacts: {} } });
+  assert.equal(result.partial, false, JSON.stringify(result.failureSummary)); assert.equal(result.testReview.status, 'validated');
+  assert.equal(result.manifest.attempts[0].status, 'failed'); assert.equal(result.manifest.attempts[0].test_fragment, true); assert.equal(calls, 3);
+});
+
+test('benchmark comparison rejects different snapshots; faster incomplete output is not approved', () => {
+  const sample = { pr: 1, repository: 'fixture/repo', head: 'h', base: 'b', input_hash: 'hash', diff_base: 'b', calls: [], elapsed_seconds: 10, status: { overall: 'partial' } };
+  const value = { provenance: { requested_model: 'mock', protocol: 'mock', skill_commit: 'pin' }, summary: { completed_count: 0 }, measurements: Array.from({ length: 5 }, (_, n) => ({ ...sample, pr: n + 1 })) };
+  const result = compareBenchmarks(value, value); assert.equal(result.completion_improved, false); assert.equal(result.acceptance, 'not_approved_by_timing_alone');
+  const changed = structuredClone(value); changed.measurements[0].head = 'wrong'; assert.throws(() => compareBenchmarks(value, changed), /benchmark_identity_mismatch/);
+});
+
+test('efficient code/test completion stays independent; unresolved test validation never passes', () => {
+  const result = { codeReviewPartial: true, partial: true, manifest: { complete: false }, evidenceBudget: { exhausted: true }, testReview: { status: 'validated' } };
+  assert.equal(reviewCompletion(result, { strategy: 'efficient' }).tests, 'validated'); assert.equal(reviewCompletion(result, { strategy: 'efficient' }).code, 'partial');
+  assert.equal(reviewCompletion(result).tests, 'incomplete');
+  assert.equal(reviewCompletion({ ...result, codeReviewPartial: false, manifest: { complete: true }, testReview: { status: 'incomplete', validation_status: 'validated' } }, { strategy: 'efficient' }).tests, 'incomplete');
+  assert.equal(reviewCompletion(result, { strategy: 'efficient', current: false }).tests, 'incomplete');
 });

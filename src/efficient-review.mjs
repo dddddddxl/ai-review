@@ -64,7 +64,7 @@ export function aggregateTestFragments({ fragments, files, headSha, baseSha, dif
 }
 
 export async function efficientReview(args, { config, captured, octokit, extraRun, testsOnly = false }) {
-  const control = createReviewControl({ durationMs: config.deadlineMs ?? 180000, maxTools: config.maxTools ?? 24 });
+  const control = createReviewControl({ durationMs: config.deadlineMs ?? 180000, maxTools: Math.min(config.maxTools ?? 24, 24) });
   const codeRequested = !testsOnly && config.enabled, testsRequested = config.testEnabled;
   const records = [], history = [], batches = [], failures = [], fragments = [];
   let provider, skill, rules, bundle = captured, diffBase, repo, ciView, plan, preparationFailure, firstValidMs = null, firstCodeMs = null, firstTestMs = null, firstFragmentMs = null;
@@ -72,7 +72,7 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
   const operationStage = new AsyncLocalStorage();
   const read = (directory, command) => control.run(operationStage.getStore() || stage, 'git', (signal, ms) => gitRead(directory, command, { signal, timeoutMs: Math.ceil(Math.min(ms, 15000)) }));
   const current = () => control.run(stage === 'main' || stage === 'incremental' ? stage : 'validation', 'version_check', (signal, ms) => (args.isCurrent || (async () => true))({ signal, timeoutMs: Math.ceil(Math.min(ms, 15000)) }));
-  async function evidence(request) {
+  async function evidence(request, batchId) {
     control.reserveCall(stage, 'tool');
     const id = `E${Object.values(control.state().tool_calls).reduce((a, b) => a + b, 0)}`;
     let result;
@@ -82,8 +82,9 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
       result = { ...deniedToolResult(error, { ...request, revision: request.revision || provider.headSha }), diagnostic: efficientDiagnostic(error) };
       if (['global_time_budget', 'stage_time_budget'].includes(error.code)) { records.push({ id, ...result }); throw error; }
     }
-    const record = { id, ...result };
-    control.consumeCharacters(JSON.stringify(record).length, stage);
+    const record = { id, batch_id: batchId, ...result };
+    try { control.consumeCharacters(JSON.stringify(record).length, stage); }
+    catch (error) { records.push({ id, batch_id: batchId, status: 'unavailable', reason: 'evidence_character_budget' }); throw error; }
     records.push(record); return record;
   }
   async function model(instructions, input, maxOutputTokens = 12000) {
@@ -126,6 +127,7 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
 
   async function reviewBatch(batch) {
     const begin = Date.now(), before = records.length;
+    const needsCode = codeRequested && !batch.code.complete, needsTests = testsRequested && Boolean(skill) && !batch.test;
     const attempt = { stage, started_ms: begin - control.started, status: 'running' }; batch.attempts.push(attempt);
     try {
       // Start with real source proof near the first supplied hunk, not the entire repository.
@@ -134,25 +136,25 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
           const hunk = /@@ -\d+(?:,\d+)? \+(\d+)/.exec(f.patch || '');
           const start = Math.max(1, Number(hunk?.[1] || 1) - 20);
           const existing = records.find(e => e.status === 'available' && e.tool === 'read_file' && e.revision === args.headSha && e.path === f.filename && !e.truncated && e.start <= start && e.end >= start);
-          const e = existing || await evidence({ tool: 'read_file', path: f.filename, start }); batch.transcript.push(e);
+          const e = existing || await evidence({ tool: 'read_file', path: f.filename, start }, batch.id); batch.transcript.push(e);
         }
       }
       const methods = specialistMethods(batch.files.map(f => f.filename));
       const input = { repository: args.repository, pr: args.pullNumber, base_sha: args.baseSha, head_sha: args.headSha, diff_base: diffBase,
         platform: config.platform || '未指定',
         batch_id: batch.id, group: plan.groups.find(g => g.id === batch.group), diff: batch.text,
-        requested: { code: codeRequested, tests: testsRequested && Boolean(skill) }, rules: batch.files.flatMap(f => rulesFor(rules, f.filename)),
+        requested: { code: needsCode, tests: needsTests }, rules: batch.files.flatMap(f => rulesFor(rules, f.filename)),
         methods, ci: ciView.page({ limit_chars: 6000 }), artifacts: ciView.identity.artifacts,
         resume: batch.attempts.length > 1 ? { previous_failure: batch.attempts.at(-2)?.diagnostic, previous_result: batch.lastResult,
           instruction: '沿用已读证据，只纠正未完成/无效字段或增量取证；已确认结果不需要重新整轮扫描。' } : null,
         evidence_index: records.map(({ content, ...r }) => r) };
       const instructions = PR_INSTRUCTIONS + '\n【关联组共同审查】不运行代码。仅审查本批 diff 片段。未提供的相关文件按需读取，优先路径受限搜索；不得把关联线索当完整调用图。' +
         '\n最终 action=final 的 result 结构为 {"code_review":{"overview":[],"findings":[]},"test_analysis":analysis.json或null}。只返回已请求的范围；缺陷须有 existing_code 和 evidence_ids；测试补充建议不作为已确认产品 bug。' +
-        (testsRequested && skill ? '\n【测试片段】使用以下固定版本 skill，但 files/behaviors 仅覆盖本批变更文件与片段；它是中间分析不是已通过最终校验。analysis.platform 统一使用 input.platform；behavior.platform 说明实际目标。head_sha 使用完整实际 SHA；所有行为、缺口和任务ID以 batch_id 作前缀，证据ID与引用一致；source 引用必须已通过 read_file 取得，不能引用 diff 猜范围。CI 摘要不是方法执行证明，无日志不要构造 observations；必要语义缺失保留未知、deferred，不编造 oracle。静态充分但运行未核实仍须 evidence_gap，不泛泛要求补测试。\n' + skill.instructions : '') +
+        (needsTests ? '\n【测试片段】使用以下固定版本 skill，但 files/behaviors 仅覆盖本批变更文件与片段；它是中间分析不是已通过最终校验。analysis.platform 统一使用 input.platform；behavior.platform 说明实际目标。head_sha 使用完整实际 SHA；所有行为、缺口和任务ID以 batch_id 作前缀，证据ID与引用一致；source 引用必须已通过 read_file 取得，不能引用 diff 猜范围。CI 摘要不是方法执行证明，无日志不要构造 observations；必要语义缺失保留未知、deferred，不编造 oracle。静态充分但运行未核实仍须 evidence_gap，不泛泛要求补测试。\n' + skill.instructions : '') +
         '\nread_ci 可填写 section=overview|checks|statuses|runs|jobs|check_detail|run_detail，cursor、id、run_id、attempt、job_id；按 next_cursor 续读，has_more 不是整体截断，未读页未知。' + TOOL_PROTOCOL;
       while (true) {
         const state = control.state();
-        const remainingTools = Math.max(0, Math.min(state.limits.tools - Object.values(state.tool_calls).reduce((a, b) => a + b, 0),
+        const remainingTools = state.reason === 'evidence_character_budget' ? 0 : Math.max(0, Math.min(state.limits.tools - Object.values(state.tool_calls).reduce((a, b) => a + b, 0),
           stage === 'main' ? state.limits.main_tools - state.tool_calls.main : state.limits.tools));
         const text = await model(instructions + (remainingTools ? '' : '\nFINAL_ONLY：本阶段工具配额已耗尽，只能用已有证据形成局部最终结果，未取得的证据/行为标为未知或 deferred，不得声称完整覆盖。'),
           JSON.stringify({ ...input, remaining_tools: remainingTools, remaining_model_calls: 8 - state.model_calls[stage] }) + '\n<tool_evidence>\n' + batch.transcript.map(r => JSON.stringify(r)).join('\n') + '\n</tool_evidence>');
@@ -164,13 +166,14 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
             // Path-local first; widening remains an explicit, budgeted action.
             const scoped = request.tool === 'search_code' && request.prefix === undefined && request.expand_scope !== true
               ? { ...request, prefix: batch.files[0].filename.includes('/') ? batch.files[0].filename.slice(0, batch.files[0].filename.lastIndexOf('/') + 1) : undefined } : request;
-            batch.transcript.push(await evidence(scoped));
+            batch.transcript.push(await evidence(scoped, batch.id));
           }
           continue;
         }
         if (decision.action !== 'final' || !decision.result || Array.isArray(decision.result)) throw new Error('invalid_tool_protocol');
         const value = decision.result; batch.lastResult = value;
-        if (codeRequested) {
+        const scopeErrors = [];
+        if (needsCode) try {
           const code = decodePrReview(JSON.stringify(value.code_review), batch.files);
           if (!code.complete) throw new Error('invalid_code_fragment');
           if (code.findings.some(f => typeof f.existing_code !== 'string' || !f.existing_code.trim() || !Array.isArray(f.evidence_ids) || !f.evidence_ids.length ||
@@ -182,13 +185,14 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
           }
           batch.code = code;
           firstCodeMs ??= Date.now() - control.started; firstValidMs ??= firstCodeMs;
-        }
-        if (testsRequested && skill) {
+        } catch (error) { scopeErrors.push(error); attempt.code_diagnostic = efficientDiagnostic(error); }
+        if (needsTests) try {
           // Identity and read proof gate each fragment before aggregation. Final Python checks still mandatory.
           aggregateTestFragments({ fragments: [value.test_analysis], files: batch.files, headSha: args.headSha, baseSha: args.baseSha, diffBase, records });
           batch.test = value.test_analysis;
           firstFragmentMs ??= Date.now() - control.started;
-        }
+        } catch (error) { scopeErrors.push(error); attempt.test_diagnostic = efficientDiagnostic(error); }
+        if (scopeErrors.length) throw scopeErrors[0];
         attempt.status = 'returned'; attempt.code_complete = batch.code.complete; attempt.test_fragment = Boolean(batch.test);
         break;
       }
@@ -196,7 +200,9 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
       attempt.status = 'failed'; attempt.diagnostic = efficientDiagnostic(error);
       failures.push({ batch: batch.id, stage, diagnostic: attempt.diagnostic });
     } finally {
-      attempt.elapsed_ms = Date.now() - begin; attempt.evidence_ids = records.slice(before).map(e => e.id);
+      attempt.code_complete = batch.code.complete; attempt.test_fragment = Boolean(batch.test);
+      attempt.elapsed_ms = Date.now() - begin; attempt.evidence_ids = records.slice(before).filter(e => e.batch_id === batch.id).map(e => e.id);
+      attempt.evidence_reference_ids = batch.transcript.map(e => e.id);
       history.push({ batch: batch.id, ...attempt });
     }
   }
@@ -262,7 +268,8 @@ export async function efficientReview(args, { config, captured, octokit, extraRu
     completed: batches.filter(b => b.code.complete && (!testsRequested || b.test)).length, reviewedFiles: manifest.files.filter(f => f.state === 'reviewed').length,
     evidence: records, evidenceBudget: { ...budget, calls: Object.values(budget.tool_calls).reduce((a, b) => a + b, 0), limitations: failures.map(f => f.diagnostic.code) },
     metrics: { first_valid_result_ms: firstValidMs, first_code_result_ms: firstCodeMs, first_test_report_ms: firstTestMs,
-      first_test_fragment_ms: firstFragmentMs, cache: provider?.metrics || null, logical_tools: records.length, model_calls: budget.model_calls },
+      first_test_fragment_ms: firstFragmentMs, cache: provider?.metrics || null, logical_tools: Object.values(budget.tool_calls).reduce((a, b) => a + b, 0),
+      retained_evidence: records.length, model_calls: budget.model_calls },
     body: codeRequested ? renderPrReview(JSON.stringify({ findings: unique }), { files: args.files, incompleteCoverage: codePartial,
       failedBatches: batches.filter(b => !b.code.complete).length, batchCount: batches.length }) : '未请求代码缺陷审查。' };
   // Write a versioned audit result; deliberately never restore unverified/legacy cache state.

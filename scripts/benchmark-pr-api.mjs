@@ -11,6 +11,7 @@ import { loadTestSkill } from '../src/test-review-skill.mjs';
 import { PR_VERIFICATION_INSTRUCTIONS } from '../src/review-templates.mjs';
 import { gitRead, sha256 } from '../src/review-evidence.mjs';
 import { reviewOptions } from '../src/review-control.mjs';
+import { reviewCompletion } from '../src/review-completion.mjs';
 import { parseArgs, readBundle, frozenCheckout, privateRun, writePrivate, inputIdentity } from './pr-cli-common.mjs';
 
 const round = n => Math.round(n * 1000) / 1000;
@@ -112,7 +113,7 @@ export async function benchmarkPrApi(args, notify = value => console.log(JSON.st
     requested_model: env.AI_MODEL, protocol: env.AI_API_FORMAT, endpoint: env.AI_BASE_URL,
     chat_json_mode: env.AI_CHAT_JSON_MODE === 'true',
     insecure_http: new URL(env.AI_BASE_URL).protocol === 'http:', ai_review_commit: sourceCommit,
-    skill_commit: skill.commit, skill_hash: skill.hash, mode: 'both', pr_concurrency: 1, code_batch_concurrency: 2,
+    skill_commit: skill.commit, skill_hash: skill.hash, mode: 'both', pr_concurrency: 1, code_batch_concurrency: 2, group_batch_concurrency: 2,
     strategy, cache: strategy === 'efficient' ? 'per_pr_cold_git_object_cache' : 'disabled_cold_review',
     ...(strategy === 'efficient' ? { deadline_ms: deadlineMs } : { model_window_ms: 180000, grouping_timeout_ms: 10000 }), max_tools: 24,
     agent_context: 'independent_stateless_api_requests_raw_evidence_only', blind: false,
@@ -142,9 +143,7 @@ export async function benchmarkPrApi(args, notify = value => console.log(JSON.st
       { config: { enabled: true, testEnabled: true, checkouts: { [b.repository]: c.repo }, skillRepo: skill.repo,
         maxTools: 24, strategy, deadlineMs, platform: 'HCU', python: args.python || 'python', outputRoot: path.join(directory, 'skill-output') }, captured: { snapshot: b.snapshot, artifacts: b.artifacts } });
       const current = await c.isCurrent();
-      const evidencePartial = strategy === 'efficient' ? result.partial : Boolean(result.evidenceBudget?.exhausted) || (result.evidence || []).some(e => e.status !== 'available' || e.truncated);
-      const code = !(result.codeReviewPartial ?? result.partial) && result.manifest?.complete && current && b.snapshot.files_complete ? 'complete' : 'partial';
-      const tests = result.testReview?.status === 'validated' && current && b.snapshot.files_complete && !evidencePartial ? 'validated' : 'incomplete';
+      const { evidencePartial, code, tests } = reviewCompletion(result, { strategy, current, filesComplete: b.snapshot.files_complete });
       status = { overall: code === 'complete' && tests === 'validated' ? 'complete' : 'partial', code, tests,
         checkout_current: current, files_complete: b.snapshot.files_complete, evidence_partial: evidencePartial,
         test_diagnostic: result.testReview?.diagnostic || null, caveat: 'validated 仅代表审查/交接校验，不代表执行了 SGLang 测例。' };
@@ -171,7 +170,7 @@ export async function benchmarkPrApi(args, notify = value => console.log(JSON.st
   const summary = summarizeMeasurements(measurements);
   await writePrivate(run, 'benchmark.json', { provenance, summary, measurements });
   const rows = measurements.map(r => `| [#${r.pr}](${r.url}) | ${r.category} | ${r.files} | ${r.elapsed_seconds} | ${r.calls.length} | ${r.status.code} | ${r.status.tests} |`).join('\n');
-  await writePrivate(run, 'benchmark.md', `# ai-review 真实模型 API 耗时测试\n\n模型：${env.AI_MODEL}；协议：${env.AI_API_FORMAT}；模式：both；PR 串行、代码批次最多并发 2。\n\n| PR | 类型 | 文件数 | 总耗时/秒 | API 次数 | 代码状态 | 测试状态 |\n| --- | --- | --- | --- | --- | --- | --- |\n${rows}\n\n总体平均：**${summary.mean_pr_seconds} 秒/PR**；完整完成：${summary.completed_count}/5；完整样本平均：${summary.mean_complete_pr_seconds ?? '无完整样本'}。\n\n${summary.caveat}\n\n${provenance.timing_scope}\n\n采用 180 秒共享模型窗口、24 次工具预算；未手工延长窗口。冻结输入不含历史分析/标注。CI 是历史固定快照，不是当前线上状态。未执行目标测例或占卡，未部署、发布或触发 CI。本结果不是盲测质量认证。\n`);
+  await writePrivate(run, 'benchmark.md', `# ai-review 真实模型 API 耗时测试\n\n模型：${env.AI_MODEL}；协议：${env.AI_API_FORMAT}；策略：${strategy}；模式：both；PR 串行、关联批次最多并发 2。\n\n| PR | 类型 | 文件数 | 总耗时/秒 | API 次数 | 代码状态 | 测试状态 |\n| --- | --- | --- | --- | --- | --- | --- |\n${rows}\n\n总体平均：**${summary.mean_pr_seconds} 秒/PR**；完整完成：${summary.completed_count}/5；完整样本平均：${summary.mean_complete_pr_seconds ?? '无完整样本'}。\n\n${summary.caveat}\n\n${provenance.timing_scope}\n\n${strategy === 'efficient' ? `采用 ${deadlineMs} 毫秒全流程 deadline（准备/模型/工具/校验共用）` : '采用 180 秒共享模型窗口'}、24 次工具预算；未手工延长窗口。冻结输入不含历史分析/标注。CI 是历史固定快照，不是当前线上状态。未执行目标测例或占卡，未部署、发布或触发 CI。本结果不是盲测质量认证。\n`);
   return { run, summary };
 }
 
