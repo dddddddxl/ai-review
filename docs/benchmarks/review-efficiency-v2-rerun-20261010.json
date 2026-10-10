@@ -1,0 +1,28 @@
+{
+  "assessment_version": 1,
+  "date": "2026-10-10",
+  "repository": "dddddddxl/ai-review",
+  "branch": "codex/review-efficiency-v2",
+  "pushed": true,
+  "deployed": false,
+  "acceptance": "failed_completion_gate",
+  "live_review_commit": "d3b4d51c8bcd3aa85403d69bab1ee32a59443608",
+  "previous_live_commit": "38c45190e53471c764cfde427707400426c08e3f",
+  "skill_commit": "74376c2b1d263d1e26fa052b21e7847706d6651e",
+  "model": "Kimi-K2.7-01",
+  "protocol": "openai-chat",
+  "conditions": { "strategy": "efficient", "mode": "both", "deadline_ms": 180000, "max_tools": 24, "serial_pr": true, "cold_cache_per_pr": true, "same_frozen_identities": true, "historical_answers_in_input": false, "additional_sample_count": 5, "target_tests_executed": false, "github_comments": false },
+  "baseline_mean_seconds": 194.479,
+  "previous_efficient_mean_seconds": 151.207,
+  "summary": { "sample_count": 5, "mean_pr_seconds": 151.228, "total_pr_seconds": 756.141, "complete": 0, "code_complete": 0, "tests_validated": 0, "mean_complete_pr_seconds": null, "mean_first_valid_result_seconds": null, "model_requests": 15, "tool_responses": 3, "timeouts": 12, "usable_final_responses": 0, "known_input_tokens": 27476, "known_output_tokens": 3912, "usage_complete": false },
+  "samples": [
+    { "pr": 478, "head": "4343158c539992308a0ec9fcf9da7e4f38426f0f", "input_hash": "30f26d971aae87f7aa37e4f9d93b80cda58629a743ad7294e44a4febaf21d2e2", "seconds": 151.155, "model_calls": 3, "logical_tools": 8, "physical_git_executions": 8, "cache_hits": 1, "physical_git_ms": 901, "code": "partial", "tests": "incomplete", "stop_reason": "stage_time_budget" },
+    { "pr": 477, "head": "3b7049f294910ae75265c5dc66d2a93798460afc", "input_hash": "ec667d09dcf88cdd6804601dc2d48348ab0293873bba98b7515e806f5351e636", "seconds": 151.395, "model_calls": 4, "logical_tools": 6, "physical_git_executions": 8, "cache_hits": 2, "physical_git_ms": 891, "code": "partial", "tests": "incomplete", "stop_reason": "stage_time_budget" },
+    { "pr": 467, "head": "41dc6cae2d23a40ecf600a89e72e173bd6a4366c", "input_hash": "7adb54f9e405cee78726baa62f5a876715fbed007c181aab3aecfd4f38f006a1", "seconds": 151.204, "model_calls": 2, "logical_tools": 1, "physical_git_executions": 5, "cache_hits": 0, "physical_git_ms": 650, "code": "partial", "tests": "incomplete", "stop_reason": "stage_time_budget" },
+    { "pr": 473, "head": "7f4277207d91f2e14dd01f3d132bdd6b8819ad49", "input_hash": "0d445dd989a21e59c4754c7494d5d4fc165e0726e9eefdd48f62f1645da48be4", "seconds": 151.286, "model_calls": 3, "logical_tools": 4, "physical_git_executions": 6, "cache_hits": 2, "physical_git_ms": 713, "code": "partial", "tests": "incomplete", "stop_reason": "stage_time_budget" },
+    { "pr": 475, "head": "821fca935ddf628fb26eaf99cfa9592835006b0a", "input_hash": "827f11646025d5838661447e81739069408ad95a1a3e8fcfdbe4beca904a8e9c", "seconds": 151.101, "model_calls": 3, "logical_tools": 4, "physical_git_executions": 8, "cache_hits": 0, "physical_git_ms": 932, "code": "partial", "tests": "incomplete", "stop_reason": "stage_time_budget" }
+  ],
+  "offline_regression": { "date": "2026-10-09", "pass": 120, "fail": 0, "skip": 0, "rerun_this_round": false, "implementation_changed_this_round": false },
+  "frozen_artifact": { "directory_name": "live-pr-benchmark-Rl9UYR", "file": "benchmark.json", "sha256": "6ad402ad7312d2255f41fa9e5ec493aa29cc980a1dca87011c76f29dfc37d822" },
+  "limitations": ["Times include incomplete processing; no successful review time is available.", "No final response means no conclusions, not no defects.", "Timeout calls lack usage, so token figures are lower bounds.", "Provider cancellation does not prove gateway inference or billing stopped.", "Git requests differ between runs; cache statistics are not a controlled per-query speedup.", "No new paid calls after this five-PR rerun without new authorization."]
+}

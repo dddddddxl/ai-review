@@ -40,6 +40,8 @@ node scripts/benchmark-pr-api.mjs --config /private/model.env --plan /frozen/fiv
 
 2026-10-09：自动化回归 120/120 通过，零跳过；真实五 PR 复测平均 151.207 秒，完整完成 0/5，因此性能验收未通过。随后修正版本只经过离线测试和原始工具请求回放，不能把首次真实结果改成“修正后已通过”。详见 [验收报告](review-efficiency-v2-assessment.md) 和 [机器可读结果](benchmarks/review-efficiency-v2.json)。开发分支仅本地提交，未推送、未合并、未上线。
 
+2026-10-10 更新：用户明确授权先推送再复测，开发分支已推送。修正版同五 PR 平均 151.228 秒，完整完成仍为 0/5，验收仍未通过；没有合并或上线。见 [修正版真实复测报告](review-efficiency-v2-rerun-20261010.md) 与 [机器摘要](benchmarks/review-efficiency-v2-rerun-20261010.json)。上段保留为首次验收的历史状态。
+
 以下诊断不会请求模型接口，也不会执行目标仓库代码或测例：
 
 ```sh
