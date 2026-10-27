@@ -33,3 +33,31 @@ test('generation prompt favours recall; verification and CI prompts keep the str
     assert(!strict.includes(PR_RISK_CHECKLIST));
   }
 });
+
+const manyFiles = count => Array.from({ length: count }, (_, i) => ({ filename: `f${i}.py`, status: 'added',
+  patch: `@@ -0,0 +1 @@\n+v${i} = ${'x'.repeat(4000)}`, additions: 1, deletions: 0 }));
+
+test('batches run through a worker pool bounded by batchParallelism', async () => {
+  let active = 0, peak = 0;
+  const client = { model: 'mock', format: 'mock', async generateReview() {
+    active++; peak = Math.max(peak, active);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    active--;
+    return JSON.stringify({ overview: [], findings: [] });
+  } };
+  const result = await reviewPrBatches({ ...args, files: manyFiles(6), client, batchChars: 5000, batchParallelism: 3 });
+  assert.equal(result.completed, 6);
+  assert.equal(peak, 3);
+});
+
+test('a slow batch does not hold back the next ones', async () => {
+  const finished = [];
+  const client = { model: 'mock', format: 'mock', async generateReview(options) {
+    const slow = options.input.includes('f0.py');
+    await new Promise(resolve => setTimeout(resolve, slow ? 60 : 5));
+    finished.push(slow ? 'slow' : 'fast');
+    return JSON.stringify({ overview: [], findings: [] });
+  } };
+  await reviewPrBatches({ ...args, files: manyFiles(4), client, batchChars: 5000, batchParallelism: 2 });
+  assert.equal(finished.at(-1), 'slow');
+});

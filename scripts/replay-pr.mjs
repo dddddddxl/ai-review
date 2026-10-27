@@ -117,7 +117,7 @@ const result = await scope.run(async () => {
   log(`[Replay] upstream ${[...upstreamContext].map(([file, text]) => `${file}:${(text.match(/^TARGET: /gm) || []).length}targets/${text.length}chars`).join(' ') || '(none)'}`);
   return reviewPrBatches({ client, files, repository: fullName, pullNumber, title: pr.title,
     prDescription: pr.body || '', repositoryContext, upstreamContext, headSha, baseSha, totalFiles: files.length,
-    engine,evidenceFactory,thinking:process.env.AI_REVIEW_THINKING!=='off',batchChars: Number(process.env.AI_REVIEW_BATCH_CHARS) || (engine==='evidence-v1'?80000:10000), log,
+    engine,evidenceFactory,thinking:process.env.AI_REVIEW_THINKING!=='off',batchParallelism:Number(process.env.AI_REVIEW_BATCH_PARALLELISM)||undefined,batchChars: Number(process.env.AI_REVIEW_BATCH_CHARS) || (engine==='evidence-v1'?80000:10000), log,
     state: new ReviewState(path.join(out, 'state')), maxDurationMs, deadlineAt: started + maxDurationMs,
     onCandidates: record => { candidates.push(record); fs.writeFileSync(path.join(out, 'candidates.json'), JSON.stringify(candidates, null, 2)); } });
 });

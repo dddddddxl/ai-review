@@ -13,6 +13,7 @@ export const PR_GENERATION_TOKEN_STEPS = [131072];
 export const PR_VERIFICATION_TOKEN_STEPS = [131072];
 export const MINIMUM_BATCH_TIMEOUT_MS = 300000;
 export const DEFAULT_REVIEW_DURATION_MS = 45 * 60 * 1000;
+export const DEFAULT_BATCH_PARALLELISM = 4;
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export function makeBatches(files, { batchChars = 10000, wholeFiles = false } = {}) {
@@ -126,7 +127,7 @@ const leafResults = result => result?.children ? result.children.flatMap(leafRes
 export async function reviewPrBatches({ client, files, repository, pullNumber, title, baseSha = '', headSha = '', totalFiles = files.length,
   prDescription = '', repositoryContext = [], upstreamContext = new Map(), state, batchChars = 10000, maxBatches = Infinity,
   maxDurationMs = DEFAULT_REVIEW_DURATION_MS, deadlineAt: suppliedDeadline,
-  engine = 'legacy', evidenceFactory, thinking = true,
+  engine = 'legacy', evidenceFactory, thinking = true, batchParallelism = DEFAULT_BATCH_PARALLELISM,
   isCurrent = async () => true, onProgress = async () => {}, onCandidates = () => {}, log = console.log,
   transientRetryDelayMs = 30000 }) {
   if (!['legacy', 'evidence-v1'].includes(engine)) throw new RangeError('Unknown review engine');
@@ -486,15 +487,23 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
   if (!await isCurrent()) return { ...render(), cancelled: true };
   await persist();
   await onProgress(render(true));
-  for (let cursor = 0; cursor < todo.length;) {
-    if (attempted >= maxBatches || outOfTime()) break;
-    if (!await isCurrent()) { cancelled = true; break; }
-    const group = todo.slice(cursor, cursor + Math.min(evidenceMode ? 1 : 2, maxBatches - attempted));
-    await Promise.all(group.map(async i => { await runBatch(plan.batches[i], i); await persist(); }));
-    attempted += group.length; cursor += group.length;
-    await persist();
-    await onProgress(render(true));
-  }
+  // A worker takes the next batch as soon as its previous one settles, so one
+  // slow batch no longer holds back the others. The model semaphore still caps
+  // concurrent requests across jobs.
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < todo.length && !cancelled) {
+      if (attempted >= maxBatches || outOfTime()) return;
+      const i = todo[cursor++];
+      attempted++;
+      if (!await isCurrent()) { cancelled = true; return; }
+      await runBatch(plan.batches[i], i);
+      await persist();
+      await onProgress(render(true));
+    }
+  };
+  const workers = evidenceMode ? 1 : Math.max(1, Math.min(batchParallelism, todo.length));
+  await Promise.all(Array.from({ length: workers }, worker));
   await persist();
   const final = render();
   // RC1 uses deterministic exact-identity dedup in render(). A separate opaque

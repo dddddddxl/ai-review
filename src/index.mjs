@@ -8,7 +8,7 @@ import { createNodeMiddleware } from "@octokit/webhooks";
 import { App } from "octokit";
 import { createModelClient } from "./model-client.mjs";
 import { createCiReviewer } from "./ci-review.mjs";
-import { DEFAULT_REVIEW_DURATION_MS, reviewPrBatches } from "./pr-review.mjs";
+import { DEFAULT_BATCH_PARALLELISM, DEFAULT_REVIEW_DURATION_MS, reviewPrBatches } from "./pr-review.mjs";
 import { buildPrRepositoryContext } from './pr-context.mjs';
 import { upstreamContextForFiles, upstreamRoots } from './upstream-context.mjs';
 import { createRepositoryEvidence } from './review-evidence.mjs';
@@ -174,6 +174,7 @@ async function reviewPullRequest(job) {
     batchChars: positiveInteger(process.env.AI_REVIEW_BATCH_CHARS, prReviewEngine === 'evidence-v1' ? 80000 : 10000),
     maxDurationMs, deadlineAt,
     engine: prReviewEngine, evidenceFactory, thinking: prReviewThinking,
+    batchParallelism: boundedPositiveInteger(process.env.AI_REVIEW_BATCH_PARALLELISM, DEFAULT_BATCH_PARALLELISM, 16),
     isCurrent,
     onProgress: async progress => {
       if (Date.now() - lastPublished < 60000 || !await isCurrent()) return;
