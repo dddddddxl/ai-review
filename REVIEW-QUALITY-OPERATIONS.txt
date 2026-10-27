@@ -45,3 +45,29 @@ Finish unseeded whole-PR generation/verification controls, latency/incomplete-ra
 and memory/throughput checks, then image/config/state/queue/rollback preflight.
 Preserve the running image/container and private state backup. A source push must
 not deploy automatically. See docs/RELEASE-RC1.1.txt for exact validation limits.
+
+Recall evaluation (aireview1027)
+Production runs from 2026-10 sampled on HYGON-AI/vllm-plugin-das #238-#298: 87% of
+163 runs produced zero candidates; in 8 of 12 PRs where the Codex connector raised
+defects (42 comments), every AI Review run reported no issue. The gap is in
+generation, not verification, so changes are measured as recall first.
+Build the labelled set from reference reviewer comments (read-only REST calls;
+set GITHUB_TOKEN to avoid the anonymous 60/hour limit):
+  node scripts/build-eval-set.mjs OWNER/REPO PR [PR ...] > eval/NAME.json
+Replay each reviewed commit and score (same credentials as replay-pr.mjs):
+  node scripts/eval-recall.mjs run   eval/NAME.json NEW_UNIQUE_LABEL --engine legacy
+  node scripts/eval-recall.mjs score eval/NAME.json NEW_UNIQUE_LABEL
+Recall counts author_fixed/outdated cases by default; location matches are
+file + new-side line within ±15 and must be confirmed in score.md by a human.
+Compare generated vs published vs confirmed recall to locate the losing stage.
+Always run a baseline label with AI_REVIEW_THINKING=off on the same set first.
+
+Generation recall changes
+- AI_REVIEW_THINKING (default on; "off" restores disabled reasoning) applies to
+  legacy PR generation and verification. Dedup and CI analysis stay unchanged.
+  Reasoning lengthens calls: prefer AI_STREAM=true so idle, not total, time
+  bounds a request, and watch the 45-minute PR deadline in replays.
+- Generation uses its own recall-oriented rules and PR_RISK_CHECKLIST (defect
+  classes mined from fixed Codex findings). Verification, dedup and CI prompts
+  keep the original strict rules byte-for-byte. evidence-v1 generation also
+  receives the checklist (engine version evidence-v1-rc1.2).
