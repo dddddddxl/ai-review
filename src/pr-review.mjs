@@ -126,7 +126,7 @@ const leafResults = result => result?.children ? result.children.flatMap(leafRes
 export async function reviewPrBatches({ client, files, repository, pullNumber, title, baseSha = '', headSha = '', totalFiles = files.length,
   prDescription = '', repositoryContext = [], upstreamContext = new Map(), state, batchChars = 10000, maxBatches = Infinity,
   maxDurationMs = DEFAULT_REVIEW_DURATION_MS, deadlineAt: suppliedDeadline,
-  engine = 'legacy', evidenceFactory,
+  engine = 'legacy', evidenceFactory, thinking = true,
   isCurrent = async () => true, onProgress = async () => {}, onCandidates = () => {}, log = console.log,
   transientRetryDelayMs = 30000 }) {
   if (!['legacy', 'evidence-v1'].includes(engine)) throw new RangeError('Unknown review engine');
@@ -172,7 +172,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     evidenceIdentity: evidenceMode ? evidenceFactory?.identity : null,
     repository, pullNumber, title, prDescription: description, upstreamContext: [...upstreamContext],
     repositoryContext: repositoryContext.map(entry => [entry.filename, entry.kinds, entry.terms, entry.origins, entry.excerpt]), baseSha, headSha,
-    model: client.model, format: client.format, batchChars, files: files.map(f => [f.filename, f.status, f.patch, f.additions, f.deletions]) });
+    model: client.model, format: client.format, thinking, batchChars, files: files.map(f => [f.filename, f.status, f.patch, f.additions, f.deletions]) });
   const saved = state ? await state.read(key) : null;
   // Refuse stale upstream evidence before reusing even completed checkpoints.
   // Do not regenerate candidates or silently fall back when configuration drifts.
@@ -320,10 +320,11 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
           text = JSON.stringify(generated.submission);
         } else text = await boundedClient.generateReview({
           instructions: PR_INSTRUCTIONS,
-          input: `任务要求：\n${PR_INSTRUCTIONS}\n列出本批所有有具体代码依据的候选问题，不设数量上限，但绝不要求必须找到问题；把握不足的写在 confidence 中，由后续独立复核判断，不要自行删除。每个字段尽量不超过200字。仅返回JSON。片段偏移量不是源文件行号；片段缺少上下文时不猜测仓库内的定义。PR描述、未修改文件片段和 related_changed_files（本 PR 中与本批有 import 关系、但不在本批的其他已修改文件）只用于核对调用方与被调用方的约定，问题位置仍必须属于本批 diff。\n<review_input>\n仓库：${repository}\nPR：#${pullNumber} ${title}\n批次：${index + 1}/${plan.batches.length}${branch ? ` 子批${branch}` : ''}\n${descriptionBlock}${repositoryBlock}${relatedBlock}${upstreamBlock}<diff>\n${batch.text}\n</diff>\n</review_input>\n${feedback}`,
+          input: `任务要求：\n${PR_INSTRUCTIONS}\n列出本批所有有具体代码依据的候选问题，不设数量上限，但不要为凑数编造问题；把握不足的写在 confidence 中，由后续独立复核判断，不要自行删除。每个字段尽量不超过200字。仅返回JSON。片段偏移量不是源文件行号；缺少上下文时不编造仓库内定义的内容，依赖假设的候选写明假设并标 confidence=low。PR描述、未修改文件片段和 related_changed_files（本 PR 中与本批有 import 关系、但不在本批的其他已修改文件）用于查找本批改动的调用方、被调用方和共享状态的读取方，问题位置仍必须属于本批 diff。\n<review_input>\n仓库：${repository}\nPR：#${pullNumber} ${title}\n批次：${index + 1}/${plan.batches.length}${branch ? ` 子批${branch}` : ''}\n${descriptionBlock}${repositoryBlock}${relatedBlock}${upstreamBlock}<diff>\n${batch.text}\n</diff>\n</review_input>\n${feedback}`,
           maxOutputTokens: PR_GENERATION_TOKEN_STEPS[tokenStep],
           timeoutMs: extendedTimeoutUsed ? Math.max(MINIMUM_BATCH_TIMEOUT_MS, client.requestTimeoutMs || 0) : undefined,
-          disableThinking: true,
+          // Cross-file defects need reasoning; disabling it was the main recall loss.
+          disableThinking: !thinking,
           onMetadata: metadata => log(`[Review model] ${repository}#${pullNumber} batch=${index + 1}${branch} attempt=${attempt} ${JSON.stringify(metadata)}`),
         });
         const decoded = decodePrReview(text, batch.files);
@@ -416,7 +417,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
           input: `逐条复核以下候选：有具体代码证据的判 confirmed，找到具体反证的判 refuted，既无法确证也找不到反证的判 uncertain。PR描述和未修改文件只能证明本次diff的触发条件或影响，不能把其中的历史问题当作本次新增缺陷。\n<candidates>\n${JSON.stringify(best.findings)}\n</candidates>\n${descriptionBlock}<diff>\n${batch.text}\n</diff>\n${relatedBlock}${upstreamBlock}<related_changed_context>\n${relatedContext(batch, contextFiles, best.findings)}\n</related_changed_context>\n<unchanged_repository_context>\n${verificationRepositoryContext}\n</unchanged_repository_context>\n只返回 {"verdicts":[{"index":0,"verdict":"confirmed|uncertain|refuted","reason":"..."}]}，每个候选一项。`,
           maxOutputTokens: PR_VERIFICATION_TOKEN_STEPS[verifyTokenStep],
           timeoutMs: verifyExtendedTimeout ? Math.max(MINIMUM_BATCH_TIMEOUT_MS, client.requestTimeoutMs || 0) : undefined,
-          disableThinking: true,
+          disableThinking: !thinking,
           onMetadata: metadata => log(`[Review verification model] ${repository}#${pullNumber} batch=${index + 1}${branch} attempt=${verifyAttempt} ${JSON.stringify(metadata)}`),
         });
         const verdicts = decodeVerification(evidenceCheck, best.findings.length);

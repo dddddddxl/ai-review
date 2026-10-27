@@ -117,14 +117,14 @@ const result = await scope.run(async () => {
   log(`[Replay] upstream ${[...upstreamContext].map(([file, text]) => `${file}:${(text.match(/^TARGET: /gm) || []).length}targets/${text.length}chars`).join(' ') || '(none)'}`);
   return reviewPrBatches({ client, files, repository: fullName, pullNumber, title: pr.title,
     prDescription: pr.body || '', repositoryContext, upstreamContext, headSha, baseSha, totalFiles: files.length,
-    engine,evidenceFactory,batchChars: Number(process.env.AI_REVIEW_BATCH_CHARS) || (engine==='evidence-v1'?80000:10000), log,
+    engine,evidenceFactory,thinking:process.env.AI_REVIEW_THINKING!=='off',batchChars: Number(process.env.AI_REVIEW_BATCH_CHARS) || (engine==='evidence-v1'?80000:10000), log,
     state: new ReviewState(path.join(out, 'state')), maxDurationMs, deadlineAt: started + maxDurationMs,
     onCandidates: record => { candidates.push(record); fs.writeFileSync(path.join(out, 'candidates.json'), JSON.stringify(candidates, null, 2)); } });
 });
 const publication = buildPrReviewPublication({ pr: { number: pullNumber, head: { sha: headSha } }, files, result, pullNumber });
 const count = pattern => lines.filter(line => pattern.test(line)).length;
 const summary = {
-  repository: fullName, pullNumber, headSha, baseSha, label, engine, seconds: Math.round((Date.now() - started) / 1000),
+  repository: fullName, pullNumber, headSha, baseSha, label, engine, thinking: process.env.AI_REVIEW_THINKING !== 'off', seconds: Math.round((Date.now() - started) / 1000),
   batches: result.batches, completed: result.completed, failures: result.failures, partial: result.partial,
   candidates: result.candidateCount, verificationFiltered: result.verificationFiltered, findings: result.findings,
   uncertain: result.reviewUncertain?.length ?? 0,

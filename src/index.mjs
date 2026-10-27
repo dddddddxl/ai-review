@@ -60,6 +60,8 @@ const modelClient = modelUsageMeter.client;
 const modelConfigured = modelClient.configured;
 const prReviewEngine = process.env.AI_PR_REVIEW_ENGINE || 'evidence-v1';
 if (!['evidence-v1', 'legacy'].includes(prReviewEngine)) throw new Error('Unknown AI_PR_REVIEW_ENGINE');
+// Model reasoning for PR generation/verification; AI_REVIEW_THINKING=off restores the old behaviour.
+const prReviewThinking = process.env.AI_REVIEW_THINKING !== 'off';
 const dashboardToken = process.env.AI_DASHBOARD_TOKEN || '';
 const dashboardAssets = await loadDashboardAssets();
 
@@ -171,7 +173,7 @@ async function reviewPullRequest(job) {
     headSha: currentPr.head.sha, baseSha: currentPr.base.sha, totalFiles: currentPr.changed_files, state: reviewState,
     batchChars: positiveInteger(process.env.AI_REVIEW_BATCH_CHARS, prReviewEngine === 'evidence-v1' ? 80000 : 10000),
     maxDurationMs, deadlineAt,
-    engine: prReviewEngine, evidenceFactory,
+    engine: prReviewEngine, evidenceFactory, thinking: prReviewThinking,
     isCurrent,
     onProgress: async progress => {
       if (Date.now() - lastPublished < 60000 || !await isCurrent()) return;
