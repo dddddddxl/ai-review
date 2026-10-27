@@ -10,3 +10,8 @@ secrets/
 *.log
 *.tar.gz
 *.zip
+review-state/
+runs/
+integration-results/
+replay-results/
+*.tgz

@@ -32,20 +32,21 @@ function recordUsage(target, metadata = {}) {
 }
 
 export function createModelUsageMeter(client) {
-  const meteredClient = {
-    ...client,
-    async generateReview(options = {}) {
+  const meteredClient = { ...client };
+  for (const method of ['generateReview', 'generateToolTurn']) {
+    if (typeof client[method] !== 'function') continue;
+    meteredClient[method] = async function(options = {}) {
       const current = usageContext.getStore();
       const originalMetadata = options.onMetadata;
-      return client.generateReview({
+      return client[method]({
         ...options,
         onMetadata(metadata) {
           if (current) recordUsage(current, metadata);
           originalMetadata?.(metadata);
         },
       });
-    },
-  };
+    };
+  }
 
   return {
     client: meteredClient,

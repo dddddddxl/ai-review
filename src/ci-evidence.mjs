@@ -1,4 +1,5 @@
 import { makeBatches } from './pr-review.mjs';
+import { qualityGateLogStatus } from './ci-publication.mjs';
 
 export function redact(text) {
   return text.replace(/\x1b\[[0-9;]*m/g, '')
@@ -86,7 +87,7 @@ export function extractEvidence(text, { maxChars = Infinity } = {}) {
   }
   if (current) chunks.push(current);
   const clippedLines = selected.filter(i => lines[i].length > 4000).length;
-  return { chunks, lines: lines.length, selectedLines: selected.length, matches: hits,
+  return { chunks, gateStatus: qualityGateLogStatus(text), lines: lines.length, selectedLines: selected.length, matches: hits,
     evidenceClipped: clipped || clippedLines > 0, selectionClipped: clipped, clippedLines, available: true };
 }
 
@@ -105,7 +106,8 @@ export async function readLogStream(body, { maxBytes = 32 * 1024 * 1024 } = {}) 
   finally { await reader.cancel().catch(() => {}); }
   parts.push(decoder.decode());
   const evidence = extractEvidence(parts.join(''));
-  return { ...evidence, bytes, truncated, readError, available: bytes > 0 && !readError };
+  return { ...evidence, gateStatus: truncated || readError ? 'unknown' : evidence.gateStatus,
+    bytes, truncated, readError, available: bytes > 0 && !readError };
 }
 
 export async function jobLog(octokit, owner, repo, jobId) {

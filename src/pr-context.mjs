@@ -37,10 +37,6 @@ async function rateLimitedCodeSearch(octokit, args, intervalMs) {
   return run;
 }
 
-const normalizePatchLine = line => {
-  if (/^(?:@@|\+\+\+|---|diff |index )/.test(line)) return '';
-  return /^[ +\-]/.test(line) ? line.slice(1) : line;
-};
 
 function addSignal(map, name, kind, score, origin) {
   if (!name || name.length < 4 || genericSymbols.has(name.toLowerCase())) return;
@@ -51,66 +47,134 @@ function addSignal(map, name, kind, score, origin) {
   map.set(key, current);
 }
 
-function importPaths(moduleName, filename, roots) {
-  if (!moduleName) return [];
-  let parts;
-  if (moduleName.startsWith('.')) {
-    const dots = moduleName.match(/^\.+/)[0].length;
-    const rest = moduleName.slice(dots).split('.').filter(Boolean);
-    const base = filename.split('/').slice(0, -dots);
-    parts = [...base, ...rest];
-  } else {
-    parts = moduleName.split('.');
-    if (!roots.has(parts[0])) return [];
-  }
-  if (!parts.length) return [];
-  const stem = parts.join('/');
-  return [`${stem}.py`, `${stem}/__init__.py`];
+const isTestPath = path => /(?:^|\/)tests?\//i.test(path) || /(?:^|\/)(?:test_[^/]*|[^/]*_test)\.py$/i.test(path);
+
+// New-side source of a patch: context and added lines without diff markers.
+function newSideLines(patch = '') {
+  return String(patch).split('\n')
+    .filter(line => !/^(?:@@|\+\+\+|---|diff |index |\\ No newline)/.test(line) && !line.startsWith('-'))
+    .map(line => (line.startsWith('+') || line.startsWith(' ') ? line.slice(1) : line));
 }
 
-export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, maxImports = 6 } = {}) {
-  const roots = new Set(files.map(file => file.filename?.split('/')[0]).filter(Boolean));
-  const imports = new Map();
-  const signals = new Map();
+// Python imports on the new side of a patch, including parenthesized multi-line
+// name lists. Aliases are reduced to the imported name.
+export function parseImports(patch) {
+  const text = newSideLines(patch).join('\n');
+  const found = [];
+  for (const match of text.matchAll(/^[ \t]*from[ \t]+(\.+[\w.]*|[A-Za-z_][\w.]*)[ \t]+import[ \t]+(\([^)]*\)|[^\n]*)/gm)) {
+    const names = match[2].replace(/#[^\n]*/g, ' ').replace(/[()\\]/g, ' ').split(',')
+      .map(item => item.trim().split(/\s+/)[0]).filter(name => /^[A-Za-z_]\w*$/.test(name));
+    found.push({ module: match[1], names });
+  }
+  for (const match of text.matchAll(/^[ \t]*import[ \t]+([A-Za-z_][\w.]*)/gm)) found.push({ module: match[1], names: [] });
+  return found;
+}
+
+// Absolute imports are anchored at every changed path segment naming the
+// top-level package, so both vllm_hcu/... and python/sglang/... layouts resolve.
+function importStems(module, filename, files) {
+  if (module.startsWith('.')) {
+    const dots = module.match(/^\.+/)[0].length;
+    const rest = module.slice(dots).split('.').filter(Boolean);
+    return [[...filename.split('/').slice(0, -dots), ...rest].join('/')];
+  }
+  const parts = module.split('.');
+  const roots = new Set();
   for (const file of files) {
-    if (!file?.patch || !file.filename) continue;
-    for (const raw of file.patch.split('\n')) {
-      const line = normalizePatchLine(raw);
-      if (!line) continue;
-      const imported = /^\s*(?:from\s+([A-Za-z_][\w.]*|\.+[\w.]*)\s+import|import\s+([A-Za-z_][\w.]*))/.exec(line);
-      const moduleName = imported?.[1] || imported?.[2];
-      for (const path of importPaths(moduleName, file.filename, roots)) {
-        const current = imports.get(path) || { path, origins: new Set(), terms: new Set() };
-        current.origins.add(file.filename);
-        current.terms.add(moduleName);
-        imports.set(path, current);
-      }
-      for (const match of line.matchAll(/\b(?:class|def|function|interface|type|enum)\s+([A-Za-z_]\w{4,})/g)) {
-        addSignal(signals, match[1], 'symbol', 100, file.filename);
-      }
-      for (const match of line.matchAll(/\b(?:config|cfg|settings|options?)\.([A-Za-z_]\w{3,})/gi)) {
-        addSignal(signals, match[1], 'config', 90, file.filename);
-      }
-      for (const match of line.matchAll(/["']([A-Z][A-Z0-9_]{5,})["']/g)) {
-        addSignal(signals, match[1], 'config', 85, file.filename);
-      }
-      if (/^[+\-]/.test(raw) || /^\s*(?:class|def)\s+/.test(line)) {
-        for (const match of line.matchAll(/\b(_?[A-Za-z][A-Za-z0-9_]*_[A-Za-z0-9_]+)\b/g)) {
-          addSignal(signals, match[1], 'symbol', 55, file.filename);
+    const segments = file.filename.split('/');
+    segments.forEach((segment, i) => {
+      if (segment === parts[0] && i < segments.length - 1) roots.add(segments.slice(0, i).join('/'));
+    });
+  }
+  return [...roots].map(root => [root, ...parts].filter(Boolean).join('/'));
+}
+
+// Changed file -> changed files it imports (directly or as a submodule).
+export function changedImportGraph(files) {
+  const changed = new Set(files.map(file => file.filename));
+  const graph = new Map(files.map(file => [file.filename, new Set()]));
+  for (const file of files) {
+    for (const { module, names } of parseImports(file.patch || '')) {
+      for (const stem of importStems(module, file.filename, files)) {
+        for (const path of [`${stem}.py`, `${stem}/__init__.py`, ...names.map(name => `${stem}/${name}.py`)]) {
+          if (path !== file.filename && changed.has(path)) graph.get(file.filename).add(path);
         }
       }
     }
   }
-  const ordered = [...signals.values()].sort((a, b) => b.score - a.score || b.name.length - a.name.length);
+  return graph;
+}
+
+export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, maxImports = 8 } = {}) {
+  const changed = new Set(files.map(file => file.filename));
+  // Symbols and settings introduced by this PR do not exist on the default
+  // branch, so code search cannot find them.
+  const defined = new Set();
+  for (const file of files) {
+    for (const raw of String(file.patch || '').split('\n')) {
+      if (!raw.startsWith('+') || raw.startsWith('+++')) continue;
+      for (const match of raw.matchAll(/\b(?:class|def)\s+([A-Za-z_]\w*)/g)) defined.add(match[1]);
+      const setting = /^\+\s*["']?([A-Z][A-Z0-9_]{5,})["']?\s*[:=]/.exec(raw);
+      if (setting) defined.add(setting[1]);
+    }
+  }
+  // Imported names are fetched through their module, or are in this diff; never search them.
+  const imported = new Set(files.flatMap(file => parseImports(file.patch || '').flatMap(item => item.names)));
+  const imports = new Map();
+  const signals = new Map();
+  for (const file of files) {
+    if (!file?.patch || !file.filename) continue;
+    const test = isTestPath(file.filename);
+    for (const { module, names } of parseImports(file.patch)) {
+      for (const stem of importStems(module, file.filename, files)) {
+        const alternatives = [`${stem}.py`, `${stem}/__init__.py`];
+        if (alternatives.some(path => changed.has(path))) continue;
+        // `from pkg import changed_module` is already in the diff.
+        const symbols = names.filter(name => !changed.has(`${stem}/${name}.py`) && !changed.has(`${stem}/${name}/__init__.py`));
+        if (names.length && !symbols.length) continue;
+        const current = imports.get(stem) || { alternatives, symbols: new Set(), origins: new Set(), terms: new Set(), test: true };
+        for (const name of symbols) current.symbols.add(name);
+        current.terms.add(module);
+        current.origins.add(file.filename);
+        current.test &&= test;
+        imports.set(stem, current);
+      }
+    }
+    for (const raw of file.patch.split('\n')) {
+      // Enclosing definitions of modified hunks: callers live elsewhere.
+      const hunk = /^@@ [^@]*@@\s*(?:async\s+)?(?:def|class)\s+([A-Za-z_]\w{4,})/.exec(raw);
+      if (hunk && !defined.has(hunk[1])) addSignal(signals, hunk[1], 'symbol', 100, file.filename);
+      // Only changed lines carry signals; context lines are unrelated to the change.
+      if (!/^[+-]/.test(raw) || /^(?:\+\+\+|---)/.test(raw)) continue;
+      const line = raw.slice(1);
+      if (raw.startsWith('-')) {
+        for (const match of line.matchAll(/\b(?:class|def)\s+([A-Za-z_]\w{4,})/g)) addSignal(signals, match[1], 'symbol', 100, file.filename);
+      }
+      for (const match of line.matchAll(/\b(?:config|cfg|settings|options?)\.([A-Za-z_]\w{3,})/gi)) {
+        if (!defined.has(match[1])) addSignal(signals, match[1], 'config', 90, file.filename);
+      }
+      for (const match of line.matchAll(/["']([A-Z][A-Z0-9_]{5,})["']/g)) {
+        if (!defined.has(match[1])) addSignal(signals, match[1], 'config', 85, file.filename);
+      }
+      if (test) continue;
+      for (const match of line.matchAll(/\b(_?[A-Za-z][A-Za-z0-9_]*_[A-Za-z0-9_]+)\b/g)) {
+        if (!defined.has(match[1]) && !imported.has(match[1]) && !/^test_/.test(match[1])) addSignal(signals, match[1], 'symbol', 55, file.filename);
+      }
+    }
+  }
+  const rank = (a, b) => b.score - a.score || b.origins.size - a.origins.size || b.name.length - a.name.length;
+  const ordered = [...signals.values()].sort(rank);
   const configLimit = Math.min(2, ordered.filter(value => value.kind === 'config').length);
   const symbolLimit = Math.max(0, maxSearchSignals - configLimit);
   const selected = [
     ...ordered.filter(value => value.kind === 'symbol').slice(0, symbolLimit),
     ...ordered.filter(value => value.kind === 'config').slice(0, configLimit),
-  ].sort((a, b) => b.score - a.score || b.name.length - a.name.length).slice(0, maxSearchSignals);
+  ].sort(rank).slice(0, maxSearchSignals);
+  // Source files' imports before tests'; count modules, not candidate paths.
   return {
-    imports: [...imports.values()].slice(0, maxImports)
-      .map(value => ({ ...value, origins: [...value.origins], terms: [...value.terms] })),
+    imports: [...imports.values()].sort((a, b) => Number(a.test) - Number(b.test) || b.symbols.size - a.symbols.size)
+      .slice(0, maxImports)
+      .map(value => ({ ...value, path: value.alternatives[0], symbols: [...value.symbols], origins: [...value.origins], terms: [...value.terms] })),
     signals: selected.map(value => ({ ...value, origins: [...value.origins] })),
   };
 }
@@ -137,33 +201,76 @@ function excerptAround(content, terms, maxChars = 2600) {
   return rendered.slice(0, maxChars);
 }
 
+// Definitions of the imported symbols (with decorators and body), so the model
+// sees signatures and contracts instead of the module's import header.
+function definitionExcerpt(content, symbols, maxChars) {
+  const lines = content.replace(/\r\n/g, '\n').split('\n');
+  const ranges = [];
+  for (const symbol of symbols) {
+    const pattern = new RegExp(`^\\s*(?:(?:async\\s+)?def|class)\\s+${symbol}\\b|^${symbol}\\s*(?::[^=]*)?=`);
+    const at = lines.findIndex(line => pattern.test(line));
+    if (at < 0) continue;
+    const indent = lines[at].match(/^\s*/)[0].length;
+    let start = at;
+    while (start > 0 && /^\s*@/.test(lines[start - 1])) start--;
+    let end = at + 1;
+    while (end < lines.length && end - at < 60) {
+      const line = lines[end];
+      if (line.trim() && line.match(/^\s*/)[0].length <= indent && !/^\s*[)\]}]/.test(line)) break;
+      end++;
+    }
+    ranges.push([start, end]);
+  }
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  for (const [start, end] of ranges) {
+    const last = merged.at(-1);
+    if (last && start <= last[1] + 2) last[1] = Math.max(last[1], end);
+    else merged.push([start, end]);
+  }
+  let rendered = '';
+  for (const [start, end] of merged) {
+    const block = lines.slice(start, end).map((line, index) => `${start + index + 1}: ${line}`).join('\n');
+    if (rendered.length + block.length + 5 > maxChars) break;
+    rendered += `${rendered ? '\n...\n' : ''}${block}`;
+  }
+  return rendered;
+}
+
 const errorCode = error => Number.isInteger(error?.status) ? `http_${error.status}` : 'unavailable';
 
-export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, maxFiles = 5,
-  maxChars = 12000, maxSearchSignals = 3, searchIntervalMs = DEFAULT_SEARCH_INTERVAL_MS, log = () => {} }) {
+export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, maxFiles = 8,
+  maxChars = 16000, maxSearchSignals = 3, searchIntervalMs = DEFAULT_SEARCH_INTERVAL_MS, log = () => {} }) {
   const changed = new Set(files.map(file => file.filename));
   const { imports, signals } = extractRepositoryContextSignals(files, { maxSearchSignals });
   const candidates = new Map();
   let failures = 0;
-  const addCandidate = ({ path, kind, terms, origins, score }) => {
+  const addCandidate = ({ path, alternatives = [path], symbols = [], kind, terms, origins, score }) => {
     if (!path || changed.has(path) || ignored.test(path) || !textSource.test(path)) return;
-    const current = candidates.get(path) || { path, kinds: new Set(), terms: new Set(), origins: new Set(), score: 0 };
+    // Prose that merely mentions a symbol is not a contract the code must satisfy.
+    if (kind !== 'import' && /\.(?:md|rst)$/i.test(path)) return;
+    const current = candidates.get(path) || { path, alternatives, symbols: new Set(), kinds: new Set(), terms: new Set(), origins: new Set(), score: 0 };
     current.kinds.add(kind);
+    for (const symbol of symbols) current.symbols.add(symbol);
     for (const term of terms || []) current.terms.add(term);
     for (const origin of origins || []) current.origins.add(origin);
     current.score = Math.max(current.score, score);
     candidates.set(path, current);
   };
 
-  for (const imported of imports) addCandidate({ ...imported, kind: 'import', score: 120 });
+  for (const imported of imports) {
+    addCandidate({ ...imported, kind: 'import', terms: [...imported.symbols, ...imported.terms], score: imported.test ? 110 : 130 });
+  }
   for (const signal of signals) {
     try {
-      const { data } = await rateLimitedCodeSearch(octokit, { q: `${signal.name} repo:${owner}/${repo}`, per_page: 10 }, searchIntervalMs);
+      const { data } = await rateLimitedCodeSearch(octokit, { q: `${signal.name} repo:${owner}/${repo}`, per_page: 20 }, searchIntervalMs);
       for (const item of data.items || []) {
-        const testBonus = /(?:^|\/)tests?\//i.test(item.path) ? 25 : 0;
+        // Contracts and defaults live in source files; test hits are mostly
+        // other features' fixtures that crowd out the definitions.
+        const testPenalty = isTestPath(item.path) ? -30 : 0;
         const configBonus = signal.kind === 'config' && /config|setting|option/i.test(item.path) ? 30 : 0;
         addCandidate({ path: item.path, kind: signal.kind, terms: [signal.name], origins: signal.origins,
-          score: signal.score + testBonus + configBonus });
+          score: signal.score + testPenalty + configBonus });
       }
     } catch (error) {
       failures++;
@@ -173,25 +280,68 @@ export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, 
   }
 
   const entries = [];
-  let usedChars = 0;
+  let usedChars = 0, searchEntries = 0, searchChars = 0;
   for (const candidate of [...candidates.values()].sort((a, b) => b.score - a.score || a.path.localeCompare(b.path))) {
     if (entries.length >= maxFiles || usedChars >= maxChars) break;
-    try {
-      const { data } = await octokit.rest.repos.getContent({ owner, repo, path: candidate.path, ref: baseSha });
-      const content = decodeContent(data);
-      if (!content) continue;
-      const excerpt = excerptAround(content, [...candidate.terms], Math.min(2600, maxChars - usedChars));
-      if (!excerpt.trim()) continue;
-      entries.push({ filename: candidate.path, kinds: [...candidate.kinds], terms: [...candidate.terms],
-        origins: [...candidate.origins], score: candidate.score, excerpt });
-      usedChars += excerpt.length;
-    } catch (error) {
-      failures++;
-      log(`[Review context] content-fetch failed code=${errorCode(error)}`);
+    // Search hits are lexical matches; keep them from crowding out import definitions.
+    const searchOnly = !candidate.kinds.has('import');
+    if (searchOnly && (searchEntries >= 3 || searchChars >= 6000)) continue;
+    // A module is either NAME.py or NAME/__init__.py; only a miss on both is a failure.
+    let content = null, path = null, lastError = null;
+    for (const alternative of candidate.alternatives) {
+      try {
+        const { data } = await octokit.rest.repos.getContent({ owner, repo, path: alternative, ref: baseSha });
+        content = decodeContent(data);
+        path = alternative;
+        if (content) break;
+      } catch (error) { lastError = error; }
     }
+    if (!content) {
+      if (lastError) { failures++; log(`[Review context] content-fetch failed code=${errorCode(lastError)}`); }
+      continue;
+    }
+    const budget = Math.min(candidate.symbols.size ? 4000 : 2600, maxChars - usedChars);
+    // Imported names that are not defined here (re-exports, packages) would only
+    // yield an unrelated header excerpt.
+    const excerpt = candidate.symbols.size ? definitionExcerpt(content, [...candidate.symbols], budget)
+      : excerptAround(content, [...candidate.terms], budget);
+    if (!excerpt.trim()) continue;
+    entries.push({ filename: path, kinds: [...candidate.kinds], terms: [...candidate.terms],
+      origins: [...candidate.origins], score: candidate.score, excerpt });
+    usedChars += excerpt.length;
+    if (searchOnly) { searchEntries++; searchChars += excerpt.length; }
   }
   log(`[Review context] repository=${owner}/${repo} imports=${imports.length} signals=${signals.length} selected=${entries.length} chars=${usedChars} failures=${failures}`);
   return entries;
+}
+
+// Other changed files of this PR that import, or are imported by, the batch.
+// Batches are cut by size, so a caller and its callee often land apart; this
+// keeps the contract between them visible to both sides.
+export function relatedChangedFilesForBatch(batch, files, { maxChars = 12000 } = {}) {
+  const graph = changedImportGraph(files);
+  const inBatch = new Set(batch.files.map(file => file.filename));
+  const related = new Map();
+  for (const name of inBatch) {
+    for (const dependency of graph.get(name) || []) if (!inBatch.has(dependency)) related.set(dependency, 'imported by this batch');
+  }
+  for (const [importer, dependencies] of graph) {
+    if (!inBatch.has(importer) && !related.has(importer) && [...dependencies].some(path => inBatch.has(path))) related.set(importer, 'imports this batch');
+  }
+  const ordered = [...related].sort(([a], [b]) => Number(isTestPath(a)) - Number(isTestPath(b)) || a.localeCompare(b));
+  let rendered = '';
+  for (const [path, relation] of ordered) {
+    const room = maxChars - rendered.length;
+    if (room < 400) break;
+    const file = files.find(item => item.filename === path);
+    const lines = newSideLines(file.patch);
+    const added = file.status === 'added';
+    const body = added ? lines.map((line, index) => `${index + 1}: ${line}`).join('\n') : lines.join('\n');
+    let section = `FILE: ${path}\nRELATION: ${relation}\n${added ? 'FULL NEW FILE (line numbers are source lines)' : 'NEW-SIDE HUNKS ONLY (not full file)'}\n${body}\n`;
+    if (section.length > room) section = `${section.slice(0, room - 40)}\n[related file truncated]\n`;
+    rendered += section;
+  }
+  return rendered;
 }
 
 export function repositoryContextForBatch(batch, entries = [], { maxChars = 12000, focusText = '' } = {}) {

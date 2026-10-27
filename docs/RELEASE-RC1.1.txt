@@ -1,0 +1,46 @@
+RC1.1 publication notes — 2026-10-27
+
+Included
+- CI scan execution failure is distinct from confirmed quality findings.
+- Successful CI reruns replace older failure messages; stale events cannot undo
+  a newer success. Sensitive CI evidence keeps its restricted publication path.
+- Complete-file review units with bounded read-only repository tools during both
+  generation and independent verification.
+- Candidate checkpoint before verification; no regeneration after verifier outage.
+- Shared service concurrency, usage, version checks and total review deadline.
+- Explicit incomplete/error state; no timeout-driven recursive splitting, silent
+  legacy fallback or extra opaque model-dedup call in the new engine.
+
+Validation
+- 81 offline regressions passed on the frozen candidate.
+- The separately deployed CI-only patch passed 70 regressions. These test counts
+  overlap and must not be summed into 151 unique tests.
+- RC1 first live test made 3 GLM calls, then submitted empty terminal arguments;
+  it failed protocol validation and stopped. This failure is not omitted.
+- RC1.1 negative control: 4 GLM calls, 39.568s. Two seeded #575 candidates were
+  refuted. A predeclared automatic check remained false because the model read a
+  valid caller-side guard rather than the preselected backend file. Manual fixed-
+  source review confirmed the alternative counter-evidence; original score unchanged.
+- RC1.1 positive control: 2 GLM calls, 39.932s. The model read the three-required-
+  argument helper and confirmed the two-argument decorator-call defect in #269.
+- Total across these runs: 9 real calls, 60816 reported tokens, no automatic retry.
+  No GitHub review publication or production switch was performed by these tests.
+
+These were seeded-candidate verification controls, NOT whole-PR generation,
+overall recall/precision, runtime reproduction, stability or throughput acceptance.
+Missing reported usage is unknown consumption, not zero. Reasoning-token counts
+may be present; raw provider reasoning is not persisted or published.
+
+Publication provenance
+Runtime source, public assets and regression tests match the frozen 2026-10-23
+RC1.1 candidate. README/operations/publication notes and ignore patterns are
+updated for public source distribution; private host names, local checkout paths,
+deployment state, keys and raw model-run outputs are intentionally not included.
+The original 2026-09-29 public snapshot history is retained. No existing author or
+license notices are removed. No new software license is assigned by this update.
+
+Remaining release gates
+1. Unseeded whole-PR generation and verification, positive and negative controls.
+2. Latency, incomplete rate, memory and throughput under representative PR sizes.
+3. Deployment image/config/private-state/queue preflight and usable rollback.
+releaseReady=false. Publishing source is not declaring the new engine production-ready.

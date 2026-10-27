@@ -34,6 +34,7 @@ const reasonLabels = {
   no_exact_pr_match: '未匹配到当前 PR',
   already_active: '任务已在执行',
   stale_or_ineligible_pr: 'PR 已更新或不再适用',
+  verification_retry_exhausted: '复核重试次数已用尽',
 };
 
 const terminalStatuses = new Set(['done', 'skipped', 'stale']);
@@ -45,6 +46,11 @@ const usageSeriesDays = 30;
 const usageRepositoryLimit = 10;
 const dayMs = 24 * 60 * 60 * 1000;
 const usageFields = ['requests', 'inputTokens', 'outputTokens', 'reasoningTokens', 'totalTokens'];
+
+function reasonLabel(value) {
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(reasonLabels, value)
+    ? reasonLabels[value] : null;
+}
 
 function safeRepository(value) {
   return typeof value === 'string' && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value)
@@ -81,6 +87,33 @@ function jobProgress(job) {
   };
 }
 
+function attentionExplanation(job, status) {
+  if (status !== 'paused') return { reason: reasonLabel(job.reason), nextStep: null, category: null };
+  if (job.reason === 'verification_retry_exhausted') return {
+    reason: reasonLabel(job.reason), nextStep: '复核重试已用尽；检查服务端任务日志后再决定是否重试。', category: 'verificationExhausted',
+  };
+  if (job.reason === 'worker_error') return {
+    reason: reasonLabel(job.reason), nextStep: '检查服务端任务日志；这不是排队，也不代表代码有问题。', category: 'workerError',
+  };
+  if (reasonLabel(job.reason)) return {
+    reason: reasonLabel(job.reason), nextStep: '检查任务状态与服务端日志。', category: 'other',
+  };
+  const summary = job.summary && typeof job.summary === 'object' ? job.summary : {};
+  if (jobKind(job) === 'ci' && safeInteger(summary.unfinished) > 0) return {
+    reason: `CI 分析有 ${safeInteger(summary.unfinished)} 项未完成`,
+    nextStep: '检查对应工作流和服务端任务日志；并非仍在排队。', category: 'ciUnfinished',
+  };
+  if (jobKind(job) === 'pr' && safeInteger(summary.failures) > 0) return {
+    reason: `PR 审查有 ${safeInteger(summary.failures)} 个失败批次`,
+    nextStep: '需查服务端任务日志确认失败原因；不等于发现代码缺陷。', category: 'prFailed',
+  };
+  if (jobKind(job) === 'pr' && safeInteger(summary.pending) > 0) return {
+    reason: `PR 审查有 ${safeInteger(summary.pending)} 个批次未完成`,
+    nextStep: '检查任务是否可继续或需要重试；并非队列等待。', category: 'prPending',
+  };
+  return { reason: '暂停原因未记录', nextStep: '需查服务端任务日志；历史记录无法推断具体原因。', category: 'other' };
+}
+
 function publicJob(job, now) {
   const repository = safeRepository(job.repository);
   const kind = jobKind(job);
@@ -90,6 +123,7 @@ function publicJob(job, now) {
     ? `https://github.com/${repository}/${kind === 'pr' ? `pull/${number}` : `actions/runs/${number}`}`
     : `https://github.com/${repository}`;
   const stamp = changedAt(job);
+  const attention = attentionExplanation(job, status);
   return {
     repository,
     kind,
@@ -97,7 +131,8 @@ function publicJob(job, now) {
     href,
     status,
     statusLabel: statusLabels[status],
-    reason: reasonLabels[job.reason] || null,
+    reason: attention.reason,
+    nextStep: attention.nextStep,
     createdAt: safeTimestamp(job.createdAt),
     updatedAt: safeTimestamp(stamp),
     ageSeconds: stamp ? Math.max(0, Math.round((now - stamp) / 1000)) : null,
@@ -302,6 +337,11 @@ export async function createDashboardSnapshot({
     now - changedAt(row) <= dayMs).length;
   const repositories = new Set(rows.map(row => safeRepository(row.repository)).filter(value => value !== 'unknown/unknown'));
   const usage = usageSummary(rows, now);
+  const attentionSummary = { ciUnfinished: 0, prFailed: 0, prPending: 0, workerError: 0, verificationExhausted: 0, other: 0 };
+  for (const row of rows) {
+    if (row.status !== 'paused') continue;
+    attentionSummary[attentionExplanation(row, 'paused').category]++;
+  }
 
   return {
     generatedAt: new Date(now).toISOString(),
@@ -338,7 +378,9 @@ export async function createDashboardSnapshot({
       tokenUsage: tokenUsageRanking(rows, now),
     },
     counts,
+    attentionSummary,
     jobs: rows.slice(0, 50).map(job => publicJob(job, now)),
+    attentionJobs: rows.filter(job => job.status === 'paused').map(job => publicJob(job, now)),
   };
 }
 

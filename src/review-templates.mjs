@@ -15,18 +15,35 @@ PR 描述只表示作者声明的意图，不能单独证明代码行为。未�
 位置必须是实际提供的 diff 文件。line 只能是从 diff hunk 可确认的新版本源文件行号；片段字符偏移、日志行号和旧版本删除行号不是新版本行号，不能确认就用 null。
 优先级按实际影响及触发条件确定：P1 为应优先修复的严重功能、安全或数据风险；P2 为一般正确性、兼容性或回归缺陷；P3 为有明确影响的低风险缺陷，不用于风格偏好。优先级不是自动阻塞合并的指令。`;
 
+// Generation favours recall: an independent verification pass filters later, so
+// a candidate with concrete code evidence must not be dropped for uncertainty.
+const prGenerationCriteria = `【PR 审查范围】仅检查本次改动引入的正确性、安全性、兼容性、并发、资源泄漏和回归缺陷；不把未改动的历史问题作为本次新增缺陷。
+检查已提供的调用方、接口、配置和依赖约束，验证触发路径是否实际可达。仓库内未提供的定义和默认值不得臆测；PyTorch、Triton、vLLM 等公开框架和上游库的公开语义可以作为依据，但必须在 evidence 中写明所依据的具体语义。优先考虑边界输入、异常路径和跨文件影响。
+本次改动若替换、包装或重新实现已有逻辑（猴子补丁、OOT 注册、adapter、参考或回退实现），逐项核对新实现是否保持原实现的语义：每个输入参数和配置字段是被正确使用还是被明确拒绝、默认开关下的行为、数值精度与计算顺序（累加精度、类型转换时机、溢出）、算子或激活变体是否等价、权重与缩放的应用位置和次数、边界输入。输入中提供了上游原实现及其基类接口说明时，以提供的代码为准；不得凭记忆中的上游实现细节排除候选，记忆与提供代码不一致时以提供代码为准，没有提供时把依赖记忆的判断写为 confidence=low 的候选。
+核对每处新增调用的参数个数和关键字是否与已提供的定义一致，包括装饰器：@f(a, b) 会在定义时立即以 (a, b) 调用 f，再用其返回值包装函数。
+PR 描述只表示作者声明的意图，不能单独证明代码行为。未修改仓库上下文用于核对触发条件、接口约束和实际影响；不得把其中已有的历史问题报告为本 PR 新增缺陷。
+检查测试有效性：断言是否验证本次行为，测试的期望值是否与被测实现犯了同样的错误，是否会在被测代码错误时仍通过。不能仅凭本批没有测试就断言整个 PR 缺少测试，不泛泛要求“补测试”。
+不报告纯命名、排版、个人风格或假设未来需求的建议；文档、接口说明、部署/迁移步骤只有与实际改动矛盾并会造成明确使用错误时才作为缺陷。
+每项候选写明触发条件、代码证据和实际影响。对证据强弱的判断只写在 confidence 字段（high|medium|low），evidence 只写代码事实和推理；不要因为把握不足而省略有具体代码依据的候选，后续有独立复核环节。纯疑问和可选建议不进入 findings。
+位置必须是实际提供的 diff 文件。line 只能是从 diff hunk 可确认的新版本源文件行号；片段字符偏移、日志行号和旧版本删除行号不是新版本行号，不能确认就用 null。
+优先级按实际影响及触发条件确定：P1 为应优先修复的严重功能、安全或数据风险；P2 为一般正确性、兼容性或回归缺陷；P3 为有明确影响的低风险缺陷，不用于风格偏好。优先级不是自动阻塞合并的指令。`;
+
 export const PR_INSTRUCTIONS = `${rules}
-${prCriteria}
-返回 {"overview":["本批代码实际完成的一项主要改动"],"findings":[{"priority":"P1|P2|P3","title":"简短问题标题","file":"diff中的文件路径","line":null,"trigger":"明确的触发条件","evidence":"具体代码证据及为何错误","impact":"实际影响","suggestion":"最小可行修复"}]}。
+${prGenerationCriteria}
+返回 {"overview":["本批代码实际完成的一项主要改动"],"findings":[{"priority":"P1|P2|P3","confidence":"high|medium|low","title":"简短问题标题","file":"diff中的文件路径","line":null,"trigger":"明确的触发条件","evidence":"具体代码证据及为何错误","impact":"实际影响","suggestion":"最小可行修复"}]}。
 overview 只写从本批 diff 可确认的目标或行为变化，不复述 PR 标题、文件数、增删行数，不评价代码质量，不写审查过程；每批最多2条，每条不超过240字符。无法形成可靠语义概览时返回空数组。
-本批最多2个最明确的问题，每个 findings 文本字段尽量不超过200字，硬上限1000字符。无明确问题时返回 {"overview":["可确认的主要改动"],"findings":[]}；这仅表示已提供范围内未形成可确认缺陷，不代表整个 PR 无问题。`;
+列出本批所有有具体代码依据的候选问题，按严重程度排序，不设数量上限，同一根因只报告一次；每个 findings 文本字段尽量不超过200字，硬上限1000字符。无问题时返回 {"overview":["可确认的主要改动"],"findings":[]}；这仅表示已提供范围内未形成候选，不代表整个 PR 无问题。`;
 
 export const PR_VERIFICATION_INSTRUCTIONS = `${rules}
-${prCriteria}
-你是严格的代码审查复核员。逐条尝试反驳候选，只保留能从给定代码和相关片段确证的实际新增缺陷；不能因为候选声称存在问题就认可，也不能将第二次模型判断称为运行验证。
-逐项核对：触发条件是否成立、现有保护或调用约束是否排除该问题、证据与影响是否对应、文件与非空行号是否可确认、建议是否针对根因、所有字段是否符合隐私要求。任一关键项不成立或无法确认即不确认该候选；本阶段不能改写候选来修复它。
-条件编译的互斥分支不是重复定义，lru_cache 不同参数使用不同缓存键；外部配置、其他文件定义和未来变动等未经证实的假设不能构成缺陷。重复根因只保留证据最充分的一项。
-只输出 JSON {"confirmed":[0]}，数组为通过复核的候选下标（从0开始）；证据不足、含敏感值或全部不成立返回 {"confirmed":[]}。不得返回候选原文、解释或新增缺陷。`;
+${prCriteria.replace('未提供的定义和默认值不得自行假设。', '仓库内未提供的定义和默认值不得臆测；PyTorch、Triton、vLLM 等公开框架和上游库的确定公开语义，以及输入中提供的上游原实现，可以作为依据。')}
+你是严格的代码审查复核员。逐条核对候选，不能因为候选声称存在问题就认可，也不能将第二次模型判断称为运行验证。
+逐项核对：触发条件是否成立、现有保护或调用约束是否排除该问题、证据与影响是否对应、文件与行号是否可确认、建议是否针对根因、所有字段是否符合隐私要求。本阶段不能改写候选来修复它。
+条件编译的互斥分支不是重复定义，lru_cache 不同参数使用不同缓存键；外部配置、其他文件定义和未来变动等未经证实的假设不能构成缺陷。重复根因只保留证据最充分的一项，其余判 refuted 并在 reason 中注明重复。
+每个候选给出一个结论：
+- confirmed：触发条件、代码证据和实际影响都能从给定代码或确定的上游语义核对成立。
+- refuted：找到了具体反证（已有保护、调用约束、上游语义、触发路径不可达、证据与代码不符、重复或含敏感值），reason 中必须写明反证所在位置。
+- uncertain：给定内容既不能确证也找不到反证。不要因为缺少上下文就判 refuted。
+只输出 JSON {"verdicts":[{"index":0,"verdict":"confirmed|uncertain|refuted","reason":"不超过200字：核对了什么、为何成立或不成立"}]}，index 为候选下标（从0开始），每个候选一项。reason 不得包含敏感值，不得复述候选全文，不得新增缺陷。`;
 
 export const CI_INSTRUCTIONS = `${rules}
 你是 CI 失败分析助手。区分代码、依赖、环境、基础设施问题；先说明日志直接证明的失败，再根据已提供代码判断与本次改动的关系。
@@ -43,6 +60,57 @@ function parse(text) {
   const value = JSON.parse(start >= 0 ? cleaned.slice(start, end + 1) : cleaned);
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid review object');
   return value;
+}
+
+const VERDICTS = ['confirmed', 'uncertain', 'refuted'];
+
+export const PR_DEDUP_INSTRUCTIONS = `${rules}
+你负责合并同一 PR 审查中重复报告的问题。输入是各批次独立发现的问题列表，不同批次可能从不同文件或角度报告了同一个根因。
+只有修复其中一个就会同时消除另一个时，才算同一根因；仅仅位于同一文件、同一函数或属于同一类问题都不算重复。不确定是否重复时不要合并。
+只输出 JSON {"groups":[[0,3],[1],[2]]}：每个下标恰好出现在一个组中，单独的问题自成一组。不得改写、评价或新增问题。`;
+
+// Every index in exactly one group; anything malformed rejects the whole answer.
+export function decodeDuplicateGroups(text, count) {
+  const value = parse(text);
+  if (!Array.isArray(value.groups)) throw new SyntaxError('Invalid duplicate groups');
+  const seen = new Set();
+  const groups = [];
+  for (const group of value.groups) {
+    if (!Array.isArray(group) || !group.length) throw new SyntaxError('Invalid duplicate group');
+    for (const index of group) {
+      if (!Number.isInteger(index) || index < 0 || index >= count || seen.has(index)) throw new SyntaxError('Invalid duplicate group index');
+      seen.add(index);
+    }
+    groups.push([...group].sort((a, b) => a - b));
+  }
+  for (let i = 0; i < count; i++) if (!seen.has(i)) groups.push([i]);
+  return groups.sort((a, b) => a[0] - b[0]);
+}
+
+// One verdict per candidate. A candidate the verifier did not mention is
+// uncertain: silence is neither confirmation nor counter-evidence.
+export function decodeVerification(text, count) {
+  const value = parse(text);
+  const verdicts = Array.from({ length: count }, () => ({ verdict: 'uncertain', reason: '' }));
+  const seen = new Set();
+  if (Array.isArray(value.verdicts)) {
+    for (const item of value.verdicts) {
+      if (!item || !Number.isInteger(item.index) || item.index < 0 || item.index >= count || !VERDICTS.includes(item.verdict)) {
+        throw new SyntaxError('Invalid verification verdict');
+      }
+      if (seen.has(item.index)) throw new SyntaxError('Duplicate verification verdict');
+      seen.add(item.index);
+      const reason = typeof item.reason === 'string' ? item.reason.trim().replace(/\s+/g, ' ') : '';
+      verdicts[item.index] = { verdict: item.verdict, reason: reason.length > 600 ? `${reason.slice(0, 599)}…` : reason };
+    }
+  } else if (Array.isArray(value.confirmed)) {
+    // Legacy index-only answer: anything not confirmed was rejected outright.
+    if (value.confirmed.some(n => !Number.isInteger(n) || n < 0 || n >= count)) throw new SyntaxError('Invalid verification result');
+    for (let i = 0; i < count; i++) verdicts[i] = { verdict: value.confirmed.includes(i) ? 'confirmed' : 'refuted', reason: '' };
+  } else {
+    throw new SyntaxError('Invalid verification result');
+  }
+  return verdicts;
 }
 
 // Recover only fully closed JSON objects from an interrupted findings array.
@@ -110,9 +178,9 @@ export function decodePrReview(text, files = []) {
           reasons.push('field_clipped');
         }
       }
-      if (/无实际(?:错误|功能影响)|无(?:实际|明确)缺陷|未发现明确缺陷|非当前缺陷|证据不足|无法确定是否|无法确认(?:实际|行为|.*回归)|不作结论|无需修改|no (?:actual |clear )?(?:bug|defect)|insufficient evidence/i.test(`${f.evidence}\n${f.impact}\n${f.suggestion}`)) {
-        throw new Error('unconfirmed_finding');
-      }
+      // This decoder validates structure and location, not semantic truth.
+      // A phrase such as "调用方无需修改" cannot refute an otherwise valid
+      // candidate. Only the independent verifier decides its verdict.
       findings.push(f);
     } catch (error) { incomplete = true; reasons.push(error.message); }
   }

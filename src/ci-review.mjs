@@ -1,9 +1,9 @@
-import { jobLog, redact } from './ci-evidence.mjs';
+import { jobLog, redact, extractEvidence } from './ci-evidence.mjs';
 import { analyzeCiJobs } from './ci-analysis.mjs';
-import { isRestrictedCi } from './ci-publication.mjs';
+import { isRestrictedCi, safeGateStatus } from './ci-publication.mjs';
 import { isUpstreamSyncBranch, isUpstreamSyncPullRequest } from './review-policy.mjs';
 import { safeCiBackfeedResult, updateReviewWithCiEvidence } from './pr-publication.mjs';
-import { applyPendingCiBackfeeds, ciBackfeedRecordKey, savePendingCiBackfeed } from './ci-backfeed.mjs';
+import { applyPendingCiBackfeeds, ciBackfeedIsCurrent, ciBackfeedRecordKey, savePendingCiBackfeed } from './ci-backfeed.mjs';
 export { redact } from './ci-evidence.mjs';
 const failures = new Set(['failure', 'timed_out', 'startup_failure', 'action_required']);
 export const shouldReviewRun = (run, jobs = []) => run?.status === 'completed' &&
@@ -37,22 +37,27 @@ export function createCiReviewer({ modelClient, botLogin, readJobLog = jobLog, s
   const active = new Set();
   return async function review({ octokit, payload }) {
     const run = payload.workflow_run;
-    if (run?.status !== 'completed' || (!failures.has(run.conclusion) && run.conclusion !== 'cancelled'))
+    const recovery = run?.conclusion === 'success';
+    if (run?.status !== 'completed' || (!recovery && !failures.has(run.conclusion) && run.conclusion !== 'cancelled'))
       return { status: 'skipped', reason: 'run_not_eligible' };
+    if (recovery && (run.run_attempt || 1) === 1)
+      return { status: 'skipped', reason: 'first_attempt_succeeded' };
     if (isUpstreamSyncBranch(run.head_branch)) return { status: 'skipped', reason: 'upstream_sync_pr' };
-    if (!modelClient.configured) return { status: 'paused', reason: 'model_not_configured' };
     const owner = payload.repository.owner.login, repo = payload.repository.name;
     const key = `${owner}/${repo}/${run.id}/${run.run_attempt || 1}`;
     if (active.has(key)) return { status: 'skipped', reason: 'already_active' };
     active.add(key);
     try {
-      const jobs = await octokit.paginate('GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/jobs', {
+      const jobs = recovery ? [] : await octokit.paginate('GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/jobs', {
         owner, repo, run_id: run.id, attempt_number: run.run_attempt || 1, per_page: 100,
       });
-      if (!shouldReviewRun(run, jobs)) {
+      if (!recovery && !shouldReviewRun(run, jobs)) {
         console.log(`[CI Review] skip run=${run.id}: cancelled_without_failed_jobs`);
         return { status: 'skipped', reason: 'cancelled_without_failed_jobs' };
       }
+      const restrictedPublication = isRestrictedCi(run, jobs);
+      if (!recovery && !restrictedPublication && !modelClient.configured)
+        return { status: 'paused', reason: 'model_not_configured' };
       const association = await resolveRunPullRequests(octokit, payload.repository, run);
       if (!association.linked.length) {
         console.log(`[CI Review] skip run=${run.id}: ${association.method}`);
@@ -66,7 +71,7 @@ export function createCiReviewer({ modelClient, botLogin, readJobLog = jobLog, s
         if (linked.head?.sha !== pr.head.sha) continue;
         if (association.method.startsWith('exact') && (!sameRepo(pr.head.repo?.full_name, run.head_repository.full_name) || pr.head.ref !== run.head_branch)) continue;
         if (isUpstreamSyncPullRequest(pr)) { skippedSync++; continue; }
-        const restrictedPublication = isRestrictedCi(run, jobs);
+        if (!await ciBackfeedIsCurrent({ octokit, owner, repo, headSha: pr.head.sha, run })) continue;
         const recordIdentity = { repository: payload.repository.full_name, pullNumber: pr.number, headSha: pr.head.sha, run };
         const recordKey = ciBackfeedRecordKey(recordIdentity);
         const previous = backfeedState ? await backfeedState.read(recordKey) : null;
@@ -78,8 +83,9 @@ export function createCiReviewer({ modelClient, botLogin, readJobLog = jobLog, s
           pullNumber: pr.number, headSha: pr.head.sha,
           apply: record => updateReviewWithCiEvidence({ octokit, owner, repo, pullNumber: pr.number,
             headSha: pr.head.sha, botLogin, run: record.run, result: record.result,
-            restricted: record.restricted, isCurrent }) });
-        if (previous?.status === 'applied') { duplicates++; continue; }
+            restricted: record.restricted, isCurrent: async () => await isCurrent() &&
+              await ciBackfeedIsCurrent({ octokit, owner, repo, headSha: pr.head.sha, run: record.run }) }) });
+        if (['applied', 'superseded'].includes(previous?.status)) { duplicates++; continue; }
         if (previous?.status === 'pending') {
           const replay = await applyStored();
           integrated += replay.applied;
@@ -88,18 +94,30 @@ export function createCiReviewer({ modelClient, botLogin, readJobLog = jobLog, s
           continue;
         }
         const failed = jobs.filter(job => failures.has(job.conclusion));
-        const files = await octokit.paginate(octokit.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
-        const result = await analyzeCiJobs({ modelClient, files, jobs: failed, run, pr, repository: payload.repository.full_name, state,
-          readLog: job => readJobLog(octokit, owner, repo, job.id),
-          isCurrent,
-        });
+        let result;
+        if (recovery) result = { pending: 0, ciEvidence: [] };
+        else if (restrictedPublication) {
+          const statuses = [];
+          for (const job of failed) {
+            try {
+              const raw = await readJobLog(octokit, owner, repo, job.id);
+              const log = typeof raw === 'string' ? extractEvidence(raw) : raw;
+              statuses.push(log?.available && !log.truncated && !log.readError ? safeGateStatus(log.gateStatus) : 'unknown');
+            } catch { statuses.push('unknown'); }
+          }
+          result = { pending: 0, ciEvidence: [],
+            gateStatus: ['invalid', 'blocked', 'partial'].find(status => statuses.includes(status)) || 'unknown' };
+        } else {
+          const files = await octokit.paginate(octokit.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
+          result = await analyzeCiJobs({ modelClient, files, jobs: failed, run, pr, repository: payload.repository.full_name, state,
+            readLog: job => readJobLog(octokit, owner, repo, job.id), isCurrent });
+        }
         // Do not publish a diagnosis for a PR that advanced while the model ran.
         const { data: current } = await octokit.rest.pulls.get({ owner, repo, pull_number: pr.number });
         if (result.stale || current.head.sha !== pr.head.sha || current.base.sha !== pr.base.sha || current.state !== 'open' || current.draft) continue;
-        const { data: latestRun } = await octokit.rest.actions.getWorkflowRun({ owner, repo, run_id: run.id });
-        if (latestRun.run_attempt !== (run.run_attempt || 1) || latestRun.status !== 'completed') continue;
+        if (!await ciBackfeedIsCurrent({ octokit, owner, repo, headSha: pr.head.sha, run })) continue;
         await savePendingCiBackfeed(backfeedState, { ...recordIdentity,
-          run: { id: run.id, run_attempt: run.run_attempt || 1, name: run.name || 'CI 工作流' },
+          run: { id: run.id, run_attempt: run.run_attempt || 1, name: run.name || 'CI 工作流', conclusion: run.conclusion },
           result: safeCiBackfeedResult(result, restrictedPublication), restricted: restrictedPublication });
         const replay = await applyStored();
         integrated += replay.applied;

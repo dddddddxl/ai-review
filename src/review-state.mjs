@@ -71,10 +71,15 @@ export class ReviewQueue {
 export function limitModelConcurrency(client, limit = 2) {
   let active = 0;
   const waiting = [];
-  return { ...client, async generateReview(options) {
+  const limited = { ...client };
+  for (const method of ['generateReview', 'generateToolTurn']) {
+    if (typeof client[method] !== 'function') continue;
+    limited[method] = async function(options) {
     if (active >= limit) await new Promise(resolve => waiting.push(resolve));
     else active++;
-    try { return await client.generateReview(options); }
+    try { return await client[method](options); }
     finally { const next = waiting.shift(); if (next) next(); else active--; }
-  } };
+    };
+  }
+  return limited;
 }

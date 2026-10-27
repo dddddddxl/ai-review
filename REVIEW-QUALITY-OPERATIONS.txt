@@ -1,0 +1,47 @@
+Bounded evidence RC1.1 — source published 2026-10-27
+
+Status
+CI recovery fixes have been deployed separately. The new review engine is still
+a candidate: source publication is NOT production activation or quality approval.
+
+Entry points
+Service: npm start
+Offline tests: npm test
+AI_PR_REVIEW_ENGINE defaults to evidence-v1; legacy must be selected explicitly.
+scripts/replay-pr.mjs uses the same engine choice as the service.
+scripts/replay-agent.mjs is a separate evaluation pilot, not the release entrypoint.
+
+Architecture and limits
+Whole-file patches, grouped by 80000 chars/6 files by default. A large individual
+file remains whole. Timeout never triggers recursive fragmentation. Each unit has
+at most 4 native generation turns and 4 native verification turns, including final
+submission. The last turn exposes only the terminal tool with auto tool choice;
+empty arguments or prose remain invalid, not a clean review.
+Read-only file_read/code_search/upstream_definition tools do not execute reviewed
+repository code. Candidates checkpoint before verification; failed verification
+resumes existing candidates. Exact-identity dedup adds no extra model request.
+Native and ordinary calls share the service semaphore, usage scope, PR deadline
+and current-head/base checks. Tool/protocol/budget failures remain incomplete.
+
+Default PR limit: 45 minutes. Native call limit: <=10 minutes, always bounded by
+remaining PR time including semaphore waits. Units are serial; global workers and
+model/API/concurrency remain environment settings, not changed by source upload.
+Per phase: 12 evidence calls/64000 result chars. Two lazy fixed-SHA text snapshots
+per PR: each <=384MiB expanded archive, <=128MiB retained text, <=25000 files,
+<=2MiB/file. Large repositories can be partial; measure memory before rollout.
+Configured upstream source is NOT automatically pinned to the PR SHA. Used source
+hashes are rechecked; configure correct branch/version mappings and read-only
+mounts. Sensitive paths/common secrets are filtered, not a guarantee that arbitrary
+source is secret-free. Raw provider reasoning must not enter stored artifacts.
+
+Read-only full-pipeline replay
+node scripts/replay-pr.mjs OWNER/REPO PR --head HEAD_SHA --base BASE_SHA --base-ref BASE_BRANCH --label NEW_UNIQUE_LABEL --engine evidence-v1 --concurrency 1
+GitHub writes are rejected except installation-token creation. Use a new label
+for each new experiment. Never restart a consumed model run or overwrite its
+START/claim/results. Missing usage is unknown consumption, not zero.
+
+Rollout
+Finish unseeded whole-PR generation/verification controls, latency/incomplete-rate
+and memory/throughput checks, then image/config/state/queue/rollback preflight.
+Preserve the running image/container and private state backup. A source push must
+not deploy automatically. See docs/RELEASE-RC1.1.txt for exact validation limits.

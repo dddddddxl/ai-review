@@ -22,6 +22,7 @@ const ui = {
   emptyState: document.querySelector('#emptyState'),
   visibleCount: document.querySelector('#visibleCount'),
   totalCount: document.querySelector('#totalCount'),
+  attentionSummary: document.querySelector('#attentionSummary'),
   activeRepositoryRanking: document.querySelector('#activeRepositoryRanking'),
   activeRepositoryEmpty: document.querySelector('#activeRepositoryEmpty'),
   tokenUsageRanking: document.querySelector('#tokenUsageRanking'),
@@ -458,12 +459,25 @@ function renderRankings(data) {
 function renderQueue() {
   if (!snapshot) return;
   const search = ui.repositorySearch.value.trim().toLowerCase();
-  const jobs = snapshot.jobs.filter(job =>
+  const selectedStatus = document.querySelector('#statusFilter').value;
+  ui.attentionSummary.hidden = selectedStatus !== 'paused';
+  if (selectedStatus === 'paused') {
+    const labels = [
+      ['ciUnfinished', 'CI 分析未完成'], ['prFailed', 'PR 审查失败批次'],
+      ['prPending', 'PR 审查未完成'], ['verificationExhausted', '复核重试耗尽'],
+      ['workerError', '执行异常'], ['other', '其他/原因未记录'],
+    ];
+    const breakdown = labels.filter(([key]) => snapshot.attentionSummary?.[key])
+      .map(([key, label]) => `${label} ${snapshot.attentionSummary[key]}`);
+    ui.attentionSummary.textContent = `累计暂停记录，不是等待队列。${breakdown.join(' · ') || '逐条查看下方原因；历史记录可能未写明具体错误。'}`;
+  }
+  const sourceJobs = selectedStatus === 'paused' ? (snapshot.attentionJobs || snapshot.jobs) : snapshot.jobs;
+  const jobs = sourceJobs.filter(job =>
     (activeKind === 'all' || job.kind === activeKind) &&
-    (document.querySelector('#statusFilter').value === 'all' || job.status === document.querySelector('#statusFilter').value) &&
+    (selectedStatus === 'all' || job.status === selectedStatus) &&
     (!search || job.repository.toLowerCase().includes(search)));
   ui.visibleCount.textContent = jobs.length;
-  ui.totalCount.textContent = snapshot.jobs.length;
+  ui.totalCount.textContent = sourceJobs.length;
   ui.emptyState.hidden = jobs.length > 0;
   const pages=Math.max(1,Math.ceil(jobs.length/pageSize));
   page=Math.max(1,Math.min(page,pages));
@@ -485,6 +499,7 @@ function renderQueue() {
     const status = document.createElement('td');
     status.append(element('span', `state-label ${job.status}`, job.statusLabel));
     if (job.reason) status.append(element('span', 'state-reason', job.reason));
+    if (job.nextStep) status.append(element('small', 'state-next-step', job.nextStep));
 
     const progress = element('td', 'progress-copy', progressLabel(job));
     if (job.progress.findings || job.progress.failures) {

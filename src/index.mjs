@@ -8,10 +8,12 @@ import { createNodeMiddleware } from "@octokit/webhooks";
 import { App } from "octokit";
 import { createModelClient } from "./model-client.mjs";
 import { createCiReviewer } from "./ci-review.mjs";
-import { reviewPrBatches } from "./pr-review.mjs";
+import { DEFAULT_REVIEW_DURATION_MS, reviewPrBatches } from "./pr-review.mjs";
 import { buildPrRepositoryContext } from './pr-context.mjs';
+import { upstreamContextForFiles, upstreamRoots } from './upstream-context.mjs';
+import { createRepositoryEvidence } from './review-evidence.mjs';
 import { deleteProgressComment, publishPrReview, updateReviewWithCiEvidence, upsertProgressComment } from './pr-publication.mjs';
-import { applyPendingCiBackfeeds } from './ci-backfeed.mjs';
+import { applyPendingCiBackfeeds, ciBackfeedIsCurrent } from './ci-backfeed.mjs';
 import { isUpstreamSyncBranch, isUpstreamSyncPullRequest } from './review-policy.mjs';
 import { ReviewState, ReviewQueue, limitModelConcurrency, stateDirectory } from './review-state.mjs';
 import { createModelUsageMeter, hasReportedUsage } from './model-usage.mjs';
@@ -56,6 +58,8 @@ const verificationRetryDelayMs = positiveInteger(process.env.AI_VERIFICATION_RET
 const modelUsageMeter = createModelUsageMeter(limitModelConcurrency(createModelClient(), modelConcurrency));
 const modelClient = modelUsageMeter.client;
 const modelConfigured = modelClient.configured;
+const prReviewEngine = process.env.AI_PR_REVIEW_ENGINE || 'evidence-v1';
+if (!['evidence-v1', 'legacy'].includes(prReviewEngine)) throw new Error('Unknown AI_PR_REVIEW_ENGINE');
 const dashboardToken = process.env.AI_DASHBOARD_TOKEN || '';
 const dashboardAssets = await loadDashboardAssets();
 
@@ -140,24 +144,34 @@ async function reviewPullRequest(job) {
     return { status: 'paused', reason: 'model_not_configured' };
   }
 
+  const maxDurationMs = positiveInteger(process.env.AI_REVIEW_MAX_DURATION_MS, DEFAULT_REVIEW_DURATION_MS);
+  const deadlineAt = Date.now() + maxDurationMs;
   const files = await octokit.paginate(octokit.rest.pulls.listFiles, {
     owner,
     repo,
     pull_number: pullNumber,
     per_page: 100,
   });
-  const repositoryContext = await buildPrRepositoryContext({ octokit, owner, repo, baseSha: currentPr.base.sha, files,
-    log: message => console.log(message) });
+  const repositoryContext = prReviewEngine === 'legacy' ? await buildPrRepositoryContext({ octokit, owner, repo, baseSha: currentPr.base.sha, files,
+    log: message => console.log(message) }) : [];
+  const upstreamContext = prReviewEngine === 'legacy' ? upstreamContextForFiles(files, {
+    roots: upstreamRoots(process.env, { repository, baseRef: currentPr.base.ref }) }) : new Map();
+  if (upstreamContext.size) console.log(`[Review context] upstream adapters=${upstreamContext.size} repository=${repository} pr=${pullNumber}`);
 
   const isCurrent = async () => {
     const { data: latest } = await octokit.rest.pulls.get({ owner, repo, pull_number: pullNumber });
     return latest.state === 'open' && !latest.draft && latest.head.sha === currentPr.head.sha && latest.base.sha === currentPr.base.sha;
   };
+  const evidenceFactory = prReviewEngine === 'evidence-v1' ? createRepositoryEvidence({ octokit, owner, repo,
+    headSha: currentPr.head.sha, baseSha: currentPr.base.sha, deadlineAt,
+    roots: upstreamRoots(process.env, { repository, baseRef: currentPr.base.ref }) }) : undefined;
   let lastPublished = 0;
   const result = await reviewPrBatches({ client: modelClient, files, repository, pullNumber, title: currentPr.title,
-    prDescription: currentPr.body || '', repositoryContext,
+    prDescription: currentPr.body || '', repositoryContext, upstreamContext,
     headSha: currentPr.head.sha, baseSha: currentPr.base.sha, totalFiles: currentPr.changed_files, state: reviewState,
-    batchChars: positiveInteger(process.env.AI_REVIEW_BATCH_CHARS, 10000),
+    batchChars: positiveInteger(process.env.AI_REVIEW_BATCH_CHARS, prReviewEngine === 'evidence-v1' ? 80000 : 10000),
+    maxDurationMs, deadlineAt,
+    engine: prReviewEngine, evidenceFactory,
     isCurrent,
     onProgress: async progress => {
       if (Date.now() - lastPublished < 60000 || !await isCurrent()) return;
@@ -176,7 +190,9 @@ async function reviewPullRequest(job) {
     apply: async record => {
       const outcome = await updateReviewWithCiEvidence({ octokit, owner, repo, pullNumber, headSha: currentPr.head.sha,
         botLogin, run: record.run, result: record.result, restricted: record.restricted,
-        reviewId: preferredReview?.id, reviewBody: preferredReview?.body, isCurrent });
+        reviewId: preferredReview?.id, reviewBody: preferredReview?.body,
+        isCurrent: async () => await isCurrent() &&
+          await ciBackfeedIsCurrent({ octokit, owner, repo, headSha: currentPr.head.sha, run: record.run }) });
       if (outcome.integrated && typeof outcome.body === 'string') preferredReview = { id: outcome.reviewId, body: outcome.body };
       return outcome;
     } });

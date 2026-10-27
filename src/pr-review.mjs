@@ -1,28 +1,41 @@
-import { PR_INSTRUCTIONS, PR_VERIFICATION_INSTRUCTIONS, decodePrReview, renderPrReview } from './review-templates.mjs';
+import { PR_DEDUP_INSTRUCTIONS, PR_INSTRUCTIONS, PR_VERIFICATION_INSTRUCTIONS, decodeDuplicateGroups, decodePrReview, decodeVerification, renderPrReview } from './review-templates.mjs';
 import { digest } from './review-state.mjs';
 import { reviewErrorCode, reviewFailureLabel } from './review-errors.mjs';
-import { prDescriptionContext, repositoryContextForBatch } from './pr-context.mjs';
+import { prDescriptionContext, relatedChangedFilesForBatch, repositoryContextForBatch } from './pr-context.mjs';
+import { EVIDENCE_ENGINE_VERSION, runEvidenceTurn } from './review-evidence.mjs';
 
 const ignored = /(?:^|\/)(?:node_modules|vendor|dist|build)\/|\.(?:png|jpe?g|gif|webp|ico|pdf|zip|tar|gz|7z|lock)$/i;
+const sensitivePath = /(?:^|\/)(?:\.git|\.ssh|\.aws|\.codex|\.agents|\.env(?:\.[^/]*)?|secrets?|credentials)(?:\/|$)|\.(?:pem|key|p12|pfx)$/i;
 // Start at the gateway-accepted ceiling: reasoning and final JSON share this
 // allowance. A single step avoids throwing away reasoning on smaller ceilings.
 // This is per request, not a whole-review budget; timeout/split guards remain.
 export const PR_GENERATION_TOKEN_STEPS = [131072];
 export const PR_VERIFICATION_TOKEN_STEPS = [131072];
 export const MINIMUM_BATCH_TIMEOUT_MS = 300000;
+export const DEFAULT_REVIEW_DURATION_MS = 45 * 60 * 1000;
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-export function makeBatches(files, { batchChars = 10000 } = {}) {
+export function makeBatches(files, { batchChars = 10000, wholeFiles = false } = {}) {
   if (!Number.isInteger(batchChars) || batchChars < 1000) throw new Error('batchChars must be at least 1000');
   const batches = [], selected = [], omitted = [];
   let current = { text: '', files: [], fragments: [] };
   const flush = () => { if (current.text) batches.push(current); current = { text: '', files: [], fragments: [] }; };
   for (const file of files) {
+    if (sensitivePath.test(file.filename)) { omitted.push({ filename: file.filename, reason: 'sensitive_path' }); continue; }
     if (ignored.test(file.filename)) { omitted.push({ filename: file.filename, reason: 'file_type' }); continue; }
     if (!file.patch) { omitted.push({ filename: file.filename, reason: 'missing_patch' }); continue; }
     selected.push(file);
     const patch = file.patch;
     // Repeat filename and fragment metadata for every piece, including oversized files.
     const header = `FILE: ${file.filename}\nSTATUS: ${file.status}\n`;
+    if (wholeFiles) {
+      const section = `${header}${patch}\n`;
+      if (current.text && (current.text.length + section.length > batchChars || current.files.length >= 6)) flush();
+      current.text += section;
+      current.files.push(file);
+      current.fragments.push({ filename: file.filename, start: 0, end: patch.length });
+      continue;
+    }
     const size = Math.max(1, batchChars - header.length - 600);
     for (let offset = 0; offset < patch.length;) {
       let end = Math.min(offset + size, patch.length);
@@ -111,17 +124,64 @@ const uniqueOverview = overview => [...new Map(overview.filter(item => typeof it
 const leafResults = result => result?.children ? result.children.flatMap(leafResults) : [result];
 
 export async function reviewPrBatches({ client, files, repository, pullNumber, title, baseSha = '', headSha = '', totalFiles = files.length,
-  prDescription = '', repositoryContext = [], state, batchChars = 10000, maxBatches = Infinity, maxDurationMs = Infinity,
-  isCurrent = async () => true, onProgress = async () => {}, log = console.log }) {
-  const plan = makeBatches(files, { batchChars });
+  prDescription = '', repositoryContext = [], upstreamContext = new Map(), state, batchChars = 10000, maxBatches = Infinity,
+  maxDurationMs = DEFAULT_REVIEW_DURATION_MS, deadlineAt: suppliedDeadline,
+  engine = 'legacy', evidenceFactory,
+  isCurrent = async () => true, onProgress = async () => {}, onCandidates = () => {}, log = console.log,
+  transientRetryDelayMs = 30000 }) {
+  if (!['legacy', 'evidence-v1'].includes(engine)) throw new RangeError('Unknown review engine');
+  const evidenceMode = engine === 'evidence-v1';
+  const plan = makeBatches(files, { batchChars, wholeFiles: evidenceMode });
+  const contextFiles = files.filter(file => !sensitivePath.test(file.filename));
   const started = Date.now();
+  if (!Number.isSafeInteger(maxDurationMs) || maxDurationMs <= 0) throw new RangeError('maxDurationMs must be a positive integer');
+  const deadlineAt = Math.min(started + maxDurationMs, Number.isFinite(suppliedDeadline) ? suppliedDeadline : Infinity);
+  const remainingMs = () => Math.max(0, deadlineAt - Date.now());
+  const expired = () => Object.assign(new Error('Review time budget exhausted'), { code: 'review_deadline' });
+  let budgetExceeded = false;
+  const outOfTime = () => { if (!remainingMs()) budgetExceeded = true; return budgetExceeded; };
+  const boundedClient = { ...client };
+  for (const method of ['generateReview', 'generateToolTurn']) {
+    if (typeof client[method] !== 'function') continue;
+    boundedClient[method] = async function(options) {
+    if (outOfTime()) throw expired();
+    const controller = new AbortController();
+    let timer;
+    const deadline = new Promise((_, reject) => { timer = setTimeout(() => {
+      budgetExceeded = true;
+      const error = expired();
+      controller.abort(error);
+      reject(error);
+    }, remainingMs()); });
+    try {
+      const answer = await Promise.race([client[method]({ ...options, deadlineAt, signal: controller.signal }), deadline]);
+      if (outOfTime()) throw expired();
+      return answer;
+    } finally { clearTimeout(timer); }
+    };
+  }
+  const pauseBeforeRetry = async () => {
+    if (outOfTime()) return false;
+    await wait(Math.min(transientRetryDelayMs, remainingMs()));
+    return !outOfTime();
+  };
   const description = prDescriptionContext(prDescription);
   // Whole snapshot identity prevents reuse after base/head/title/model/prompt changes.
-  const key = digest({ version: 4, instructions: PR_INSTRUCTIONS, verificationInstructions: PR_VERIFICATION_INSTRUCTIONS,
-    repository, pullNumber, title, prDescription: description,
+  const key = digest({ version: 5, instructions: PR_INSTRUCTIONS, verificationInstructions: PR_VERIFICATION_INSTRUCTIONS,
+    engine, evidenceVersion: evidenceMode ? EVIDENCE_ENGINE_VERSION : null,
+    evidenceIdentity: evidenceMode ? evidenceFactory?.identity : null,
+    repository, pullNumber, title, prDescription: description, upstreamContext: [...upstreamContext],
     repositoryContext: repositoryContext.map(entry => [entry.filename, entry.kinds, entry.terms, entry.origins, entry.excerpt]), baseSha, headSha,
     model: client.model, format: client.format, batchChars, files: files.map(f => [f.filename, f.status, f.patch, f.additions, f.deletions]) });
   const saved = state ? await state.read(key) : null;
+  // Refuse stale upstream evidence before reusing even completed checkpoints.
+  // Do not regenerate candidates or silently fall back when configuration drifts.
+  if (evidenceMode && saved && evidenceFactory?.validateEvidence) {
+    for (const result of saved.results || []) await evidenceFactory.validateEvidence([
+      ...(result?.pendingVerification?.generationEvidence || result?.consultedEvidence?.generation || []),
+      ...(result?.pendingVerification?.verificationEvidence || result?.consultedEvidence?.verification || []),
+    ]);
+  }
   const results = plan.batches.map((_, i) => saved?.results?.[i] || null);
   let attempted = 0, cancelled = false;
   let saveChain = Promise.resolve();
@@ -136,6 +196,12 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       if (!seen.has(id)) { seen.add(id); merged.push(f); }
     }
     merged.sort((a, b) => a.priority.localeCompare(b.priority));
+    const uncertain = [];
+    for (const result of results) for (const f of result?.uncertain || []) {
+      const id = `${f.file}:${f.line}:${f.title}`;
+      if (!seen.has(id)) { seen.add(id); uncertain.push(f); }
+    }
+    uncertain.sort((a, b) => a.priority.localeCompare(b.priority));
     const changeOverview = uniqueOverview(results.flatMap(result => result?.overview || [])).slice(0, 4);
     const failures = results.filter(r => r && !r.complete).length;
     const pending = results.filter(r => !r).length;
@@ -150,7 +216,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     const missingFiles = Math.max(0, totalFiles - files.length);
     const partial = failures > 0 || pending > 0 || plan.omitted.length > 0 || plan.truncated || missingFiles > 0;
     let body = renderPrReview(JSON.stringify({ findings: merged }), { files: plan.selected, includedFiles: reviewedFiles,
-      truncated: plan.truncated, incompleteCoverage: partial, failedBatches: failures, batchCount: results.length });
+      truncated: plan.truncated, incompleteCoverage: partial || uncertain.length > 0, failedBatches: failures, batchCount: results.length });
+    if (uncertain.length) body += `\n\n> ${uncertain.length} 条候选尚需人工确认，不能据此给出无问题结论。`;
     const leaves = results.flatMap(leafResults);
     const candidateCount = leaves.reduce((total, result) => {
       if (!result) return total;
@@ -166,6 +233,9 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         retryableVerificationFailures++;
       }
     }
+    if (budgetExceeded && !leaves.some(result => result?.failure?.code === 'review_deadline')) {
+      errors.set(reviewFailureLabel('review_deadline'), 1);
+    }
     if (partial) {
       body += `\n\n> 覆盖情况：共 ${totalFiles} 个文件，已审查 ${reviewedFiles} 个${partialFiles ? `，部分审查 ${partialFiles} 个` : ''}${pendingFiles ? `，待审查 ${pendingFiles} 个` : ''}${plan.omitted.length ? `，跳过 ${plan.omitted.length} 个` : ''}${missingFiles ? `，列表未返回 ${missingFiles} 个` : ''}${plan.incompletePatches.length ? `，patch 不完整 ${plan.incompletePatches.length} 个` : ''}。`;
       if (errors.size) body += `\n\n> 失败原因：${[...errors].map(([label, n]) => `${label}（${n} 批）`).join('；')}。不代表代码没有问题。`;
@@ -175,25 +245,29 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         : '\n\n> 本次未配置持久化存储，无法续审未完成部分。';
     }
     if (!plan.batches.length) body = `## AI Review\n\n本次没有可供文本审查的 patch，无法形成代码审查结论。\n\n${body.split('\n\n').filter(s => s.startsWith('>')).join('\n\n')}`;
-    return { body, failures, pending, batches: results.length, completed, findings: merged.length, reviewFindings: merged, changeOverview,
-      candidateCount, verificationFiltered: Math.max(0, candidateCount - merged.length), partial, reviewedFiles, partialFiles,
+    return { body, failures, pending, batches: results.length, completed, findings: merged.length, reviewFindings: merged,
+      reviewUncertain: uncertain, changeOverview,
+      candidateCount, verificationFiltered: Math.max(0, candidateCount - merged.length - uncertain.length), partial, reviewedFiles, partialFiles,
       pendingFiles, totalFiles, failureSummary: [...errors].map(([label, count]) => ({ label, count })),
-      retryableVerificationFailures, cancelled };
+      retryableVerificationFailures, cancelled, budgetExceeded, elapsedMs: Date.now() - started, maxDurationMs };
   };
   async function runBatch(batch, index, previous = results[index], depth = 0, branch = '', checkpoint = async value => {
     results[index] = value; await persist(); await onProgress(render(true));
   }) {
     if (previous?.complete) return previous;
+    if (outOfTime()) return previous || null;
     if (!await isCurrent()) { cancelled = true; return previous || null; }
-    // Keep bisecting timeouts/input overflows until the source fragments can no
-    // longer be split safely. There is deliberately no arbitrary depth cap.
-    const children = splitReviewBatch(batch);
+    // Only legacy input-size overflow may split. Timeouts never imply that the
+    // source was too large. Evidence units retain complete file patches.
+    const children = evidenceMode ? null : splitReviewBatch(batch);
     const split = async () => {
-      const node = { overview: previous?.overview || [], findings: previous?.findings || [], candidateCount: previous?.candidateCount || previous?.findings?.length || 0, complete: false,
+      const node = { overview: previous?.overview || [], findings: previous?.findings || [], uncertain: previous?.uncertain || [],
+        candidateCount: previous?.candidateCount || previous?.findings?.length || 0, complete: false,
         children: children.map((_, i) => previous?.children?.[i] || null) };
       const update = async () => {
         node.overview = uniqueOverview([...(previous?.overview || []), ...node.children.flatMap(c => c?.overview || [])]);
         node.findings = uniqueFindings([...(previous?.findings || []), ...node.children.flatMap(c => c?.findings || [])]);
+        node.uncertain = uniqueFindings([...(previous?.uncertain || []), ...node.children.flatMap(c => c?.uncertain || [])]);
         node.candidateCount = node.children.reduce((total, child) => total + Math.max(child?.candidateCount || 0, child?.findings?.length || 0), 0);
         node.complete = node.children.every(c => c?.complete);
         await checkpoint(node);
@@ -201,13 +275,16 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       await update();
       log(`[Review split] ${repository}#${pullNumber} batch=${index + 1}${branch} depth=${depth + 1} children=${children.length}`);
       for (let i = 0; i < children.length; i++) {
-        if (cancelled) break;
+        if (cancelled || outOfTime()) break;
         await runBatch(children[i], index, node.children[i], depth + 1, `${branch}.${i + 1}`, async value => { node.children[i] = value; await update(); });
       }
       return node;
     };
     if (previous?.children && children) return split();
     const savedPending = previous?.pendingVerification;
+    let generationEvidence = savedPending?.generationEvidence || previous?.consultedEvidence?.generation || [];
+    let verificationEvidence = savedPending?.verificationEvidence || [];
+    let submittedCandidates = savedPending?.submittedCandidates || previous?.submittedCandidates || [];
     let best = savedPending ? { overview: savedPending.overview || [], findings: savedPending.findings || [],
       complete: Boolean(savedPending.generationComplete), usable: true, reasons: [] } : null;
     let feedback = '', failure = savedPending?.generationFailure || savedPending?.failure || { phase: 'generation', code: 'invalid_response' };
@@ -216,19 +293,44 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     const unchangedContext = repositoryContextForBatch(batch, repositoryContext);
     const descriptionBlock = description ? `<pr_description>\n${description}\n</pr_description>\n` : '';
     const repositoryBlock = unchangedContext ? `<unchanged_repository_context>\n${unchangedContext}\n</unchanged_repository_context>\n` : '';
+    const relatedChanged = relatedChangedFilesForBatch(batch, contextFiles);
+    const relatedBlock = relatedChanged ? `<related_changed_files>\n${relatedChanged}\n</related_changed_files>\n` : '';
+    // Adapters in this batch, or changed files they wrap, get the replaced upstream definitions.
+    const upstreamFor = new Set(batch.files.map(file => file.filename));
+    for (const name of relatedChanged.matchAll(/^FILE: (.+)$/gm)) upstreamFor.add(name[1]);
+    const upstream = [...upstreamContext].filter(([file]) => upstreamFor.has(file))
+      .map(([file, text]) => `ADAPTER: ${file}\n${text}`).join('\n');
+    const upstreamBlock = upstream ? `<upstream_replaced_definitions>\n以下是本 PR 中 adapter 通过 TARGET_MODULE/TARGETS 声明要替换或包装的上游原实现（来自已安装的上游包，只读）。逐项核对新实现是否保留其语义。\n${upstream}\n</upstream_replaced_definitions>\n` : '';
     while (!savedPending) {
+      if (outOfTime()) { failure = { phase: 'generation', code: 'review_deadline' }; break; }
       if (!await isCurrent()) { cancelled = true; return previous || null; }
       attempt++;
       try {
-        const text = await client.generateReview({
+        let text, evidenceIncomplete = false;
+        if (evidenceMode) {
+          const generated = await runEvidenceTurn({ client: boundedClient, phase: 'generation', createTools: evidenceFactory,
+            deadlineAt, isCurrent, input: { repository, pullNumber, base: baseSha, head: headSha,
+              title, description, files: batch.files, unchangedContext, relatedChanged, upstream,
+              availableUpstreamPackages: evidenceFactory?.packages || [] },
+            onMetadata: metadata => log(`[Review model] ${repository}#${pullNumber} native=generation ${JSON.stringify(metadata)}`) });
+          generationEvidence = generated.ledger;
+          await evidenceFactory?.validateEvidence?.(generationEvidence);
+          submittedCandidates = generated.submission.findings;
+          evidenceIncomplete = !generated.submission.coverageComplete || generated.incompleteEvidence;
+          text = JSON.stringify(generated.submission);
+        } else text = await boundedClient.generateReview({
           instructions: PR_INSTRUCTIONS,
-          input: `任务要求：\n${PR_INSTRUCTIONS}\n本批最多报告2个最明确的问题，但绝不要求必须找到问题；如果反驳后发现逻辑自洽、无实际影响或证据不足，必须把该候选从findings中删除。每个字段尽量不超过200字。仅返回JSON。片段偏移量不是源文件行号；片段缺少上下文时不猜测。PR描述和未修改文件片段只用于理解本次diff，问题位置仍必须属于本次diff。\n<review_input>\n仓库：${repository}\nPR：#${pullNumber} ${title}\n批次：${index + 1}/${plan.batches.length}${branch ? ` 子批${branch}` : ''}\n${descriptionBlock}${repositoryBlock}<diff>\n${batch.text}\n</diff>\n</review_input>\n${feedback}`,
+          input: `任务要求：\n${PR_INSTRUCTIONS}\n列出本批所有有具体代码依据的候选问题，不设数量上限，但绝不要求必须找到问题；把握不足的写在 confidence 中，由后续独立复核判断，不要自行删除。每个字段尽量不超过200字。仅返回JSON。片段偏移量不是源文件行号；片段缺少上下文时不猜测仓库内的定义。PR描述、未修改文件片段和 related_changed_files（本 PR 中与本批有 import 关系、但不在本批的其他已修改文件）只用于核对调用方与被调用方的约定，问题位置仍必须属于本批 diff。\n<review_input>\n仓库：${repository}\nPR：#${pullNumber} ${title}\n批次：${index + 1}/${plan.batches.length}${branch ? ` 子批${branch}` : ''}\n${descriptionBlock}${repositoryBlock}${relatedBlock}${upstreamBlock}<diff>\n${batch.text}\n</diff>\n</review_input>\n${feedback}`,
           maxOutputTokens: PR_GENERATION_TOKEN_STEPS[tokenStep],
-          timeoutMs: extendedTimeoutUsed ? MINIMUM_BATCH_TIMEOUT_MS : undefined,
+          timeoutMs: extendedTimeoutUsed ? Math.max(MINIMUM_BATCH_TIMEOUT_MS, client.requestTimeoutMs || 0) : undefined,
           disableThinking: true,
           onMetadata: metadata => log(`[Review model] ${repository}#${pullNumber} batch=${index + 1}${branch} attempt=${attempt} ${JSON.stringify(metadata)}`),
         });
         const decoded = decodePrReview(text, batch.files);
+        if (evidenceIncomplete) {
+          decoded.complete = false;
+          decoded.reasons.push('evidence_incomplete');
+        }
         log(`[Review batch] ${repository}#${pullNumber} batch=${index + 1}${branch}/${plan.batches.length} attempt=${attempt} inputChars=${batch.text.length} outputChars=${text.length} findings=${decoded.findings.length} complete=${decoded.complete} reasons=${decoded.reasons.join(',') || 'none'}`);
         if (!best) best = decoded;
         else {
@@ -237,22 +339,29 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
             findings: [...combined.values()], complete: best.complete || decoded.complete };
         }
         candidateCount = Math.max(candidateCount, best.findings.length);
+        if (evidenceMode) candidateCount = Math.max(candidateCount, submittedCandidates.length);
         if (decoded.complete) break;
+        if (evidenceMode) { failure = { phase: 'generation', code: 'evidence_incomplete' }; break; }
         failure = { phase: 'generation', code: 'invalid_response' };
         if (correctionRetries >= 1) break;
         correctionRetries++;
         tokenStep = Math.min(tokenStep + 1, PR_GENERATION_TOKEN_STEPS.length - 1);
         feedback = `上次格式错误：${decoded.reasons.join(',')}。请修正这些问题，返回完整JSON。`;
       } catch (error) {
+        if (error.code === 'review_stale') { cancelled = true; return previous || null; }
         // Only log error categories, never raw provider bodies, credentials or PR content.
         failure = { phase: 'generation', code: reviewErrorCode(error) };
         log(`[Review batch] ${repository}#${pullNumber} batch=${index + 1}${branch} attempt=${attempt} error=${failure.code}`);
-        if (children && ['timeout', 'input_too_large'].includes(failure.code)) return split();
-        if (failure.code === 'timeout' && !children && !extendedTimeoutUsed) {
+        if (failure.code === 'review_deadline' || outOfTime()) { failure.code = 'review_deadline'; break; }
+        if (evidenceMode) break;
+        // A timeout means the model needed longer to reason, not that the input
+        // was too large. Splitting first discards the surrounding code that the
+        // reasoning depends on, so retry once with the longer timeout instead.
+        if (failure.code === 'timeout' && !extendedTimeoutUsed) {
           extendedTimeoutUsed = true;
-          feedback = '上次最小批次请求超时，请返回简短完整JSON。';
           continue;
         }
+        if (children && failure.code === 'input_too_large') return split();
         if (failure.code === 'output_truncated' && tokenStep < PR_GENERATION_TOKEN_STEPS.length - 1) {
           tokenStep++;
           feedback = '';
@@ -261,12 +370,23 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         if (['authentication', 'input_too_large', 'output_truncated', 'timeout'].includes(failure.code)) break;
         if (transientRetries >= 1) break;
         transientRetries++;
+        // Connection drops hit every in-flight call at once; an immediate retry
+        // lands in the same outage.
+        if (['model_error', 'rate_limit'].includes(failure.code) && !await pauseBeforeRetry()) { failure.code = 'review_deadline'; break; }
         tokenStep = Math.min(tokenStep + 1, PR_GENERATION_TOKEN_STEPS.length - 1);
         feedback = '上次调用未完成，请用简短完整JSON重新返回。';
       }
     }
     let pendingToSave = null;
     if (best?.findings.length) {
+      const pendingRecord = () => ({ overview: best.overview || [], findings: best.findings,
+        generationComplete: Boolean(best.complete), candidateCount, submittedCandidates, generationEvidence, verificationEvidence,
+        generationFailure: best.complete ? null : { phase: 'generation', code: 'evidence_incomplete' } });
+      // Persist candidates before the first verifier request, not only after a
+      // timeout. A process restart must never silently regenerate them.
+      const savePending = async () => checkpoint({ overview: best.overview || [], findings: previous?.findings || [],
+        uncertain: previous?.uncertain || [], candidateCount, submittedCandidates, complete: false, pendingVerification: pendingRecord() });
+      await savePending();
       let verified = false;
       let verifyTokenStep = 0, verifyRetries = 0, verifyExtendedTimeout = false, verifyAttempt = 0;
       while (!verified) {
@@ -276,52 +396,80 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         const verificationRepositoryContext = repositoryContextForBatch(batch, repositoryContext, {
           focusText: JSON.stringify(best.findings),
         });
-        const evidenceCheck = await client.generateReview({
+        let evidenceCheck;
+        if (evidenceMode) {
+          const checked = await runEvidenceTurn({ client: boundedClient, phase: 'verification', createTools: evidenceFactory,
+            instructions: PR_VERIFICATION_INSTRUCTIONS, deadlineAt, isCurrent,
+            input: { repository, pullNumber, base: baseSha, head: headSha, candidates: best.findings,
+              files: batch.files, description, relatedChanged, upstream, verificationRepositoryContext,
+              consultedEvidence: generationEvidence, previousVerificationEvidence: verificationEvidence },
+            onEvidence: async records => { verificationEvidence = records; await savePending(); },
+            onMetadata: metadata => log(`[Review verification model] ${repository}#${pullNumber} native=verification ${JSON.stringify(metadata)}`) });
+          verificationEvidence = checked.ledger;
+          await evidenceFactory?.validateEvidence?.([...generationEvidence, ...verificationEvidence]);
+          // Missing/truncated evidence cannot be overridden by a model verdict.
+          // Keep the original candidates pending for a later verification run.
+          if (checked.incompleteEvidence) throw Object.assign(new Error('Incomplete verification evidence'), { code: 'evidence_incomplete' });
+          evidenceCheck = JSON.stringify(checked.submission);
+        } else evidenceCheck = await boundedClient.generateReview({
           instructions: PR_VERIFICATION_INSTRUCTIONS,
-          input: `逐条反驳以下候选，只确认有足够代码证据的实际错误；不确定即不确认。PR描述和未修改文件只能证明本次diff的触发条件或影响，不能把其中的历史问题当作本次新增缺陷。\n<candidates>\n${JSON.stringify(best.findings)}\n</candidates>\n${descriptionBlock}<diff>\n${batch.text}\n</diff>\n<related_changed_context>\n${relatedContext(batch, files, best.findings)}\n</related_changed_context>\n<unchanged_repository_context>\n${verificationRepositoryContext}\n</unchanged_repository_context>\n只返回 {"confirmed":[通过复核的候选下标]}，不需要凑数量。`,
+          input: `逐条复核以下候选：有具体代码证据的判 confirmed，找到具体反证的判 refuted，既无法确证也找不到反证的判 uncertain。PR描述和未修改文件只能证明本次diff的触发条件或影响，不能把其中的历史问题当作本次新增缺陷。\n<candidates>\n${JSON.stringify(best.findings)}\n</candidates>\n${descriptionBlock}<diff>\n${batch.text}\n</diff>\n${relatedBlock}${upstreamBlock}<related_changed_context>\n${relatedContext(batch, contextFiles, best.findings)}\n</related_changed_context>\n<unchanged_repository_context>\n${verificationRepositoryContext}\n</unchanged_repository_context>\n只返回 {"verdicts":[{"index":0,"verdict":"confirmed|uncertain|refuted","reason":"..."}]}，每个候选一项。`,
           maxOutputTokens: PR_VERIFICATION_TOKEN_STEPS[verifyTokenStep],
-          timeoutMs: verifyExtendedTimeout ? MINIMUM_BATCH_TIMEOUT_MS : undefined,
+          timeoutMs: verifyExtendedTimeout ? Math.max(MINIMUM_BATCH_TIMEOUT_MS, client.requestTimeoutMs || 0) : undefined,
           disableThinking: true,
           onMetadata: metadata => log(`[Review verification model] ${repository}#${pullNumber} batch=${index + 1}${branch} attempt=${verifyAttempt} ${JSON.stringify(metadata)}`),
         });
-        const start = evidenceCheck.indexOf('{'), end = evidenceCheck.lastIndexOf('}');
-        const { confirmed } = JSON.parse(evidenceCheck.slice(start, end + 1));
-        if (!Array.isArray(confirmed) || confirmed.some(n => !Number.isInteger(n) || n < 0 || n >= best.findings.length)) throw new SyntaxError('Invalid verification result');
+        const verdicts = decodeVerification(evidenceCheck, best.findings.length);
         const before = best.findings.length;
-        best.findings = [...new Set(confirmed)].map(n => best.findings[n]);
+        const judged = best.findings.map((finding, i) => ({ ...finding, verdict: verdicts[i].verdict, verifierReason: verdicts[i].reason }));
+        // Refuted candidates go to the caller's sink (private state or replay
+        // output), never to the log: they can contain unreviewed PR content.
+        onCandidates({ batch: `${index + 1}${branch}`, candidates: judged });
+        best.findings = judged.filter(finding => finding.verdict === 'confirmed').map(({ verdict, ...finding }) => finding);
+        best.uncertain = judged.filter(finding => finding.verdict === 'uncertain').map(({ verdict, ...finding }) => finding);
         verified = true;
-        log(`[Review verify] ${repository}#${pullNumber} batch=${index + 1}${branch} candidates=${before} confirmed=${best.findings.length}`);
+        log(`[Review verify] ${repository}#${pullNumber} batch=${index + 1}${branch} candidates=${before} confirmed=${best.findings.length} uncertain=${best.uncertain.length}`);
       } catch (error) {
+        if (error.code === 'review_stale') { cancelled = true; return previous || null; }
         // Previously checkpointed findings already passed verification for this
         // exact snapshot; a later outage must not erase that usable evidence.
         failure = { phase: 'verification', code: reviewErrorCode(error) };
         log(`[Review verify] ${repository}#${pullNumber} batch=${index + 1}${branch} error=${failure.code}`);
-        if (children && ['timeout', 'input_too_large'].includes(failure.code)) return split();
-        if (failure.code === 'timeout' && !children && !verifyExtendedTimeout) {
+        if (failure.code === 'review_deadline' || outOfTime()) { failure.code = 'review_deadline'; break; }
+        if (evidenceMode) break;
+        if (failure.code === 'timeout' && !verifyExtendedTimeout) {
           verifyExtendedTimeout = true;
           continue;
         }
+        // A verifier failure preserves candidates; never split back into
+        // generation and discard their cross-file evidence.
         if (failure.code === 'output_truncated' && verifyTokenStep < PR_VERIFICATION_TOKEN_STEPS.length - 1) {
           verifyTokenStep++;
           continue;
         }
         if (['authentication', 'input_too_large', 'output_truncated', 'timeout'].includes(failure.code) || verifyRetries >= 1) break;
         verifyRetries++;
+        if (['model_error', 'rate_limit'].includes(failure.code) && !await pauseBeforeRetry()) { failure.code = 'review_deadline'; break; }
         verifyTokenStep = Math.min(verifyTokenStep + 1, PR_VERIFICATION_TOKEN_STEPS.length - 1);
       }
       }
       if (!verified) {
         pendingToSave = { overview: best.overview || [], findings: best.findings, generationComplete: Boolean(best.complete),
-          candidateCount, failure, generationFailure: best.complete ? null : { phase: 'generation', code: 'invalid_response' } };
+          candidateCount, failure, submittedCandidates, generationEvidence, verificationEvidence,
+          generationFailure: best.complete ? null : { phase: 'generation', code: 'evidence_incomplete' } };
         best = { overview: uniqueOverview([...(previous?.overview || []), ...(best?.overview || [])]),
-          findings: previous?.findings || [], complete: false };
+          findings: previous?.findings || [], uncertain: previous?.uncertain || [], complete: false };
       } else {
         best.findings = uniqueFindings([...(previous?.findings || []), ...best.findings]);
+        best.uncertain = uniqueFindings([...(previous?.uncertain || []), ...best.uncertain]);
         if (!best.complete) failure = savedPending?.generationFailure || { phase: 'generation', code: 'invalid_response' };
       }
     }
     const result = best || { overview: previous?.overview || [], findings: previous?.findings || [], complete: false };
-    result.candidateCount = Math.max(candidateCount, result.findings.length);
+    result.uncertain = result.uncertain || previous?.uncertain || [];
+    result.candidateCount = Math.max(candidateCount, result.findings.length + result.uncertain.length);
+    if (evidenceMode) result.consultedEvidence = { generation: generationEvidence, verification: verificationEvidence };
+    if (evidenceMode) result.submittedCandidates = submittedCandidates;
     if (pendingToSave) result.pendingVerification = pendingToSave;
     else delete result.pendingVerification;
     if (!result.complete) {
@@ -331,22 +479,65 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     await checkpoint(result);
     return result;
   }
-  // Prioritize never-attempted work on continuation, then retry failures. Explicit
-  // caller diagnostics may pause between root batches; production defaults are
-  // unbounded. Requests already in flight retain their per-call timeout guard.
+  // Prioritize never-attempted work on continuation, then retry failures. Every
+  // model call, semaphore wait, backoff and child batch shares this deadline.
   const todo = results.flatMap((r, i) => !r ? [i] : []).concat(results.flatMap((r, i) => r && !r.complete ? [i] : []));
   if (!await isCurrent()) return { ...render(), cancelled: true };
   await persist();
   await onProgress(render(true));
   for (let cursor = 0; cursor < todo.length;) {
-    if (attempted >= maxBatches || Date.now() - started >= maxDurationMs) break;
+    if (attempted >= maxBatches || outOfTime()) break;
     if (!await isCurrent()) { cancelled = true; break; }
-    const group = todo.slice(cursor, cursor + Math.min(2, maxBatches - attempted));
+    const group = todo.slice(cursor, cursor + Math.min(evidenceMode ? 1 : 2, maxBatches - attempted));
     await Promise.all(group.map(async i => { await runBatch(plan.batches[i], i); await persist(); }));
     attempted += group.length; cursor += group.length;
     await persist();
     await onProgress(render(true));
   }
   await persist();
-  return render();
+  const final = render();
+  // RC1 uses deterministic exact-identity dedup in render(). A separate opaque
+  // model call would escape the bounded native protocol and add avoidable delay.
+  if (evidenceMode || cancelled || final.reviewFindings.length + final.reviewUncertain.length < 2 || outOfTime()) return final;
+  const merged = await mergeDuplicateFindings({ client: boundedClient, result: final, repository, pullNumber, log });
+  return { ...merged, budgetExceeded, elapsedMs: Date.now() - started };
+}
+
+// Batches see overlapping context (related files, upstream definitions), so the
+// same root cause is often reported from several places. One cheap call groups
+// duplicates across the whole PR; on any failure the unmerged result stands.
+async function mergeDuplicateFindings({ client, result, repository, pullNumber, log }) {
+  const items = [...result.reviewFindings.map(f => ({ ...f, verdict: 'confirmed' })), ...result.reviewUncertain.map(f => ({ ...f, verdict: 'uncertain' }))];
+  const brief = items.map((f, index) => ({ index, verdict: f.verdict, priority: f.priority, file: f.file, line: f.line,
+    title: f.title, trigger: f.trigger, evidence: f.evidence }));
+  try {
+    const text = await client.generateReview({
+      instructions: PR_DEDUP_INSTRUCTIONS,
+      input: `<findings>\n${JSON.stringify(brief)}\n</findings>\n只返回 {"groups":[[下标,...],...]}。`,
+      maxOutputTokens: 16000,
+      disableThinking: true,
+      onMetadata: metadata => log(`[Review dedup model] ${repository}#${pullNumber} ${JSON.stringify(metadata)}`),
+    });
+    const groups = decodeDuplicateGroups(text, items.length);
+    const priority = f => ['P1', 'P2', 'P3'].indexOf(f.priority);
+    const keep = new Map();
+    for (const group of groups) {
+      // Representative: confirmed over uncertain, then highest priority, then longest evidence.
+      const ranked = group.map(i => items[i]).sort((a, b) => (a.verdict === 'confirmed' ? 0 : 1) - (b.verdict === 'confirmed' ? 0 : 1)
+        || priority(a) - priority(b) || b.evidence.length - a.evidence.length);
+      const best = { ...ranked[0], priority: ranked.map(f => f.priority).sort()[0] };
+      if (group.length > 1) best.alsoReportedAt = [...new Set(ranked.slice(1).map(f => `${f.file}${Number.isInteger(f.line) ? `:${f.line}` : ''}`))];
+      keep.set(group[0], best);
+    }
+    const merged = [...keep.values()];
+    const strip = ({ verdict, ...finding }) => finding;
+    const findings = merged.filter(f => f.verdict === 'confirmed').map(strip).sort((a, b) => a.priority.localeCompare(b.priority));
+    const uncertain = merged.filter(f => f.verdict === 'uncertain').map(strip).sort((a, b) => a.priority.localeCompare(b.priority));
+    log(`[Review dedup] ${repository}#${pullNumber} before=${items.length} after=${merged.length}`);
+    return { ...result, reviewFindings: findings, reviewUncertain: uncertain, findings: findings.length,
+      duplicatesMerged: items.length - merged.length };
+  } catch (error) {
+    log(`[Review dedup] ${repository}#${pullNumber} error=${reviewErrorCode(error)}`);
+    return result;
+  }
 }

@@ -6,6 +6,13 @@ const scopeKey = ({ repository, pullNumber, headSha }) =>
 export const ciBackfeedRecordKey = ({ repository, pullNumber, headSha, run }) =>
   `ci-backfeed/v1/${scopeKey({ repository, pullNumber, headSha })}/${run.id}/${run.run_attempt || 1}`;
 
+export async function ciBackfeedIsCurrent({ octokit, owner, repo, headSha, run }) {
+  const { data: latest } = await octokit.rest.actions.getWorkflowRun({ owner, repo, run_id: run.id });
+  return latest.status === 'completed' && latest.head_sha === headSha &&
+    latest.run_attempt === (run.run_attempt || 1) &&
+    (run.conclusion ? latest.conclusion === run.conclusion : latest.conclusion !== 'success');
+}
+
 async function withScopeLock(scope, action) {
   const previous = locks.get(scope) || Promise.resolve();
   let release;
@@ -40,13 +47,18 @@ export async function applyPendingCiBackfeeds({ state, repository, pullNumber, h
   if (!state?.entries || typeof apply !== 'function') return { applied: 0, deferred: 0 };
   const scope = scopeKey({ repository, pullNumber, headSha });
   return withScopeLock(scope, async () => {
-    const pending = (await state.entries())
-      .filter(record => record?.status === 'pending' && scopeKey(record) === scope)
+    const scoped = (await state.entries()).filter(record => record?.run && scopeKey(record) === scope);
+    const pending = scoped.filter(record => record.status === 'pending')
       .sort((a, b) => a.createdAt - b.createdAt || a.run.id - b.run.id);
     let applied = 0, deferred = 0;
     for (const snapshot of pending) {
       const record = await state.read(snapshot.key);
       if (record?.status !== 'pending') continue;
+      if (scoped.some(other => other.run.id === record.run.id &&
+        (other.run.run_attempt || 1) > (record.run.run_attempt || 1))) {
+        await state.write(record.key, { ...record, status: 'superseded', updatedAt: Date.now() });
+        continue;
+      }
       const outcome = await apply(record);
       if (!outcome?.integrated) { deferred++; continue; }
       await state.write(record.key, { ...record, status: 'applied', appliedAt: Date.now(), updatedAt: Date.now(),

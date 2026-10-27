@@ -49,3 +49,6 @@ html[data-theme="light"] #activeRepositoryRanking .ranking-meter::-webkit-meter-
 html[data-theme="light"] .ranking-meter::-moz-meter-bar { background:#497bd8; }
 #themeToggle { white-space:nowrap; }
 .ranking-list .ranking-identity a { font-size:14px; font-weight:650; line-height:1.5; }
+.attention-summary { margin:0; padding:10px 14px; border-bottom:1px solid var(--border-weak); color:var(--text-secondary); font-size:11px; line-height:1.7; }
+.state-next-step { display:block; max-width:320px; margin-top:5px; color:var(--text-muted); font-size:10px; line-height:1.5; }
+.state-label.paused + .state-reason { color:var(--text-secondary); font-weight:600; }

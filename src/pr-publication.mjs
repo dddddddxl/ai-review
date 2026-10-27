@@ -1,7 +1,9 @@
 import { digest } from './review-state.mjs';
+import { restrictedCiMessage, safeGateStatus } from './ci-publication.mjs';
 
 const MAX_FILE_ROWS = 20;
 const MAX_UNPOSITIONED_FINDINGS = 5;
+const MAX_UNCERTAIN_CANDIDATES = 5;
 const priorities = ['P1', 'P2', 'P3'];
 
 const sensitivePatterns = [
@@ -93,13 +95,21 @@ function inlineBody(finding) {
     `**证据与影响：** ${safeText(finding.evidence)} ${safeText(finding.impact)}`,
     '',
     `**修改建议：** ${safeText(finding.suggestion)}`,
+    ...alsoAt(finding),
   ].join('\n');
 }
 
-function statusFor({ partial, findings }) {
+// Other places the same root cause was reported (merged across batches).
+function alsoAt(finding) {
+  const places = Array.isArray(finding.alsoReportedAt) ? finding.alsoReportedAt.filter(place => typeof place === 'string').slice(0, 5) : [];
+  return places.length ? ['', `**同一根因也涉及：** ${places.map(code).join('、')}`] : [];
+}
+
+function statusFor({ partial, findings, uncertainCount = 0 }) {
   if (partial) return { icon: '⚪', label: '审查未完成', description: '部分内容未完成审查，当前结论不代表全部改动。' };
   if (findings.some(finding => finding.priority === 'P1')) return { icon: '🔴', label: '需要修改', description: '发现有明确证据的高优先级问题。' };
   if (findings.length) return { icon: '🟡', label: '建议修改', description: '发现有明确证据的问题，建议核对并处理。' };
+  if (uncertainCount) return { icon: '🟡', label: '待人工确认', description: '存在尚未确认或排除的候选，请核对后再判断本次改动。' };
   return { icon: '🟢', label: '未发现有明确证据的问题', description: '在已提供并完成审查的 diff 范围内未形成可确认问题。' };
 }
 
@@ -136,6 +146,22 @@ function unpositionedSection(findings) {
   return `<details>\n<summary>无法定位到 diff 行的问题（${findings.length}）</summary>\n\n${shown}${omitted ? `\n\n> 其余 ${omitted} 项未在总评中展开，避免评论过长。` : ''}\n\n</details>`;
 }
 
+// Candidates the verifier could neither confirm nor refute. They are not
+// findings: no inline comments, folded by default, and never a green status.
+function uncertainSection(candidates) {
+  if (!candidates.length) return '';
+  const shown = candidates.slice(0, MAX_UNCERTAIN_CANDIDATES).map(candidate => [
+    `#### ${candidate.priority} · ${safeText(candidate.title)}`,
+    '',
+    `- 位置：${code(candidate.file)}${Number.isInteger(candidate.line) ? `:${candidate.line}` : ''}`,
+    `- 触发条件：${safeText(candidate.trigger)}`,
+    `- 证据与影响：${safeText(candidate.evidence)} ${safeText(candidate.impact)}`,
+    candidate.verifierReason ? `- 复核意见：${safeText(candidate.verifierReason)}` : '',
+  ].filter(Boolean).join('\n')).join('\n\n');
+  const omitted = candidates.length - Math.min(candidates.length, MAX_UNCERTAIN_CANDIDATES);
+  return `<details>\n<summary>需人工确认的候选（${candidates.length}）</summary>\n\n复核既未能确证、也未找到反证，可能是误报，请维护者判断。\n\n${shown}${omitted ? `\n\n> 其余 ${omitted} 项未展开。` : ''}\n\n</details>`;
+}
+
 export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.number }) {
   const rawFindings = Array.isArray(result.reviewFindings) ? result.reviewFindings : [];
   const safeFindings = rawFindings.filter(findingIsSafe);
@@ -153,8 +179,9 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
     }
   }
 
+  const rawUncertain = Array.isArray(result.reviewUncertain) ? result.reviewUncertain : [];
   const partial = Boolean(result.partial || findingSafetyFiltered);
-  const status = statusFor({ partial, findings: safeFindings });
+  const status = statusFor({ partial, findings: safeFindings, uncertainCount: rawUncertain.length });
   const additions = files.reduce((total, file) => total + (Number.isSafeInteger(file.additions) ? file.additions : 0), 0);
   const deletions = files.reduce((total, file) => total + (Number.isSafeInteger(file.deletions) ? file.deletions : 0), 0);
   const rows = selectFileRows(files, safeFindings).map(file => {
@@ -165,6 +192,8 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
   const candidateCount = Math.max(Number.isSafeInteger(result.candidateCount) ? result.candidateCount : rawFindings.length, rawFindings.length);
   const verificationFiltered = Math.max(0, Number.isSafeInteger(result.verificationFiltered)
     ? result.verificationFiltered : candidateCount - rawFindings.length);
+  const safeUncertain = rawUncertain.filter(candidate => findingIsSafe(candidate) && !hasSensitiveContent(candidate.verifierReason));
+  const uncertainSafetyFiltered = rawUncertain.length - safeUncertain.length;
   const coverage = `共 ${Number.isSafeInteger(result.totalFiles) ? result.totalFiles : files.length} 个文件，已完整审查 ${result.reviewedFiles || 0} 个` +
     `${result.partialFiles ? `，部分审查 ${result.partialFiles} 个` : ''}${result.pendingFiles ? `，待审查 ${result.pendingFiles} 个` : ''}。`;
   const failures = Array.isArray(result.failureSummary) && result.failureSummary.length
@@ -180,6 +209,7 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
     '',
     status.description,
     safeFindings.length ? `\n已确认 ${safeFindings.length} 个问题，其中 ${comments.length} 个已添加到对应代码行。` : '',
+    safeUncertain.length ? `\n另有 ${safeUncertain.length} 个候选需人工确认，见下方折叠区。` : '',
     '',
     '<details>',
     '<summary>变更概览</summary>',
@@ -200,12 +230,14 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
     '',
     unpositionedSection(unpositioned),
     unpositioned.length ? '' : '',
+    uncertainSection(safeUncertain),
+    safeUncertain.length ? '' : '',
     '<details>',
     '<summary>审查信息</summary>',
     '',
     `- 变更统计：${Number.isSafeInteger(result.totalFiles) ? result.totalFiles : files.length} 个文件，+${additions}/-${deletions}。`,
     `- 覆盖情况：${coverage}`,
-    `- 候选问题：${candidateCount} 项；证据复核过滤：${verificationFiltered} 项；发布前敏感信息保护：${safetyFiltered} 项。${failures}`,
+    `- 候选问题：${candidateCount} 项；已确认：${rawFindings.length} 项；需人工确认：${rawUncertain.length} 项；证据复核否决：${verificationFiltered} 项；发布前敏感信息保护：${safetyFiltered + uncertainSafetyFiltered} 项。${failures}`,
     '- 本服务以 GitHub 提供的 PR diff 为审查主体，PR 描述与按相关性选取的仓库片段仅用于核验；未执行代码或重跑测试，结论仍需维护者核验。',
     '',
     '</details>',
@@ -247,6 +279,7 @@ export function safeCiBackfeedResult(result, restricted = false) {
   const pending = Number.isSafeInteger(result?.pending) && result.pending > 0 ? result.pending : 0;
   return {
     pending,
+    ...(restricted ? { gateStatus: safeGateStatus(result?.gateStatus) } : {}),
     ciEvidence: restricted ? [] : (result?.ciEvidence || []).map(safeCiEvidence).filter(Boolean).slice(0, 5),
   };
 }
@@ -254,7 +287,11 @@ export function safeCiBackfeedResult(result, restricted = false) {
 export function renderCiBackfeed({ run, result, restricted = false }) {
   const start = `<!-- github-ai-ci-backfeed:${run.id}:${run.run_attempt || 1}:start -->`;
   const end = `<!-- github-ai-ci-backfeed:${run.id}:${run.run_attempt || 1}:end -->`;
-  if (restricted) return `${start}\n<details>\n<summary>CI 结果：质量门禁未通过</summary>\n\n质量门禁检测到需处理的问题；敏感命中原文、字段值、路径和日志引用不在评论中展示，请由有权限的维护者查看原始报告并处理。\n\n</details>\n${end}`;
+  if (run.conclusion === 'success') return `${start}\n<details>\n<summary>CI 结果：${restricted ? '质量门禁已通过' : '该运行已通过'}</summary>\n\n该运行第 ${run.run_attempt || 1} 次执行已通过，此前该运行的失败提示已更新。此状态仅对应本次 CI，不改变 PR 的代码审查结论。\n\n</details>\n${end}`;
+  if (restricted) {
+    const message = restrictedCiMessage(safeGateStatus(result?.gateStatus));
+    return `${start}\n<details>\n<summary>CI 结果：${message.title}</summary>\n\n${message.body}\n\n敏感命中原文、字段值、路径和日志引用不在评论中展示。\n\n</details>\n${end}`;
+  }
   const evidence = (result.ciEvidence || []).map(safeCiEvidence).filter(Boolean).slice(0, 5);
   const rows = evidence.map(item => [
     `- **${safeText(item.job, '失败任务', 160)}**：${safeText(item.cause, '已确认失败', 360)}`,
@@ -268,10 +305,15 @@ export function renderCiBackfeed({ run, result, restricted = false }) {
 }
 
 function mergeCiSection(body, section, run) {
-  const start = `<!-- github-ai-ci-backfeed:${run.id}:${run.run_attempt || 1}:start -->`;
-  const end = `<!-- github-ai-ci-backfeed:${run.id}:${run.run_attempt || 1}:end -->`;
-  const at = body.indexOf(start), after = body.indexOf(end);
-  let merged = at >= 0 && after >= at ? `${body.slice(0, at)}${section}${body.slice(after + end.length)}` : `${body.trim()}\n\n${section}`;
+  const existing = [...body.matchAll(/<!-- github-ai-ci-backfeed:(\d+):(\d+):start -->[\s\S]*?<!-- github-ai-ci-backfeed:\1:\2:end -->/g)]
+    .filter(match => match[1] === String(run.id));
+  if (existing.some(match => Number(match[2]) > (run.run_attempt || 1))) return body;
+  // A success notification only repairs an existing failure; do not spam every
+  // green workflow into the PR review. Other workflow runs and PR text survive.
+  if (run.conclusion === 'success' && !existing.length) return body;
+  let merged = body;
+  for (const old of existing) merged = merged.replace(old[0], '');
+  merged = `${merged.trim()}\n\n${section}`;
   const sections = [...merged.matchAll(/<!-- github-ai-ci-backfeed:\d+:\d+:start -->[\s\S]*?<!-- github-ai-ci-backfeed:\d+:\d+:end -->/g)];
   for (const old of sections.slice(0, Math.max(0, sections.length - 5))) merged = merged.replace(old[0], '');
   return merged.replace(/\n{3,}/g, '\n\n').trim();
@@ -299,11 +341,11 @@ export async function updateReviewWithCiEvidence({ octokit, owner, repo, pullNum
   if (!review || !Number.isSafeInteger(review.id)) return { integrated: false, reason: 'review_not_found' };
   const section = renderCiBackfeed({ run, result, restricted });
   let body = mergeCiSection(review.body, section, run);
-  if (!restricted && (result.ciEvidence || []).some(item => item.relation === '相关')) {
+  if (body === review.body) return { integrated: true, duplicate: true, reviewId: review.id, body };
+  if (run.conclusion !== 'success' && !restricted && (result.ciEvidence || []).some(item => item.relation === '相关')) {
     body = body.replace(/^### [^\n]+\n\n[^\n]+/m,
       '### 🔴 需要修改\n\n代码审查与 CI 失败证据综合后，存在需要处理的问题。');
   }
-  if (body === review.body) return { integrated: true, duplicate: true, reviewId: review.id, body };
   if (Buffer.byteLength(body, 'utf8') >= 65000 || !await isCurrent()) return { integrated: false, reason: 'stale_or_too_long' };
   try {
     await octokit.rest.pulls.updateReview({ owner, repo, pull_number: pullNumber, review_id: review.id, body });
