@@ -1,3 +1,5 @@
+import { extractSources } from './repository-snapshot.mjs';
+
 const ignored = /(?:^|\/)(?:node_modules|vendor|dist|build)\/|\.(?:png|jpe?g|gif|webp|ico|pdf|zip|tar|gz|7z|lock)$/i;
 const textSource = /\.(?:py|pyi|js|jsx|mjs|cjs|ts|tsx|java|go|rs|c|cc|cpp|cxx|h|hh|hpp|yaml|yml|json|toml|ini|cfg|md|rst|sh)$/i;
 const genericSymbols = new Set([
@@ -109,15 +111,19 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
   const changed = new Set(files.map(file => file.filename));
   // Symbols and settings introduced by this PR do not exist on the default
   // branch, so code search cannot find them.
-  const defined = new Set();
+  // A definition that also appears on a removed line is modified, not new: its
+  // existing callers are exactly the context the review needs.
+  const added = new Set(), removed = new Set();
   for (const file of files) {
     for (const raw of String(file.patch || '').split('\n')) {
-      if (!raw.startsWith('+') || raw.startsWith('+++')) continue;
-      for (const match of raw.matchAll(/\b(?:class|def)\s+([A-Za-z_]\w*)/g)) defined.add(match[1]);
-      const setting = /^\+\s*["']?([A-Z][A-Z0-9_]{5,})["']?\s*[:=]/.exec(raw);
-      if (setting) defined.add(setting[1]);
+      if (!/^[+-]/.test(raw) || /^(?:\+\+\+|---)/.test(raw)) continue;
+      const target = raw.startsWith('+') ? added : removed;
+      for (const match of raw.matchAll(/\b(?:class|def)\s+([A-Za-z_]\w*)/g)) target.add(match[1]);
+      const setting = /^[+-]\s*["']?([A-Z][A-Z0-9_]{5,})["']?\s*[:=]/.exec(raw);
+      if (setting) target.add(setting[1]);
     }
   }
+  const defined = new Set([...added].filter(name => !removed.has(name)));
   // Imported names are fetched through their module, or are in this diff; never search them.
   const imported = new Set(files.flatMap(file => parseImports(file.patch || '').flatMap(item => item.names)));
   const imports = new Map();
@@ -238,11 +244,40 @@ function definitionExcerpt(content, symbols, maxChars) {
 }
 
 const errorCode = error => Number.isInteger(error?.status) ? `http_${error.status}` : 'unavailable';
+const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+async function loadBaseSnapshot(octokit, owner, repo, baseSha, timeoutMs) {
+  const response = await octokit.request('GET /repos/{owner}/{repo}/tarball/{ref}', {
+    owner, repo, ref: baseSha, request: { timeout: timeoutMs } });
+  if (typeof response.data === 'string') throw new Error('tarball_unavailable');
+  return extractSources(Buffer.from(response.data), baseSha);
+}
+
+// Code search only indexes the default branch, while these PRs target release
+// branches; searching the base snapshot sees the code the PR will merge into.
+function searchSnapshot(snapshot, name, limit = 20) {
+  const pattern = new RegExp(`(?<![A-Za-z0-9_])${escapeRegExp(name)}(?![A-Za-z0-9_])`);
+  const hits = [];
+  for (const [path, text] of snapshot.files) {
+    if (pattern.test(text)) hits.push({ path });
+    if (hits.length >= limit) break;
+  }
+  return hits;
+}
 
 export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, maxFiles = 8,
-  maxChars = 16000, maxSearchSignals = 3, searchIntervalMs = DEFAULT_SEARCH_INTERVAL_MS, log = () => {} }) {
+  maxChars = 16000, maxSearchSignals, searchIntervalMs = DEFAULT_SEARCH_INTERVAL_MS, log = () => {},
+  useBaseSnapshot = true, snapshotTimeoutMs = 60000 }) {
   const changed = new Set(files.map(file => file.filename));
-  const { imports, signals } = extractRepositoryContextSignals(files, { maxSearchSignals });
+  let snapshot = null;
+  if (useBaseSnapshot && /^[a-f0-9]{40}$/.test(baseSha || '')) {
+    try { snapshot = await loadBaseSnapshot(octokit, owner, repo, baseSha, snapshotTimeoutMs); }
+    catch (error) { log(`[Review context] base-snapshot failed code=${errorCode(error)}; falling back to code search`); }
+  }
+  // Local search has no rate limit, so it can afford more signals and hits.
+  const signalLimit = maxSearchSignals ?? (snapshot ? 8 : 3);
+  const searchEntryLimit = snapshot ? 5 : 3, searchCharLimit = snapshot ? 9000 : 6000;
+  const { imports, signals } = extractRepositoryContextSignals(files, { maxSearchSignals: signalLimit });
   const candidates = new Map();
   let failures = 0;
   const addCandidate = ({ path, alternatives = [path], symbols = [], kind, terms, origins, score }) => {
@@ -261,10 +296,13 @@ export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, 
   for (const imported of imports) {
     addCandidate({ ...imported, kind: 'import', terms: [...imported.symbols, ...imported.terms], score: imported.test ? 110 : 130 });
   }
+  const searched = new Map();
   for (const signal of signals) {
     try {
-      const { data } = await rateLimitedCodeSearch(octokit, { q: `${signal.name} repo:${owner}/${repo}`, per_page: 20 }, searchIntervalMs);
-      for (const item of data.items || []) {
+      if (!searched.has(signal.name)) searched.set(signal.name, snapshot ? searchSnapshot(snapshot, signal.name)
+        : (await rateLimitedCodeSearch(octokit, { q: `${signal.name} repo:${owner}/${repo}`, per_page: 20 }, searchIntervalMs)).data.items || []);
+      const items = searched.get(signal.name);
+      for (const item of items) {
         // Contracts and defaults live in source files; test hits are mostly
         // other features' fixtures that crowd out the definitions.
         const testPenalty = isTestPath(item.path) ? -30 : 0;
@@ -285,10 +323,15 @@ export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, 
     if (entries.length >= maxFiles || usedChars >= maxChars) break;
     // Search hits are lexical matches; keep them from crowding out import definitions.
     const searchOnly = !candidate.kinds.has('import');
-    if (searchOnly && (searchEntries >= 3 || searchChars >= 6000)) continue;
+    if (searchOnly && (searchEntries >= searchEntryLimit || searchChars >= searchCharLimit)) continue;
     // A module is either NAME.py or NAME/__init__.py; only a miss on both is a failure.
     let content = null, path = null, lastError = null;
     for (const alternative of candidate.alternatives) {
+      if (snapshot) {
+        content = snapshot.files.get(alternative) || null;
+        if (content) { path = alternative; break; }
+        continue;
+      }
       try {
         const { data } = await octokit.rest.repos.getContent({ owner, repo, path: alternative, ref: baseSha });
         content = decodeContent(data);
@@ -311,7 +354,7 @@ export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, 
     usedChars += excerpt.length;
     if (searchOnly) { searchEntries++; searchChars += excerpt.length; }
   }
-  log(`[Review context] repository=${owner}/${repo} imports=${imports.length} signals=${signals.length} selected=${entries.length} chars=${usedChars} failures=${failures}`);
+  log(`[Review context] repository=${owner}/${repo} source=${snapshot ? 'base-snapshot' : 'code-search'} imports=${imports.length} signals=${signals.length} selected=${entries.length} chars=${usedChars} failures=${failures}`);
   return entries;
 }
 
