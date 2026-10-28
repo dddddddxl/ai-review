@@ -112,7 +112,7 @@ const candidates = [];
 const roots=upstreamRoots(process.env,{repository:fullName,baseRef});
 const upstreamContext = engine==='legacy'?upstreamContextForFiles(files,{roots}):new Map();
 const result = await scope.run(async () => {
-  const { repositoryContext, reviewRules } = engine==='legacy'?await prepareRepositoryReview({ octokit, owner, repo, baseSha, files, log }):{ repositoryContext: [], reviewRules: '' };
+  const { repositoryContext, reviewRules } = engine==='legacy'?await prepareRepositoryReview({ octokit, owner, repo, baseSha, files, upstreamRoots: roots, log }):{ repositoryContext: [], reviewRules: '' };
   const profile = resolveReviewProfile({ repository: fullName, files });
   log(`[Replay] profile ${profile.key} rules=${reviewRules.length}chars`);
   const evidenceFactory=engine==='evidence-v1'?createRepositoryEvidence({octokit,owner,repo,baseSha,headSha,roots,deadlineAt:started+maxDurationMs}):undefined;

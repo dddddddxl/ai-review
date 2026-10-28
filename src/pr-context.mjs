@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { upstreamDefinition } from './upstream-context.mjs';
 import { extractSourcesStreaming } from './repository-snapshot.mjs';
 import { repositoryReviewRules } from './repo-profile.mjs';
 
@@ -144,6 +146,7 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
   const imports = new Map();
   const signals = new Map();
   const includes = new Map();
+  const external = new Map();
   for (const file of files) {
     if (!file?.patch || !file.filename) continue;
     const test = isTestPath(file.filename);
@@ -153,7 +156,17 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
       if (include && !includes.has(include[1])) includes.set(include[1], { include: include[1], origin: file.filename });
     }
     for (const { module, names } of parseImports(file.patch)) {
-      for (const stem of importStems(module, file.filename, files)) {
+      const stems = importStems(module, file.filename, files);
+      // Modules outside the changed paths: submodules, other packages of this
+      // repository, or the upstream framework a plugin patches.
+      if (!stems.length && !module.startsWith('.') && module.includes('.')) {
+        const current = external.get(module) || { module, names: new Set(), origins: new Set(), test: true };
+        for (const name of names) current.names.add(name);
+        current.origins.add(file.filename);
+        current.test &&= test;
+        external.set(module, current);
+      }
+      for (const stem of stems) {
         const alternatives = [`${stem}.py`, `${stem}/__init__.py`];
         if (alternatives.some(path => changed.has(path))) continue;
         // `from pkg import changed_module` is already in the diff.
@@ -220,6 +233,8 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
       .map(value => ({ ...value, path: value.alternatives[0], symbols: [...value.symbols], origins: [...value.origins], terms: [...value.terms] })),
     signals: selected.map(value => ({ ...value, origins: [...value.origins] })),
     includes: [...includes.values()].slice(0, maxImports),
+    externalImports: [...external.values()].sort((a, b) => Number(a.test) - Number(b.test))
+      .slice(0, maxImports * 2).map(value => ({ ...value, names: [...value.names].slice(0, 6), origins: [...value.origins] })),
   };
 }
 
@@ -300,15 +315,46 @@ const parentDirs = files => {
   return [...dirs];
 };
 
-export function loadBaseSnapshot({ octokit, owner, repo, baseSha, files = [], timeoutMs = 120000 }) {
+async function fetchTarball(octokit, owner, repo, ref, timeoutMs) {
+  const response = await octokit.request('GET /repos/{owner}/{repo}/tarball/{ref}', {
+    owner, repo, ref, request: { timeout: timeoutMs } });
+  if (typeof response.data === 'string') throw new Error('tarball_unavailable');
+  return Buffer.from(response.data);
+}
+
+// GitHub tarballs omit submodules, yet plugin repositories (Megatron-LM-das,
+// verl-das) vendor the upstream they patch as submodules. Each GitHub-hosted
+// submodule is fetched at its pinned commit and merged under its path.
+async function mergeSubmodules({ octokit, owner, repo, baseSha, snapshot, timeoutMs, log, maxSubmodules = 4 }) {
+  const config = snapshot.files.get('.gitmodules');
+  if (!config || typeof octokit.rest?.repos?.getContent !== 'function') return;
+  snapshot.submodules = [];
+  const entries = [...config.matchAll(/path\s*=\s*(\S+)[\s\S]*?url\s*=\s*(\S+)/g)].slice(0, maxSubmodules);
+  for (const [, path, url] of entries) {
+    const source = /github\.com[/:]([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/.exec(url);
+    if (!source) continue;
+    try {
+      const { data } = await octokit.rest.repos.getContent({ owner, repo, path, ref: baseSha });
+      if (data?.type !== 'submodule' || !/^[a-f0-9]{40}$/.test(data.sha || '')) continue;
+      const sub = await extractSourcesStreaming(await fetchTarball(octokit, source[1], source[2], data.sha, timeoutMs), data.sha,
+        { maxTextBytes: 96 * 1024 * 1024, maxFiles: 30000 });
+      for (const [name, text] of sub.files) snapshot.files.set(`${path}/${name}`, text);
+      snapshot.submodules.push({ path, repository: `${source[1]}/${source[2]}`, sha: data.sha, files: sub.files.size });
+    } catch (error) {
+      log(`[Review context] submodule ${path} unavailable code=${errorCode(error)}`);
+    }
+  }
+}
+
+export function loadBaseSnapshot({ octokit, owner, repo, baseSha, files = [], timeoutMs = 120000, log = () => {} }) {
   const key = `${owner}/${repo}@${baseSha}`;
   if (!snapshotCache.has(key)) {
     const near = parentDirs(files);
     const loading = (async () => {
-      const response = await octokit.request('GET /repos/{owner}/{repo}/tarball/{ref}', {
-        owner, repo, ref: baseSha, request: { timeout: timeoutMs } });
-      if (typeof response.data === 'string') throw new Error('tarball_unavailable');
-      return extractSourcesStreaming(Buffer.from(response.data), baseSha, { prefer: path => near.some(dir => path.startsWith(dir)) });
+      const snapshot = await extractSourcesStreaming(await fetchTarball(octokit, owner, repo, baseSha, timeoutMs), baseSha,
+        { prefer: path => near.some(dir => path.startsWith(dir)) });
+      await mergeSubmodules({ octokit, owner, repo, baseSha, snapshot, timeoutMs, log });
+      return snapshot;
     })();
     snapshotCache.set(key, loading);
     loading.catch(() => snapshotCache.delete(key));
@@ -331,7 +377,7 @@ function searchSnapshot(snapshot, name, limit = 20) {
 
 export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, maxFiles = 8,
   maxChars = 16000, maxSearchSignals, searchIntervalMs = DEFAULT_SEARCH_INTERVAL_MS, log = () => {},
-  useBaseSnapshot = true, snapshotTimeoutMs = 120000, snapshot: suppliedSnapshot }) {
+  useBaseSnapshot = true, snapshotTimeoutMs = 120000, snapshot: suppliedSnapshot, upstreamRoots = new Map(), maxUpstreamChars = 8000 }) {
   const changed = new Set(files.map(file => file.filename));
   let snapshot = suppliedSnapshot || null;
   if (!snapshot && useBaseSnapshot && /^[a-f0-9]{40}$/.test(baseSha || '')) {
@@ -341,7 +387,7 @@ export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, 
   // Local search has no rate limit, so it can afford more signals and hits.
   const signalLimit = maxSearchSignals ?? (snapshot ? 8 : 3);
   const searchEntryLimit = snapshot ? 5 : 3, searchCharLimit = snapshot ? 9000 : 6000;
-  const { imports, signals, includes } = extractRepositoryContextSignals(files, { maxSearchSignals: signalLimit });
+  const { imports, signals, includes, externalImports } = extractRepositoryContextSignals(files, { maxSearchSignals: signalLimit });
   const candidates = new Map();
   let failures = 0;
   const addCandidate = ({ path, alternatives = [path], symbols = [], kind, terms, origins, score }) => {
@@ -359,6 +405,18 @@ export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, 
 
   for (const imported of imports) {
     addCandidate({ ...imported, kind: 'import', terms: [...imported.symbols, ...imported.terms], score: imported.test ? 110 : 130 });
+  }
+  // `from pkg.mod import name` outside the changed paths: the shortest snapshot
+  // path ending in pkg/mod.py (or pkg/mod/__init__.py, or pkg/mod/name.py).
+  const unresolved = [];
+  for (const item of externalImports) {
+    const stem = item.module.replace(/\./g, '/');
+    const suffixes = [`${stem}.py`, `${stem}/__init__.py`];
+    const found = snapshot && [...snapshot.files.keys()].filter(name => suffixes.some(suffix => name === suffix || name.endsWith(`/${suffix}`)))
+      .sort((a, b) => a.length - b.length)[0];
+    if (found) addCandidate({ path: found, alternatives: [found], symbols: item.names, kind: 'import', terms: [item.module, ...item.names],
+      origins: item.origins, score: item.test ? 105 : 115 });
+    else unresolved.push(item);
   }
   // Quoted #include paths resolve next to the including file, else by a unique
   // path suffix in the base snapshot (include roots are build-system specific).
@@ -429,7 +487,22 @@ export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, 
     usedChars += excerpt.length;
     if (searchOnly) { searchEntries++; searchChars += excerpt.length; }
   }
-  log(`[Review context] repository=${owner}/${repo} source=${snapshot ? 'base-snapshot' : 'code-search'} imports=${imports.length} signals=${signals.length} selected=${entries.length} chars=${usedChars} failures=${failures}`);
+  // Imports neither in the PR nor in the snapshot: definitions from the
+  // configured upstream source of the framework this repository plugs into.
+  let upstreamChars = 0, upstreamEntries = 0;
+  for (const item of unresolved) {
+    if (!upstreamRoots.has(item.module.split('.')[0])) continue;
+    for (const name of item.names) {
+      if (upstreamChars >= maxUpstreamChars) break;
+      const found = upstreamDefinition(upstreamRoots, `${item.module}.${name}`, { maxLines: 80 });
+      if (!found?.text) continue;
+      const excerpt = found.text.slice(0, Math.min(3000, maxUpstreamChars - upstreamChars));
+      const relative = path.relative(path.dirname(upstreamRoots.get(item.module.split('.')[0])), found.file).split(path.sep).join('/');
+      entries.push({ filename: `upstream:${relative}`, kinds: ['upstream'], terms: [item.module, name], origins: item.origins, score: 100, excerpt });
+      upstreamChars += excerpt.length; upstreamEntries++;
+    }
+  }
+  log(`[Review context] repository=${owner}/${repo} source=${snapshot ? 'base-snapshot' : 'code-search'} imports=${imports.length} external=${externalImports.length} upstream=${upstreamEntries} signals=${signals.length} selected=${entries.length} chars=${usedChars + upstreamChars} failures=${failures}`);
   return entries;
 }
 
@@ -487,14 +560,14 @@ export function prDescriptionContext(description, maxChars = 6000) {
 
 // Everything the legacy engine needs from the base branch, from one snapshot:
 // unchanged-code context and maintainer review rules (AGENTS.md / REVIEW.md).
-export async function prepareRepositoryReview({ octokit, owner, repo, baseSha, files, log = () => {} }) {
+export async function prepareRepositoryReview({ octokit, owner, repo, baseSha, files, upstreamRoots = new Map(), log = () => {} }) {
   let snapshot = null;
   if (/^[a-f0-9]{40}$/.test(baseSha || '')) {
-    try { snapshot = await loadBaseSnapshot({ octokit, owner, repo, baseSha, files }); }
+    try { snapshot = await loadBaseSnapshot({ octokit, owner, repo, baseSha, files, log }); }
     catch (error) { log(`[Review context] base-snapshot failed code=${errorCode(error)}; falling back to code search`); }
   }
-  const repositoryContext = await buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, log, snapshot, useBaseSnapshot: false });
+  const repositoryContext = await buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, log, snapshot, useBaseSnapshot: false, upstreamRoots });
   const reviewRules = repositoryReviewRules(snapshot, files);
-  if (snapshot) log(`[Review context] snapshot files=${snapshot.files.size} omitted=${snapshot.omittedFiles} rules=${reviewRules.length}`);
+  if (snapshot) log(`[Review context] snapshot files=${snapshot.files.size} omitted=${snapshot.omittedFiles} submodules=${(snapshot.submodules || []).map(item => `${item.path}@${item.sha.slice(0, 7)}`).join(',') || 'none'} rules=${reviewRules.length}`);
   return { repositoryContext, reviewRules };
 }

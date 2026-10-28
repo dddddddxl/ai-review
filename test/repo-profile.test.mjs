@@ -105,3 +105,37 @@ test('sanitizing long lines of %, . and digits stays linear', async () => {
   assert.ok(Date.now() - started < 2000);
   assert.equal(cleanText('mail robert.459@gmail.com now'), 'mail [REDACTED_EMAIL] now');
 });
+
+test('submodules are fetched at their pinned commit and external imports resolve inside them', async () => {
+  const { prepareRepositoryReview } = await import('../src/pr-context.mjs');
+  const requests = [];
+  const octokit = {
+    request: async (route, args) => {
+      requests.push(`${args.owner}/${args.repo}@${args.ref}`);
+      if (args.repo === 'Megatron-LM') return { data: tar([['megatron/core/parallel_state.py', 'x = 1\n\ndef get_tensor_model_parallel_rank():\n    return 0\n']]) };
+      return { data: tar([['.gitmodules', '[submodule "mlm"]\n\tpath = 3rdparty/Megatron-LM\n\turl = https://github.com/NVIDIA/Megatron-LM.git\n'],
+        ['hcu_megatron/__init__.py', '']]) };
+    },
+    rest: { repos: { getContent: async ({ path }) => ({ data: { type: 'submodule', sha: 'f'.repeat(40), path } }) } },
+  };
+  const files = [{ filename: 'hcu_megatron/patch.py', status: 'modified',
+    patch: patch(['from megatron.core.parallel_state import get_tensor_model_parallel_rank']) }];
+  const { repositoryContext } = await prepareRepositoryReview({ octokit, owner: 'HYGON-AI', repo: 'Megatron-LM-das', baseSha: 'e'.repeat(40), files });
+  assert.deepEqual(requests, [`HYGON-AI/Megatron-LM-das@${'e'.repeat(40)}`, `NVIDIA/Megatron-LM@${'f'.repeat(40)}`]);
+  const entry = repositoryContext.find(item => item.filename === '3rdparty/Megatron-LM/megatron/core/parallel_state.py');
+  assert.ok(entry);
+  assert.match(entry.excerpt, /3: def get_tensor_model_parallel_rank/);
+});
+
+test('imports missing from the snapshot fall back to configured upstream sources', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'upstream-'));
+  fs.mkdirSync(path.join(dir, 'vllm', 'config'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'vllm', '__init__.py'), '');
+  fs.writeFileSync(path.join(dir, 'vllm', 'config', 'parallel.py'), 'class ParallelConfig:\n    data_parallel_size: int = 1\n');
+  const files = [{ filename: 'vllm_hcu/worker.py', status: 'modified', patch: patch(['from vllm.config.parallel import ParallelConfig']) }];
+  const entries = await buildPrRepositoryContext({ octokit: {}, owner: 'o', repo: 'r', baseSha: '1'.repeat(40), files,
+    snapshot: { files: new Map() }, useBaseSnapshot: false, upstreamRoots: new Map([['vllm', path.join(dir, 'vllm')]]) });
+  const upstream = entries.find(entry => entry.kinds.includes('upstream'));
+  assert.equal(upstream.filename, 'upstream:vllm/config/parallel.py');
+  assert.match(upstream.excerpt, /class ParallelConfig/);
+});

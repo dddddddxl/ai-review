@@ -6,7 +6,7 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 // Source, build and configuration files across Python, C/C++/CUDA/HIP, Go,
 // MLIR/TableGen, Bazel and CMake repositories.
 const retainedExtension = /\.(?:py|pyi|pyx|pxd|js|jsx|mjs|cjs|ts|tsx|go|rs|c|cc|cpp|cxx|h|hh|hpp|hxx|inc|cu|cuh|hip|cl|s|mlir|td|proto|toml|yaml|yml|json|ini|cfg|md|mdx|rst|sh|java|kt|sql|bzl|bazel|cmake|tpl|mod|sum)$/i;
-const retainedName = /(?:^|\/)(?:BUILD|WORKSPACE|MODULE|CMakeLists\.txt|Makefile|Dockerfile[^/]*|requirements[^/]*\.txt|go\.mod)$/;
+const retainedName = /(?:^|\/)(?:\.gitmodules|BUILD|WORKSPACE|MODULE|CMakeLists\.txt|Makefile|Dockerfile[^/]*|requirements[^/]*\.txt|go\.mod)$/;
 const retained = path => retainedExtension.test(path) || retainedName.test(path);
 const excluded = /(?:^|\/)(?:\.git|\.aws|\.ssh|\.codex|\.agents|\.env(?:\.[^/]*)?|node_modules|vendor|third_party|secrets?|credentials)(?:\/|$)|\.(?:pem|key|p12|pfx)$/i;
 const field = (bytes, start, length) => bytes.subarray(start, start + length).toString('utf8').replace(/\0.*$/s, '');

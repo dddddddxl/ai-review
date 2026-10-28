@@ -156,7 +156,7 @@ async function reviewPullRequest(job) {
     per_page: 100,
   });
   const { repositoryContext, reviewRules } = prReviewEngine === 'legacy' ? await prepareRepositoryReview({ octokit, owner, repo,
-    baseSha: currentPr.base.sha, files, log: message => console.log(message) }) : { repositoryContext: [], reviewRules: '' };
+    baseSha: currentPr.base.sha, files, upstreamRoots: upstreamRoots(process.env, { repository, baseRef: currentPr.base.ref }), log: message => console.log(message) }) : { repositoryContext: [], reviewRules: '' };
   const profile = resolveReviewProfile({ repository, files });
   console.log(`[Review profile] repository=${repository} pr=${pullNumber} profile=${profile.key}`);
   const upstreamContext = prReviewEngine === 'legacy' ? upstreamContextForFiles(files, {
