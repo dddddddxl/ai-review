@@ -23,18 +23,6 @@ test('generation and verification reason by default; thinking=false restores the
   assert.deepEqual(disabled.map(call => call.disableThinking), [true, true]);
 });
 
-test('uncertain P3 candidates are dropped; uncertain P1/P2 stay for manual follow-up', async () => {
-  const candidates = [{ ...finding, priority: 'P2', title: 'serious' }, { ...finding, priority: 'P3', title: 'minor' }];
-  const client = { model: 'mock', format: 'mock', async generateReview(options) {
-    return options.instructions === PR_VERIFICATION_INSTRUCTIONS
-      ? JSON.stringify({ verdicts: [0, 1].map(index => ({ index, verdict: 'uncertain', reason: 'unverified' })) })
-      : JSON.stringify({ overview: [], findings: candidates });
-  } };
-  const result = await reviewPrBatches({ ...args, client });
-  assert.deepEqual(result.reviewUncertain.map(f => f.title), ['serious']);
-  assert.equal(result.verificationFiltered, 1);
-});
-
 test('generation prompt favours recall; verification and CI prompts keep the strict rules', () => {
   assert(PR_INSTRUCTIONS.includes(PR_RISK_CHECKLIST));
   assert(PR_INSTRUCTIONS.includes('漏报的代价高于误报'));

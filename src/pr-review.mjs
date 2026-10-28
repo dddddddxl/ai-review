@@ -428,10 +428,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         // output), never to the log: they can contain unreviewed PR content.
         onCandidates({ batch: `${index + 1}${branch}`, candidates: judged });
         best.findings = judged.filter(finding => finding.verdict === 'confirmed').map(({ verdict, ...finding }) => finding);
-        // Unverified P3 items are mostly style or hypothetical; listing them for
-        // manual follow-up costs reviewers more than it finds.
-        best.uncertain = judged.filter(finding => finding.verdict === 'uncertain' && finding.priority !== 'P3')
-          .map(({ verdict, ...finding }) => finding);
+        best.uncertain = judged.filter(finding => finding.verdict === 'uncertain').map(({ verdict, ...finding }) => finding);
         verified = true;
         log(`[Review verify] ${repository}#${pullNumber} batch=${index + 1}${branch} candidates=${before} confirmed=${best.findings.length} uncertain=${best.uncertain.length}`);
       } catch (error) {
