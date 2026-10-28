@@ -1,7 +1,8 @@
-import { extractSources } from './repository-snapshot.mjs';
+import { extractSourcesStreaming } from './repository-snapshot.mjs';
+import { repositoryReviewRules } from './repo-profile.mjs';
 
 const ignored = /(?:^|\/)(?:node_modules|vendor|dist|build)\/|\.(?:png|jpe?g|gif|webp|ico|pdf|zip|tar|gz|7z|lock)$/i;
-const textSource = /\.(?:py|pyi|js|jsx|mjs|cjs|ts|tsx|java|go|rs|c|cc|cpp|cxx|h|hh|hpp|yaml|yml|json|toml|ini|cfg|md|rst|sh)$/i;
+const textSource = /\.(?:py|pyi|pyx|js|jsx|mjs|cjs|ts|tsx|java|go|rs|c|cc|cpp|cxx|h|hh|hpp|hxx|inc|cu|cuh|hip|cl|mlir|td|proto|bzl|bazel|cmake|yaml|yml|json|toml|ini|cfg|md|rst|sh)$|(?:^|\/)(?:BUILD|WORKSPACE|CMakeLists\.txt|Makefile|Dockerfile[^/]*)$/i;
 const genericSymbols = new Set([
   'return', 'import', 'config', 'self', 'value', 'values', 'result', 'results', 'input', 'output',
   'logger', 'logging', 'runtime', 'forward', 'enabled', 'expected', 'received', 'partial', 'hidden',
@@ -47,6 +48,20 @@ function addSignal(map, name, kind, score, origin) {
   current.score = Math.max(current.score, score);
   current.origins.add(origin);
   map.set(key, current);
+}
+
+const NATIVE_SOURCE = /\.(?:c|cc|cpp|cxx|h|hh|hpp|hxx|inc|cu|cuh|hip|cl)$/i;
+const BUILD_FILE = /(?:^|\/)(?:CMakeLists\.txt|BUILD(?:\.bazel)?|WORKSPACE|Makefile)$|\.(?:cmake|bzl)$/;
+// Definitions in Python, Go, C/C++ (struct/class) and C macros.
+const DEFINITION = /\b(?:class|def|struct|func(?:\s*\([^)]*\))?)\s+([A-Za-z_]\w*)|#\s*define\s+([A-Za-z_]\w*)/g;
+// The function or class named in a hunk header: `@@ … @@ def f(`, `func (s *S) Run(`, `int foo::bar(`.
+export function enclosingDefinition(header) {
+  const context = (/^@@ [^@]*@@\s*(.*)$/.exec(header)?.[1] || '').trim();
+  const name = /^(?:async\s+)?(?:def|class)\s+([A-Za-z_]\w*)/.exec(context)?.[1]
+    || /^func\s*(?:\([^)]*\)\s*)?([A-Za-z_]\w*)/.exec(context)?.[1]
+    || /^(?:template\s*<[^>]*>\s*)?(?:struct|class)\s+([A-Za-z_]\w*)/.exec(context)?.[1]
+    || /([A-Za-z_]\w*)\s*\(/.exec(context)?.[1];
+  return name && name.length > 4 && !/^(?:while|switch|return|sizeof|static_assert)$/.test(name) ? name : null;
 }
 
 const isTestPath = path => /(?:^|\/)tests?\//i.test(path) || /(?:^|\/)(?:test_[^/]*|[^/]*_test)\.py$/i.test(path);
@@ -118,7 +133,7 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
     for (const raw of String(file.patch || '').split('\n')) {
       if (!/^[+-]/.test(raw) || /^(?:\+\+\+|---)/.test(raw)) continue;
       const target = raw.startsWith('+') ? added : removed;
-      for (const match of raw.matchAll(/\b(?:class|def)\s+([A-Za-z_]\w*)/g)) target.add(match[1]);
+      for (const match of raw.matchAll(DEFINITION)) target.add(match[1] || match[2]);
       const setting = /^[+-]\s*["']?([A-Z][A-Z0-9_]{5,})["']?\s*[:=]/.exec(raw);
       if (setting) target.add(setting[1]);
     }
@@ -128,9 +143,15 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
   const imported = new Set(files.flatMap(file => parseImports(file.patch || '').flatMap(item => item.names)));
   const imports = new Map();
   const signals = new Map();
+  const includes = new Map();
   for (const file of files) {
     if (!file?.patch || !file.filename) continue;
     const test = isTestPath(file.filename);
+    const native = NATIVE_SOURCE.test(file.filename), build = BUILD_FILE.test(file.filename), go = /\.go$/.test(file.filename);
+    if (native) for (const line of newSideLines(file.patch)) {
+      const include = /^\s*#\s*include\s*"([^"]+)"/.exec(line);
+      if (include && !includes.has(include[1])) includes.set(include[1], { include: include[1], origin: file.filename });
+    }
     for (const { module, names } of parseImports(file.patch)) {
       for (const stem of importStems(module, file.filename, files)) {
         const alternatives = [`${stem}.py`, `${stem}/__init__.py`];
@@ -148,13 +169,16 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
     }
     for (const raw of file.patch.split('\n')) {
       // Enclosing definitions of modified hunks: callers live elsewhere.
-      const hunk = /^@@ [^@]*@@\s*(?:async\s+)?(?:def|class)\s+([A-Za-z_]\w{4,})/.exec(raw);
-      if (hunk && !defined.has(hunk[1])) addSignal(signals, hunk[1], 'symbol', 100, file.filename);
+      const enclosing = raw.startsWith('@@') ? enclosingDefinition(raw) : null;
+      if (enclosing && !defined.has(enclosing)) addSignal(signals, enclosing, 'symbol', 100, file.filename);
       // Only changed lines carry signals; context lines are unrelated to the change.
       if (!/^[+-]/.test(raw) || /^(?:\+\+\+|---)/.test(raw)) continue;
       const line = raw.slice(1);
       if (raw.startsWith('-')) {
-        for (const match of line.matchAll(/\b(?:class|def)\s+([A-Za-z_]\w{4,})/g)) addSignal(signals, match[1], 'symbol', 100, file.filename);
+        for (const match of line.matchAll(DEFINITION)) {
+          const name = match[1] || match[2];
+          if (name.length > 4) addSignal(signals, name, 'symbol', 100, file.filename);
+        }
       }
       for (const match of line.matchAll(/\b(?:config|cfg|settings|options?)\.([A-Za-z_]\w{3,})/gi)) {
         if (!defined.has(match[1])) addSignal(signals, match[1], 'config', 90, file.filename);
@@ -162,7 +186,20 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
       for (const match of line.matchAll(/["']([A-Z][A-Z0-9_]{5,})["']/g)) {
         if (!defined.has(match[1])) addSignal(signals, match[1], 'config', 85, file.filename);
       }
+      // C/C++ macros, CMake/Bazel options and Go constants are not quoted.
+      if (native || build || go) {
+        for (const match of line.matchAll(/(?<![\w"'])([A-Z][A-Z0-9]*_[A-Z0-9_]{3,})(?![\w"'])/g)) {
+          if (!defined.has(match[1])) addSignal(signals, match[1], 'config', 80, file.filename);
+        }
+      }
       if (test) continue;
+      // Go and C++ call sites: pkg.Func( / obj.Method( / ns::Func( / CamelCaseFunction(.
+      if (native || go) {
+        for (const match of line.matchAll(/(?:\b[a-z]\w*\.|::)([A-Z]\w{3,})\s*\(|\b([A-Z][a-z0-9]+(?:[A-Z][a-z0-9]*)+)\s*\(/g)) {
+          const name = match[1] || match[2];
+          if (!defined.has(name)) addSignal(signals, name, 'symbol', 60, file.filename);
+        }
+      }
       for (const match of line.matchAll(/\b(_?[A-Za-z][A-Za-z0-9_]*_[A-Za-z0-9_]+)\b/g)) {
         if (!defined.has(match[1]) && !imported.has(match[1]) && !/^test_/.test(match[1])) addSignal(signals, match[1], 'symbol', 55, file.filename);
       }
@@ -182,6 +219,7 @@ export function extractRepositoryContextSignals(files, { maxSearchSignals = 6, m
       .slice(0, maxImports)
       .map(value => ({ ...value, path: value.alternatives[0], symbols: [...value.symbols], origins: [...value.origins], terms: [...value.terms] })),
     signals: selected.map(value => ({ ...value, origins: [...value.origins] })),
+    includes: [...includes.values()].slice(0, maxImports),
   };
 }
 
@@ -195,8 +233,11 @@ function excerptAround(content, terms, maxChars = 2600) {
   const lines = content.replace(/\r\n/g, '\n').split('\n');
   let target = 0;
   for (const term of terms) {
-    const found = lines.findIndex(line => line.includes(term));
-    if (found >= 0) { target = found; break; }
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const definition = new RegExp(`(?:\\b(?:def|class|struct|func|type|enum|using)\\s+(?:\\([^)]*\\)\\s*)?${escaped}\\b|#\\s*define\\s+${escaped}\\b|^\\s*${escaped}\\s*[:=]|^[\\w:<>,*&\\s]+\\b${escaped}\\s*\\()`);
+    const found = lines.findIndex(line => definition.test(line));
+    const any = found >= 0 ? found : lines.findIndex(line => line.includes(term));
+    if (any >= 0) { target = any; break; }
   }
   let start = Math.max(0, target - 18), end = Math.min(lines.length, target + 35);
   let rendered = lines.slice(start, end).map((line, index) => `${start + index + 1}: ${line}`).join('\n');
@@ -246,11 +287,34 @@ function definitionExcerpt(content, symbols, maxChars) {
 const errorCode = error => Number.isInteger(error?.status) ? `http_${error.status}` : 'unavailable';
 const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-async function loadBaseSnapshot(octokit, owner, repo, baseSha, timeoutMs) {
-  const response = await octokit.request('GET /repos/{owner}/{repo}/tarball/{ref}', {
-    owner, repo, ref: baseSha, request: { timeout: timeoutMs } });
-  if (typeof response.data === 'string') throw new Error('tarball_unavailable');
-  return extractSources(Buffer.from(response.data), baseSha);
+// One snapshot per base commit, shared by the context builder, review rules and
+// concurrent reviews of PRs against the same base. Only the latest few are kept.
+const snapshotCache = new Map();
+const SNAPSHOT_CACHE_SIZE = 3;
+const parentDirs = files => {
+  const dirs = new Set();
+  for (const file of files) {
+    const parts = file.filename.split('/').slice(0, -1);
+    for (let i = 1; i <= Math.min(parts.length, 3); i++) dirs.add(parts.slice(0, i).join('/') + '/');
+  }
+  return [...dirs];
+};
+
+export function loadBaseSnapshot({ octokit, owner, repo, baseSha, files = [], timeoutMs = 120000 }) {
+  const key = `${owner}/${repo}@${baseSha}`;
+  if (!snapshotCache.has(key)) {
+    const near = parentDirs(files);
+    const loading = (async () => {
+      const response = await octokit.request('GET /repos/{owner}/{repo}/tarball/{ref}', {
+        owner, repo, ref: baseSha, request: { timeout: timeoutMs } });
+      if (typeof response.data === 'string') throw new Error('tarball_unavailable');
+      return extractSourcesStreaming(Buffer.from(response.data), baseSha, { prefer: path => near.some(dir => path.startsWith(dir)) });
+    })();
+    snapshotCache.set(key, loading);
+    loading.catch(() => snapshotCache.delete(key));
+    while (snapshotCache.size > SNAPSHOT_CACHE_SIZE) snapshotCache.delete(snapshotCache.keys().next().value);
+  }
+  return snapshotCache.get(key);
 }
 
 // Code search only indexes the default branch, while these PRs target release
@@ -267,17 +331,17 @@ function searchSnapshot(snapshot, name, limit = 20) {
 
 export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, maxFiles = 8,
   maxChars = 16000, maxSearchSignals, searchIntervalMs = DEFAULT_SEARCH_INTERVAL_MS, log = () => {},
-  useBaseSnapshot = true, snapshotTimeoutMs = 60000 }) {
+  useBaseSnapshot = true, snapshotTimeoutMs = 120000, snapshot: suppliedSnapshot }) {
   const changed = new Set(files.map(file => file.filename));
-  let snapshot = null;
-  if (useBaseSnapshot && /^[a-f0-9]{40}$/.test(baseSha || '')) {
-    try { snapshot = await loadBaseSnapshot(octokit, owner, repo, baseSha, snapshotTimeoutMs); }
+  let snapshot = suppliedSnapshot || null;
+  if (!snapshot && useBaseSnapshot && /^[a-f0-9]{40}$/.test(baseSha || '')) {
+    try { snapshot = await loadBaseSnapshot({ octokit, owner, repo, baseSha, files, timeoutMs: snapshotTimeoutMs }); }
     catch (error) { log(`[Review context] base-snapshot failed code=${errorCode(error)}; falling back to code search`); }
   }
   // Local search has no rate limit, so it can afford more signals and hits.
   const signalLimit = maxSearchSignals ?? (snapshot ? 8 : 3);
   const searchEntryLimit = snapshot ? 5 : 3, searchCharLimit = snapshot ? 9000 : 6000;
-  const { imports, signals } = extractRepositoryContextSignals(files, { maxSearchSignals: signalLimit });
+  const { imports, signals, includes } = extractRepositoryContextSignals(files, { maxSearchSignals: signalLimit });
   const candidates = new Map();
   let failures = 0;
   const addCandidate = ({ path, alternatives = [path], symbols = [], kind, terms, origins, score }) => {
@@ -295,6 +359,17 @@ export async function buildPrRepositoryContext({ octokit, owner, repo, baseSha, 
 
   for (const imported of imports) {
     addCandidate({ ...imported, kind: 'import', terms: [...imported.symbols, ...imported.terms], score: imported.test ? 110 : 130 });
+  }
+  // Quoted #include paths resolve next to the including file, else by a unique
+  // path suffix in the base snapshot (include roots are build-system specific).
+  if (snapshot) for (const { include, origin } of includes) {
+    const local = [...origin.split('/').slice(0, -1), include].join('/');
+    let path = snapshot.files.has(local) ? local : null;
+    if (!path) {
+      const matches = [...snapshot.files.keys()].filter(name => name === include || name.endsWith(`/${include}`));
+      if (matches.length === 1) path = matches[0];
+    }
+    if (path) addCandidate({ path, kind: 'import', terms: [], origins: [origin], score: 120 });
   }
   const searched = new Map();
   for (const signal of signals) {
@@ -408,4 +483,18 @@ export function prDescriptionContext(description, maxChars = 6000) {
   if (typeof description !== 'string' || !description.trim()) return '';
   const normalized = description.trim().replace(/\u0000/g, '');
   return normalized.length > maxChars ? `${normalized.slice(0, maxChars)}\n[PR 描述已按长度截断]` : normalized;
+}
+
+// Everything the legacy engine needs from the base branch, from one snapshot:
+// unchanged-code context and maintainer review rules (AGENTS.md / REVIEW.md).
+export async function prepareRepositoryReview({ octokit, owner, repo, baseSha, files, log = () => {} }) {
+  let snapshot = null;
+  if (/^[a-f0-9]{40}$/.test(baseSha || '')) {
+    try { snapshot = await loadBaseSnapshot({ octokit, owner, repo, baseSha, files }); }
+    catch (error) { log(`[Review context] base-snapshot failed code=${errorCode(error)}; falling back to code search`); }
+  }
+  const repositoryContext = await buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, log, snapshot, useBaseSnapshot: false });
+  const reviewRules = repositoryReviewRules(snapshot, files);
+  if (snapshot) log(`[Review context] snapshot files=${snapshot.files.size} omitted=${snapshot.omittedFiles} rules=${reviewRules.length}`);
+  return { repositoryContext, reviewRules };
 }

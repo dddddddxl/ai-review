@@ -9,7 +9,8 @@ import { App } from "octokit";
 import { createModelClient } from "./model-client.mjs";
 import { createCiReviewer } from "./ci-review.mjs";
 import { DEFAULT_BATCH_PARALLELISM, DEFAULT_REVIEW_DURATION_MS, reviewPrBatches } from "./pr-review.mjs";
-import { buildPrRepositoryContext } from './pr-context.mjs';
+import { prepareRepositoryReview } from './pr-context.mjs';
+import { resolveReviewProfile } from './repo-profile.mjs';
 import { upstreamContextForFiles, upstreamRoots } from './upstream-context.mjs';
 import { createRepositoryEvidence } from './review-evidence.mjs';
 import { deleteProgressComment, publishPrReview, updateReviewWithCiEvidence, upsertProgressComment } from './pr-publication.mjs';
@@ -154,8 +155,10 @@ async function reviewPullRequest(job) {
     pull_number: pullNumber,
     per_page: 100,
   });
-  const repositoryContext = prReviewEngine === 'legacy' ? await buildPrRepositoryContext({ octokit, owner, repo, baseSha: currentPr.base.sha, files,
-    log: message => console.log(message) }) : [];
+  const { repositoryContext, reviewRules } = prReviewEngine === 'legacy' ? await prepareRepositoryReview({ octokit, owner, repo,
+    baseSha: currentPr.base.sha, files, log: message => console.log(message) }) : { repositoryContext: [], reviewRules: '' };
+  const profile = resolveReviewProfile({ repository, files });
+  console.log(`[Review profile] repository=${repository} pr=${pullNumber} profile=${profile.key}`);
   const upstreamContext = prReviewEngine === 'legacy' ? upstreamContextForFiles(files, {
     roots: upstreamRoots(process.env, { repository, baseRef: currentPr.base.ref }) }) : new Map();
   if (upstreamContext.size) console.log(`[Review context] upstream adapters=${upstreamContext.size} repository=${repository} pr=${pullNumber}`);
@@ -173,8 +176,10 @@ async function reviewPullRequest(job) {
     headSha: currentPr.head.sha, baseSha: currentPr.base.sha, totalFiles: currentPr.changed_files, state: reviewState,
     batchChars: positiveInteger(process.env.AI_REVIEW_BATCH_CHARS, prReviewEngine === 'evidence-v1' ? 80000 : 10000),
     maxDurationMs, deadlineAt,
-    engine: prReviewEngine, evidenceFactory, thinking: prReviewThinking,
-    batchParallelism: boundedPositiveInteger(process.env.AI_REVIEW_BATCH_PARALLELISM, DEFAULT_BATCH_PARALLELISM, 16),
+    engine: prReviewEngine, evidenceFactory, thinking: prReviewThinking, profile, reviewRules,
+    // With other reviews in flight, one large PR must not hold every model slot.
+    batchParallelism: Math.min(activeWorkers > 1 ? 2 : 16,
+      boundedPositiveInteger(process.env.AI_REVIEW_BATCH_PARALLELISM, DEFAULT_BATCH_PARALLELISM, 16)),
     isCurrent,
     onProgress: async progress => {
       if (Date.now() - lastPublished < 60000 || !await isCurrent()) return;

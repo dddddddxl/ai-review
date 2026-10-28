@@ -36,7 +36,7 @@ test('a failed snapshot download falls back to code search', async () => {
     rest: { search: { code: async args => { queries.push(args.q); return { data: { items: [] } }; } },
       repos: { getContent: async () => ({ data: null }) } },
   };
-  await buildPrRepositoryContext({ octokit, owner: 'o', repo: 'r', baseSha: 'b'.repeat(40), files, searchIntervalMs: 0, log: m => logs.push(m) });
+  await buildPrRepositoryContext({ octokit, owner: 'o', repo: 'r', baseSha: 'c'.repeat(40), files, searchIntervalMs: 0, log: m => logs.push(m) });
   assert.ok(logs.some(m => m.includes('base-snapshot failed code=http_404')));
   assert.deepEqual(queries, ['VLLM_HCU_VISIBLE_DEVICES repo:o/r']);
 });

@@ -8,7 +8,8 @@ import { createModelClient } from '../src/model-client.mjs';
 import { createModelUsageMeter } from '../src/model-usage.mjs';
 import { limitModelConcurrency, ReviewState } from '../src/review-state.mjs';
 import { DEFAULT_REVIEW_DURATION_MS, reviewPrBatches } from '../src/pr-review.mjs';
-import { buildPrRepositoryContext } from '../src/pr-context.mjs';
+import { prepareRepositoryReview } from '../src/pr-context.mjs';
+import { resolveReviewProfile } from '../src/repo-profile.mjs';
 import { upstreamContextForFiles, upstreamRoots } from '../src/upstream-context.mjs';
 import { buildPrReviewPublication } from '../src/pr-publication.mjs';
 import {createRepositoryEvidence} from '../src/review-evidence.mjs';
@@ -111,13 +112,15 @@ const candidates = [];
 const roots=upstreamRoots(process.env,{repository:fullName,baseRef});
 const upstreamContext = engine==='legacy'?upstreamContextForFiles(files,{roots}):new Map();
 const result = await scope.run(async () => {
-  const repositoryContext = engine==='legacy'?await buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, log }):[];
+  const { repositoryContext, reviewRules } = engine==='legacy'?await prepareRepositoryReview({ octokit, owner, repo, baseSha, files, log }):{ repositoryContext: [], reviewRules: '' };
+  const profile = resolveReviewProfile({ repository: fullName, files });
+  log(`[Replay] profile ${profile.key} rules=${reviewRules.length}chars`);
   const evidenceFactory=engine==='evidence-v1'?createRepositoryEvidence({octokit,owner,repo,baseSha,headSha,roots,deadlineAt:started+maxDurationMs}):undefined;
   log(`[Replay] context ${repositoryContext.map(entry => `${entry.filename}(${entry.kinds.join('+')})`).join(' ') || '(none)'}`);
   log(`[Replay] upstream ${[...upstreamContext].map(([file, text]) => `${file}:${(text.match(/^TARGET: /gm) || []).length}targets/${text.length}chars`).join(' ') || '(none)'}`);
   return reviewPrBatches({ client, files, repository: fullName, pullNumber, title: pr.title,
     prDescription: pr.body || '', repositoryContext, upstreamContext, headSha, baseSha, totalFiles: files.length,
-    engine,evidenceFactory,thinking:process.env.AI_REVIEW_THINKING!=='off',batchParallelism:Number(process.env.AI_REVIEW_BATCH_PARALLELISM)||undefined,batchChars: Number(process.env.AI_REVIEW_BATCH_CHARS) || (engine==='evidence-v1'?80000:10000), log,
+    engine,evidenceFactory,profile,reviewRules,thinking:process.env.AI_REVIEW_THINKING!=='off',batchParallelism:Number(process.env.AI_REVIEW_BATCH_PARALLELISM)||undefined,batchChars: Number(process.env.AI_REVIEW_BATCH_CHARS) || (engine==='evidence-v1'?80000:10000), log,
     state: new ReviewState(path.join(out, 'state')), maxDurationMs, deadlineAt: started + maxDurationMs,
     onCandidates: record => { candidates.push(record); fs.writeFileSync(path.join(out, 'candidates.json'), JSON.stringify(candidates, null, 2)); } });
 });

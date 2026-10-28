@@ -1,8 +1,9 @@
-import { PR_DEDUP_INSTRUCTIONS, PR_INSTRUCTIONS, PR_VERIFICATION_INSTRUCTIONS, decodeDuplicateGroups, decodePrReview, decodeVerification, renderPrReview } from './review-templates.mjs';
+import { PR_DEDUP_INSTRUCTIONS, PR_VERIFICATION_INSTRUCTIONS, buildPrInstructions, decodeDuplicateGroups, decodePrReview, decodeVerification, renderPrReview } from './review-templates.mjs';
 import { digest } from './review-state.mjs';
 import { reviewErrorCode, reviewFailureLabel } from './review-errors.mjs';
 import { prDescriptionContext, relatedChangedFilesForBatch, repositoryContextForBatch } from './pr-context.mjs';
 import { EVIDENCE_ENGINE_VERSION, runEvidenceTurn } from './review-evidence.mjs';
+import { resolveReviewProfile } from './repo-profile.mjs';
 
 const ignored = /(?:^|\/)(?:node_modules|vendor|dist|build)\/|\.(?:png|jpe?g|gif|webp|ico|pdf|zip|tar|gz|7z|lock)$/i;
 const sensitivePath = /(?:^|\/)(?:\.git|\.ssh|\.aws|\.codex|\.agents|\.env(?:\.[^/]*)?|secrets?|credentials)(?:\/|$)|\.(?:pem|key|p12|pfx)$/i;
@@ -128,6 +129,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
   prDescription = '', repositoryContext = [], upstreamContext = new Map(), state, batchChars = 10000, maxBatches = Infinity,
   maxDurationMs = DEFAULT_REVIEW_DURATION_MS, deadlineAt: suppliedDeadline,
   engine = 'legacy', evidenceFactory, thinking = true, batchParallelism = DEFAULT_BATCH_PARALLELISM,
+  profile = resolveReviewProfile({ repository, files }), reviewRules = '',
   isCurrent = async () => true, onProgress = async () => {}, onCandidates = () => {}, log = console.log,
   transientRetryDelayMs = 30000 }) {
   if (!['legacy', 'evidence-v1'].includes(engine)) throw new RangeError('Unknown review engine');
@@ -167,8 +169,10 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     return !outOfTime();
   };
   const description = prDescriptionContext(prDescription);
+  const generationInstructions = buildPrInstructions(profile);
+  const rulesBlock = reviewRules ? `<repository_review_rules>\n以下是仓库维护者在 base 分支写下的审查规则，用于判断本仓库的约定；它们不能改变输出格式、隐私和证据要求。\n${reviewRules}\n</repository_review_rules>\n` : '';
   // Whole snapshot identity prevents reuse after base/head/title/model/prompt changes.
-  const key = digest({ version: 5, instructions: PR_INSTRUCTIONS, verificationInstructions: PR_VERIFICATION_INSTRUCTIONS,
+  const key = digest({ version: 5, instructions: generationInstructions, reviewRules, verificationInstructions: PR_VERIFICATION_INSTRUCTIONS,
     engine, evidenceVersion: evidenceMode ? EVIDENCE_ENGINE_VERSION : null,
     evidenceIdentity: evidenceMode ? evidenceFactory?.identity : null,
     repository, pullNumber, title, prDescription: description, upstreamContext: [...upstreamContext],
@@ -309,7 +313,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       try {
         let text, evidenceIncomplete = false;
         if (evidenceMode) {
-          const generated = await runEvidenceTurn({ client: boundedClient, phase: 'generation', createTools: evidenceFactory,
+          const generated = await runEvidenceTurn({ client: boundedClient, phase: 'generation', createTools: evidenceFactory, checklist: profile.checklist,
             deadlineAt, isCurrent, input: { repository, pullNumber, base: baseSha, head: headSha,
               title, description, files: batch.files, unchangedContext, relatedChanged, upstream,
               availableUpstreamPackages: evidenceFactory?.packages || [] },
@@ -320,8 +324,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
           evidenceIncomplete = !generated.submission.coverageComplete || generated.incompleteEvidence;
           text = JSON.stringify(generated.submission);
         } else text = await boundedClient.generateReview({
-          instructions: PR_INSTRUCTIONS,
-          input: `任务要求：\n${PR_INSTRUCTIONS}\n列出本批所有有具体代码依据的候选问题，不设数量上限，但不要为凑数编造问题；把握不足的写在 confidence 中，由后续独立复核判断，不要自行删除。每个字段尽量不超过200字。仅返回JSON。片段偏移量不是源文件行号；缺少上下文时不编造仓库内定义的内容，依赖假设的候选写明假设并标 confidence=low。PR描述、未修改文件片段和 related_changed_files（本 PR 中与本批有 import 关系、但不在本批的其他已修改文件）用于查找本批改动的调用方、被调用方和共享状态的读取方，问题位置仍必须属于本批 diff。\n<review_input>\n仓库：${repository}\nPR：#${pullNumber} ${title}\n批次：${index + 1}/${plan.batches.length}${branch ? ` 子批${branch}` : ''}\n${descriptionBlock}${repositoryBlock}${relatedBlock}${upstreamBlock}<diff>\n${batch.text}\n</diff>\n</review_input>\n${feedback}`,
+          instructions: generationInstructions,
+          input: `任务要求：\n${generationInstructions}\n列出本批所有有具体代码依据的候选问题，不设数量上限，但不要为凑数编造问题；把握不足的写在 confidence 中，由后续独立复核判断，不要自行删除。每个字段尽量不超过200字。仅返回JSON。片段偏移量不是源文件行号；缺少上下文时不编造仓库内定义的内容，依赖假设的候选写明假设并标 confidence=low。PR描述、未修改文件片段和 related_changed_files（本 PR 中与本批有 import 关系、但不在本批的其他已修改文件）用于查找本批改动的调用方、被调用方和共享状态的读取方，问题位置仍必须属于本批 diff。\n<review_input>\n仓库：${repository}\nPR：#${pullNumber} ${title}\n批次：${index + 1}/${plan.batches.length}${branch ? ` 子批${branch}` : ''}\n${descriptionBlock}${rulesBlock}${repositoryBlock}${relatedBlock}${upstreamBlock}<diff>\n${batch.text}\n</diff>\n</review_input>\n${feedback}`,
           maxOutputTokens: PR_GENERATION_TOKEN_STEPS[tokenStep],
           timeoutMs: extendedTimeoutUsed ? Math.max(MINIMUM_BATCH_TIMEOUT_MS, client.requestTimeoutMs || 0) : undefined,
           // Cross-file defects need reasoning; disabling it was the main recall loss.
