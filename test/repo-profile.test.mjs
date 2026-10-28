@@ -97,3 +97,11 @@ test('C++ includes and Go calls become repository context signals', async () => 
   assert.ok(names.includes('pkg/device/list.go'));
   assert.match(entries.find(entry => entry.filename === 'pkg/device/list.go').excerpt, /3: func ListVisibleDevices/);
 });
+
+test('sanitizing long lines of %, . and digits stays linear', async () => {
+  const { cleanText } = await import('../src/review-agent.mjs');
+  const started = Date.now();
+  cleanText(`${'%arg0.'.repeat(40000)}@`);
+  assert.ok(Date.now() - started < 2000);
+  assert.equal(cleanText('mail robert.459@gmail.com now'), 'mail [REDACTED_EMAIL] now');
+});

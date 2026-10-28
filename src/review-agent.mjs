@@ -15,7 +15,9 @@ export const cleanText = text => String(text)
   .replace(/\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+)\b/g, '[REDACTED]')
   .replace(/(authorization\s*[:=]\s*['"]?Bearer\s+)[^\s'"]+/gi, '$1[REDACTED]')
   .replace(/((?:api[_-]?key|password|secret|access[_-]?token)["']?\s*[:=]\s*)(['"])([^'"\r\n]+)\2/gi, '$1$2[REDACTED]$2')
-  .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[REDACTED_EMAIL]')
+  // Bounded quantifiers: unbounded runs backtrack quadratically on long lines
+  // of %, . and digits (an MLIR test file took 56s). RFC limits are 64/253.
+  .replace(/[A-Z0-9._%+-]{1,64}@[A-Z0-9.-]{1,253}\.[A-Z]{2,24}/gi, '[REDACTED_EMAIL]')
   .replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/g, '[REDACTED_KEY]');
 // A diff marker is not the local part of an email address: +@pytest.fixture
 // must stay a Python decorator. Sanitize source before restoring its marker.
