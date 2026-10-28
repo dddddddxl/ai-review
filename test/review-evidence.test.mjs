@@ -25,7 +25,7 @@ const toolsResponse=requests=>({message:{role:'assistant',tool_calls:requests.ma
 test('RC1 complete-file units never split a large patch at characters/hunks',()=>{
  const patch='@@ -0,0 +1 @@\n+'+'x'.repeat(30000);
  const plan=makeBatches([{filename:'large.py',patch,status:'added'}],{batchChars:1000,wholeFiles:true});
- assert.equal(plan.batches.length,1);assert.equal(plan.batches[0].fragments[0].end,patch.length);assert.ok(plan.batches[0].text.includes(patch));
+ assert.equal(plan.batches.length,1);assert.equal(plan.batches[0].fragments[0].end,patch.length);assert.ok(plan.batches[0].text.includes(`    1 +${'x'.repeat(30000)}`));
 });
 test('sensitive diff paths are omitted before model input',()=>{
  const plan=makeBatches([{filename:'.env',patch:'+credential'},{filename:'secrets/config.py',patch:'+credential'},...files],{wholeFiles:true});

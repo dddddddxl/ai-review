@@ -53,7 +53,11 @@ const match = (expected, found) => {
 };
 const best = (expected, list) => {
   const scored = list.map(found => ({ found, kind: match(expected, found) })).filter(entry => entry.kind);
-  return scored.find(entry => entry.kind === 'location') || scored[0] || null;
+  // Among equal-kind matches prefer the best verdict, so an unrelated refuted
+  // candidate in the same file cannot hide a confirmed one without a line.
+  const rank = entry => ({ confirmed: 0, uncertain: 1, refuted: 2 })[entry.found.verdict] ?? 1;
+  const pick = kind => scored.filter(entry => entry.kind === kind).sort((a, b) => rank(a) - rank(b))[0];
+  return pick('location') || pick('file') || null;
 };
 const stages = ['generated', 'published', 'confirmed'];
 const totals = Object.fromEntries(stages.map(stage => [stage, { location: 0, file: 0 }]));

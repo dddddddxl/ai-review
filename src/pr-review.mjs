@@ -17,6 +17,27 @@ export const DEFAULT_REVIEW_DURATION_MS = 45 * 60 * 1000;
 export const DEFAULT_BATCH_PARALLELISM = 4;
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// Prefix each diff line in [start, end) with its new-side source line number;
+// removed lines get none. Without numbers the model left `line` null for ~20%
+// of candidates (it would have to count hundreds of lines in new files), and
+// those cannot be placed as inline comments.
+export function numberPatch(patch, start = 0, end = patch.length) {
+  const out = [];
+  let newLine = null, pos = 0;
+  for (const raw of patch.split('\n')) {
+    const lineStart = pos;
+    pos += raw.length + 1;
+    if (lineStart >= end) break;
+    const hunk = /^@@ -\d+(?:,\d+)? \+(\d+)/.exec(raw);
+    const inRange = lineStart >= start;
+    if (hunk) { newLine = Number(hunk[1]); if (inRange) out.push(raw); continue; }
+    let label = '';
+    if (newLine !== null && (raw.startsWith('+') || raw.startsWith(' '))) label = String(newLine++);
+    if (inRange) out.push(`${label.padStart(5)} ${raw}`);
+  }
+  return out.join('\n');
+}
+
 export function makeBatches(files, { batchChars = 10000, wholeFiles = false } = {}) {
   if (!Number.isInteger(batchChars) || batchChars < 1000) throw new Error('batchChars must be at least 1000');
   const batches = [], selected = [], omitted = [];
@@ -31,7 +52,7 @@ export function makeBatches(files, { batchChars = 10000, wholeFiles = false } = 
     // Repeat filename and fragment metadata for every piece, including oversized files.
     const header = `FILE: ${file.filename}\nSTATUS: ${file.status}\n`;
     if (wholeFiles) {
-      const section = `${header}${patch}\n`;
+      const section = `${header}${numberPatch(patch)}\n`;
       if (current.text && (current.text.length + section.length > batchChars || current.files.length >= 6)) flush();
       current.text += section;
       current.files.push(file);
@@ -49,7 +70,7 @@ export function makeBatches(files, { batchChars = 10000, wholeFiles = false } = 
         else if (newline > offset) end = newline + 1;
       }
       const previous = offset ? patch.slice(Math.max(0, offset - 350), offset) : '';
-      const section = `${header}PATCH FRAGMENT OFFSET: ${offset} (not a source line number)\n${previous ? `PRECEDING CONTEXT (may start mid-line):\n${previous}\nEND CONTEXT\n` : ''}${patch.slice(offset, end)}\n`;
+      const section = `${header}PATCH FRAGMENT OFFSET: ${offset} (not a source line number)\n${previous ? `PRECEDING CONTEXT (may start mid-line):\n${previous}\nEND CONTEXT\n` : ''}${numberPatch(patch, offset, end)}\n`;
       if (current.text.length + section.length > batchChars) flush();
       current.text += section;
       current.fragments.push({ filename: file.filename, start: offset, end });
@@ -114,7 +135,7 @@ export function splitReviewBatch(batch, { minChars = 1500 } = {}) {
       const hunk = [...before.matchAll(/^@@ .*@@.*$/gm)].at(-1)?.[0];
       return `FILE: ${f.filename}\nSTATUS: ${file.status}\nPATCH FRAGMENT OFFSET: ${f.start} (not a source line number)\n` +
         (f.start ? `PRECEDING CONTEXT (not a new hunk; offsets are not source lines):\n${hunk || ''}\n${before.slice(-350)}\nEND CONTEXT\n` : '') +
-        file.patch.slice(f.start, f.end) + '\n';
+        numberPatch(file.patch, f.start, f.end) + '\n';
     }).join('\n');
     return { files, fragments, text };
   });
@@ -432,7 +453,12 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         // output), never to the log: they can contain unreviewed PR content.
         onCandidates({ batch: `${index + 1}${branch}`, candidates: judged });
         best.findings = judged.filter(finding => finding.verdict === 'confirmed').map(({ verdict, ...finding }) => finding);
-        best.uncertain = judged.filter(finding => finding.verdict === 'uncertain').map(({ verdict, ...finding }) => finding);
+        // Unverified P3 items are not published. In the 2026-10-28 replays 142
+        // such items were half of the output; the 19 near a reference defect
+        // described a different issue, or one already confirmed separately.
+        // The verifier prompt is unchanged, so confirmed recall is unaffected.
+        best.uncertain = judged.filter(finding => finding.verdict === 'uncertain' && finding.priority !== 'P3')
+          .map(({ verdict, ...finding }) => finding);
         verified = true;
         log(`[Review verify] ${repository}#${pullNumber} batch=${index + 1}${branch} candidates=${before} confirmed=${best.findings.length} uncertain=${best.uncertain.length}`);
       } catch (error) {

@@ -23,6 +23,19 @@ test('generation and verification reason by default; thinking=false restores the
   assert.deepEqual(disabled.map(call => call.disableThinking), [true, true]);
 });
 
+test('uncertain P3 candidates are not published; uncertain P1/P2 stay for manual follow-up', async () => {
+  const candidates = [{ ...finding, priority: 'P2', title: 'serious' }, { ...finding, priority: 'P3', title: 'minor' }];
+  const client = { model: 'mock', format: 'mock', async generateReview(options) {
+    return options.instructions === PR_VERIFICATION_INSTRUCTIONS
+      ? JSON.stringify({ verdicts: [0, 1].map(index => ({ index, verdict: 'uncertain', reason: 'unverified' })) })
+      : JSON.stringify({ overview: [], findings: candidates });
+  } };
+  const judged = [];
+  const result = await reviewPrBatches({ ...args, client, onCandidates: record => judged.push(...record.candidates) });
+  assert.deepEqual(result.reviewUncertain.map(f => f.title), ['serious']);
+  assert.equal(judged.length, 2);
+});
+
 test('generation prompt favours recall; verification and CI prompts keep the strict rules', () => {
   assert(PR_INSTRUCTIONS.includes(PR_RISK_CHECKLIST));
   assert(PR_INSTRUCTIONS.includes('漏报的代价高于误报'));
@@ -60,4 +73,17 @@ test('a slow batch does not hold back the next ones', async () => {
   } };
   await reviewPrBatches({ ...args, files: manyFiles(4), client, batchChars: 5000, batchParallelism: 2 });
   assert.equal(finished.at(-1), 'slow');
+});
+
+test('diff lines carry new-side line numbers, also in fragments that start mid-hunk', async () => {
+  const { numberPatch, makeBatches } = await import('../src/pr-review.mjs');
+  const patch = '@@ -1,3 +10,4 @@ def f():\n ctx\n-old\n+new1\n+new2\n ctx2';
+  assert.equal(numberPatch(patch), '@@ -1,3 +10,4 @@ def f():\n   10  ctx\n      -old\n   11 +new1\n   12 +new2\n   13  ctx2');
+  assert.equal(numberPatch(patch, patch.indexOf('+new2')), '   12 +new2\n   13  ctx2');
+  const long = `@@ -0,0 +1,400 @@\n${Array.from({ length: 400 }, (_, i) => `+line ${i + 1} ${'y'.repeat(40)}`).join('\n')}`;
+  const plan = makeBatches([{ filename: 'doc.md', status: 'added', patch: long }], { batchChars: 5000 });
+  assert.ok(plan.batches.length > 1);
+  for (const batch of plan.batches) {
+    for (const match of batch.text.matchAll(/^\s*(\d+) \+line (\d+) /gm)) assert.equal(match[1], match[2]);
+  }
 });
