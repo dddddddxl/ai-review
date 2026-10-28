@@ -11,12 +11,22 @@
 //                 (likely, not certain, to be the fix)
 //   outdated      GitHub marks the comment outdated, lines not located
 //   unconfirmed   none of the above; out of the recall denominator by default
+//
+// EVAL_REFERENCE_REVIEWERS=humans uses every non-bot reviewer instead. Human
+// comments mix defects with process requests (rename, delete, move a test,
+// add docs); those are dropped by keyword and the rest kept with kind=human so
+// they can be scored separately and spot-checked.
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const [fullName, ...numbers] = process.argv.slice(2);
 const reviewers = (process.env.EVAL_REFERENCE_REVIEWERS || 'chatgpt-codex-connector[bot]').split(',');
+const humans = reviewers.includes('humans');
+const isBot = user => user?.type === 'Bot' || /\[bot\]$/.test(user?.login || '');
+// Process requests, style, questions and acknowledgements are not defects.
+const processOnly = /^(?:\s*(?:lgtm|ok|好的|收到|同上|\+1|nit[:：]?)\s*$)|(?:文件名|命名|改名|改成英文|重命名|删除(?:该|这个)?文件|将该文件删除|移到|放到|挪到|补充?(?:一下)?(?:测试|readme|文档|注释)|缺少readme|不需要上传|统一规范|格式|缩进|空行|typo|rename|nit\b|style)/i;
+const isQuestionOnly = body => /[?？]\s*$/.test(body.trim()) && body.trim().length < 60;
 if (!/^[\w.-]+\/[\w.-]+$/.test(fullName || '') || !numbers.length) {
   throw new Error('Usage: build-eval-set.mjs OWNER/REPO PR [PR ...]');
 }
@@ -70,7 +80,10 @@ for (const number of numbers.map(Number)) {
     replies.set(comment.in_reply_to_id, [...(replies.get(comment.in_reply_to_id) || []), comment]);
   }
   for (const comment of comments) {
-    if (comment.in_reply_to_id || !reviewers.includes(comment.user?.login)) continue;
+    if (comment.in_reply_to_id) continue;
+    if (humans ? isBot(comment.user) || comment.user?.login === pr.user?.login : !reviewers.includes(comment.user?.login)) continue;
+    const body = comment.body || '';
+    if (humans && (processOnly.test(body) || isQuestionOnly(body) || body.trim().length < 8)) continue;
     const thread = replies.get(comment.id) || [];
     const authorFixed = thread.some(reply => reply.user?.login === pr.user?.login && fixedReply.test(reply.body || ''));
     const line = comment.original_line ?? comment.line ?? null;
@@ -81,7 +94,9 @@ for (const number of numbers.map(Number)) {
       repository: fullName, pullNumber: number, title: pr.title,
       baseRef: pr.base.ref, baseSha: pr.base.sha, headSha: comment.original_commit_id,
       file: comment.path, line,
-      priority: priorityOf(comment.body || ''), issue: titleOf(comment.body || ''),
+      priority: priorityOf(body) || /^\s*P([0-3])\b/.exec(body)?.[0].trim() || null,
+      issue: humans ? body.replace(/\s+/g, ' ').trim().slice(0, 200) : titleOf(body),
+      ...(humans ? { kind: 'human', reviewer: comment.user?.login } : {}),
       label: authorFixed ? 'author_fixed' : rewritten ? 'changed_after' : comment.position === null ? 'outdated' : 'unconfirmed',
       url: comment.html_url,
     });
