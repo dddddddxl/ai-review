@@ -4,6 +4,7 @@ import { restrictedCiMessage, safeGateStatus } from './ci-publication.mjs';
 const MAX_FILE_ROWS = 20;
 const MAX_UNPOSITIONED_FINDINGS = 5;
 const MAX_UNCERTAIN_CANDIDATES = 5;
+const MAX_P3_UNCERTAIN_CANDIDATES = 3;
 const priorities = ['P1', 'P2', 'P3'];
 
 const sensitivePatterns = [
@@ -148,9 +149,9 @@ function unpositionedSection(findings) {
 
 // Candidates the verifier could neither confirm nor refute. They are not
 // findings: no inline comments, folded by default, and never a green status.
-function uncertainSection(candidates) {
+function uncertainSection(candidates, { limit = MAX_UNCERTAIN_CANDIDATES, title = '需人工确认的候选' } = {}) {
   if (!candidates.length) return '';
-  const shown = candidates.slice(0, MAX_UNCERTAIN_CANDIDATES).map(candidate => [
+  const shown = candidates.slice(0, limit).map(candidate => [
     `#### ${candidate.priority} · ${safeText(candidate.title)}`,
     '',
     `- 位置：${code(candidate.file)}${Number.isInteger(candidate.line) ? `:${candidate.line}` : ''}`,
@@ -158,8 +159,8 @@ function uncertainSection(candidates) {
     `- 证据与影响：${safeText(candidate.evidence)} ${safeText(candidate.impact)}`,
     candidate.verifierReason ? `- 复核意见：${safeText(candidate.verifierReason)}` : '',
   ].filter(Boolean).join('\n')).join('\n\n');
-  const omitted = candidates.length - Math.min(candidates.length, MAX_UNCERTAIN_CANDIDATES);
-  return `<details>\n<summary>需人工确认的候选（${candidates.length}）</summary>\n\n复核既未能确证、也未找到反证，可能是误报，请维护者判断。\n\n${shown}${omitted ? `\n\n> 其余 ${omitted} 项未展开。` : ''}\n\n</details>`;
+  const omitted = Math.max(0, candidates.length - limit);
+  return `<details>\n<summary>${title}（${candidates.length}）</summary>\n\n复核既未能确证、也未找到反证，可能是误报，请维护者判断。\n\n${shown}${omitted ? `\n\n> 其余 ${omitted} 项未展开。` : ''}\n\n</details>`;
 }
 
 export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.number }) {
@@ -194,6 +195,8 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
     ? result.verificationFiltered : candidateCount - rawFindings.length);
   const safeUncertain = rawUncertain.filter(candidate => findingIsSafe(candidate) && !hasSensitiveContent(candidate.verifierReason));
   const uncertainSafetyFiltered = rawUncertain.length - safeUncertain.length;
+  const higherPriorityUncertain = safeUncertain.filter(candidate => candidate.priority !== 'P3');
+  const p3Uncertain = safeUncertain.filter(candidate => candidate.priority === 'P3');
   const coverage = `共 ${Number.isSafeInteger(result.totalFiles) ? result.totalFiles : files.length} 个文件，已完整审查 ${result.reviewedFiles || 0} 个` +
     `${result.partialFiles ? `，部分审查 ${result.partialFiles} 个` : ''}${result.pendingFiles ? `，待审查 ${result.pendingFiles} 个` : ''}。`;
   const failures = Array.isArray(result.failureSummary) && result.failureSummary.length
@@ -230,7 +233,8 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
     '',
     unpositionedSection(unpositioned),
     unpositioned.length ? '' : '',
-    uncertainSection(safeUncertain),
+    uncertainSection(higherPriorityUncertain),
+    uncertainSection(p3Uncertain, { limit: MAX_P3_UNCERTAIN_CANDIDATES, title: '低优先级待核实线索（P3，最多展示 3 条）' }),
     safeUncertain.length ? '' : '',
     '<details>',
     '<summary>审查信息</summary>',

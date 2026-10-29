@@ -23,7 +23,7 @@ test('generation and verification reason by default; thinking=false restores the
   assert.deepEqual(disabled.map(call => call.disableThinking), [true, true]);
 });
 
-test('uncertain P3 candidates are not published; uncertain P1/P2 stay for manual follow-up', async () => {
+test('uncertain P3 candidates are retained for capped summary publication', async () => {
   const candidates = [{ ...finding, priority: 'P2', title: 'serious' }, { ...finding, priority: 'P3', title: 'minor' }];
   const client = { model: 'mock', format: 'mock', async generateReview(options) {
     return options.instructions === PR_VERIFICATION_INSTRUCTIONS
@@ -32,7 +32,7 @@ test('uncertain P3 candidates are not published; uncertain P1/P2 stay for manual
   } };
   const judged = [];
   const result = await reviewPrBatches({ ...args, client, onCandidates: record => judged.push(...record.candidates) });
-  assert.deepEqual(result.reviewUncertain.map(f => f.title), ['serious']);
+  assert.deepEqual(result.reviewUncertain.map(f => f.title), ['serious', 'minor']);
   assert.equal(judged.length, 2);
 });
 
