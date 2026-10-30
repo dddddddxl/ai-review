@@ -278,7 +278,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     if (!plan.batches.length) body = `## AI Review\n\n本次没有可供文本审查的 patch，无法形成代码审查结论。\n\n${body.split('\n\n').filter(s => s.startsWith('>')).join('\n\n')}`;
     return { body, failures, pending, batches: results.length, completed, findings: merged.length, reviewFindings: merged,
       reviewUncertain: uncertain, changeOverview,
-      candidateCount, verificationFiltered: Math.max(0, candidateCount - merged.length - uncertain.length), partial, reviewedFiles, partialFiles,
+      candidateCount, verificationFiltered: leaves.reduce((sum,r)=>sum+(r?.verificationRefutedCount||0),0),
+      unverifiedCandidates:Math.max(0,candidateCount-leaves.reduce((sum,r)=>sum+(r?.verificationEvaluatedCount||0),0)), partial, reviewedFiles, partialFiles,
       pendingFiles, totalFiles, failureSummary: [...errors].map(([label, count]) => ({ label, count })),
       protocolDiagnostics: leaves.flatMap(result => result?.protocolDiagnostics || []),
       retryableVerificationFailures, cancelled, budgetExceeded, elapsedMs: Date.now() - started, maxDurationMs };
@@ -322,6 +323,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       log(`[Review protocol] ${repository}#${pullNumber} batch=${index + 1} ${JSON.stringify(record)}`);
     };
     let submittedCandidates = savedPending?.submittedCandidates || previous?.submittedCandidates || [];
+    let verificationEvaluatedCount=previous?.verificationEvaluatedCount||0,verificationRefutedCount=previous?.verificationRefutedCount||0;
     let best = savedPending ? { overview: savedPending.overview || [], findings: savedPending.findings || [],
       complete: Boolean(savedPending.generationComplete), usable: true, reasons: [] } : null;
     let feedback = '', failure = savedPending?.generationFailure || savedPending?.failure || { phase: 'generation', code: 'invalid_response' };
@@ -348,6 +350,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
           const generated = await runEvidenceTurn({ client: boundedClient, phase: 'generation', createTools: evidenceFactory, checklist: profile.checklist,
             deadlineAt, isCurrent, maxTurns: evidenceGenerationTurns, maxOutputTokens: evidenceGenerationTokens, disableThinking: !thinking,
             onProtocolDiagnostic: protocolDiagnostic,
+            onSubmission: ({submission})=>{if(Array.isArray(submission.findings)){submittedCandidates=submission.findings;candidateCount=Math.max(candidateCount,submittedCandidates.length);}},
             input: { repository, pullNumber, base: baseSha, head: headSha,
               title, description, files: batch.files, unchangedContext, relatedChanged, upstream, reviewRules,
               availableUpstreamPackages: evidenceFactory?.packages || [] },
@@ -463,6 +466,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         const verdicts = decodeVerification(evidenceCheck, best.findings.length);
         const before = best.findings.length;
         const judged = best.findings.map((finding, i) => ({ ...finding, verdict: verdicts[i].verdict, verifierReason: verdicts[i].reason }));
+        verificationEvaluatedCount=judged.length;
+        verificationRefutedCount=judged.filter(f=>f.verdict==='refuted').length;
         // Refuted candidates go to the caller's sink (private state or replay
         // output), never to the log: they can contain unreviewed PR content.
         onCandidates({ batch: `${index + 1}${branch}`, candidates: judged });
@@ -510,6 +515,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     const result = best || { overview: previous?.overview || [], findings: previous?.findings || [], complete: false };
     result.uncertain = result.uncertain || previous?.uncertain || [];
     result.candidateCount = Math.max(candidateCount, result.findings.length + result.uncertain.length);
+    result.verificationEvaluatedCount=verificationEvaluatedCount;
+    result.verificationRefutedCount=verificationRefutedCount;
     if (evidenceMode) result.consultedEvidence = { generation: generationEvidence, verification: verificationEvidence };
     if (evidenceMode) result.submittedCandidates = submittedCandidates;
     if (evidenceMode) result.protocolDiagnostics = protocolDiagnostics;

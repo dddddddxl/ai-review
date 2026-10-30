@@ -81,3 +81,17 @@ test('duplicate-path evidence arguments are repaired without reading either file
  const result=await runEvidenceTurn({...base,maxTurns:2,client:{generateToolTurn:async()=>++calls===1?bad:final(valid)}});
  assert.equal(result.ledger.length,0);assert.equal(result.protocolDiagnostics[0].code,'invalid_evidence_arguments');
 });
+test('a missing nested trigger is repaired before the candidate decoder can drop the finding',async()=>{
+ const finding={file:'a.py',priority:'P2',title:'wrong result',evidence:'return 1',impact:'incorrect output',suggestion:'handle zero'};
+ let calls=0;const diagnostics=[];
+ const result=await runEvidenceTurn({...base,maxTurns:2,onProtocolDiagnostic:r=>diagnostics.push(r),client:{generateToolTurn:async()=>
+  final(JSON.stringify({overview:[],findings:[++calls===1?finding:{...finding,trigger:'input zero'}],limitations:[],coverageComplete:true}))}});
+ assert.equal(calls,2);assert.deepEqual(diagnostics[0].fields,['findings[0].trigger']);assert.equal(result.submission.findings.length,1);
+});
+test('malformed candidates remain unverified, not counted as verifier rejections',async()=>{
+ const submission={overview:[],findings:[{file:'a.py',priority:'P2',title:'missing trigger',evidence:'return 1',impact:'wrong',suggestion:'fix'}],limitations:[],coverageComplete:false};
+ const result=await reviewPrBatches({repository:'synthetic/repo',pullNumber:1,title:'schema',engine:'evidence-v1',
+  files:[{filename:'a.py',status:'added',patch:'@@ -0,0 +1 @@\n+x = 1'}],baseSha:'b'.repeat(40),headSha:'a'.repeat(40),
+  evidenceFactory:()=>({}),evidenceGenerationTurns:1,log:()=>{},client:{model:'mock',format:'openai-chat',generateToolTurn:async()=>final(JSON.stringify(submission))}});
+ assert.equal(result.candidateCount,1);assert.equal(result.verificationFiltered,0);assert.equal(result.unverifiedCandidates,1);assert.equal(result.partial,true);
+});

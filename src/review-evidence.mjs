@@ -7,7 +7,7 @@ import {extractSources} from './repository-snapshot.mjs';
 import {upstreamDefinition} from './upstream-context.mjs';
 import {parseToolArguments} from './tool-arguments.mjs';
 
-export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.3';
+export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.4';
 
 export function evidenceGenerationOptions(environment = process.env) {
  const integer = (name, fallback, maximum) => {
@@ -33,7 +33,7 @@ const submitVerdicts = {type:'function',function:{name:'submit_verdicts',descrip
 // credentials, semaphore, queue, publication or raw-reasoning persistence here.
 export async function runEvidenceTurn({client, phase, input, createTools, instructions, checklist=PR_RISK_CHECKLIST,
  deadlineAt, isCurrent=async()=>true, onEvidence=async()=>{}, onMetadata, maxTurns=4,
- maxOutputTokens=32768, disableThinking=false, onProtocolDiagnostic=()=>{}}) {
+ maxOutputTokens=32768, disableThinking=false, onProtocolDiagnostic=()=>{}, onSubmission=()=>{}}) {
  if(!['generation','verification'].includes(phase)||!Number.isInteger(maxTurns)||maxTurns<1||maxTurns>8)throw fail('invalid_evidence_options');
  if(typeof client.generateToolTurn!=='function'||typeof createTools!=='function')throw fail('native_tools_unavailable');
  const terminal=phase==='generation'?submitReview:submitVerdicts;
@@ -52,25 +52,34 @@ export async function runEvidenceTurn({client, phase, input, createTools, instru
     maxOutputTokens,timeoutMs:Math.max(1,Math.min(600000,deadlineAt-Date.now())),deadlineAt,disableThinking,onMetadata});
    await check();const calls=response?.message?.tool_calls||[];
    if(!calls.length||calls.length>16)throw fail('invalid_tool_response');
-   const repair=async code=>{
-    const diagnostic={phase,round:round+1,code,repaired:false};protocolDiagnostics.push(diagnostic);await onProtocolDiagnostic({...diagnostic});
+   const repair=async (code,fields=[])=>{
+    const diagnostic={phase,round:round+1,code,fields,repaired:false};protocolDiagnostics.push(diagnostic);await onProtocolDiagnostic({...diagnostic});
     if(last||repairs>=1)throw fail('invalid_tool_response');
     repairs++;messages.push(response.message);
-    for(const call of calls)messages.push({role:'tool',tool_call_id:call.id,content:JSON.stringify({error:code,executed:false,
-     instruction:'None of this batch was executed. Resubmit at most 4 tools, one target per call, no duplicate JSON keys; fill every required terminal field. Preserve findings and unknowns.'})});
+    for(const call of calls)messages.push({role:'tool',tool_call_id:call.id,content:JSON.stringify({error:code,fields,executed:false,
+     instruction:'None of this batch was accepted. Resubmit at most 4 tools, one target per call, no duplicate JSON keys; fill every required terminal and finding field, especially trigger. Preserve existing findings and unknowns; do not remove candidates merely to pass validation.'})});
    };
    if(calls.length>4){await repair('too_many_tools_in_turn');continue;}
    const finals=calls.filter(c=>c.function?.name===terminal.function.name);
    if(finals.length){
     if(finals.length!==1||calls.length!==1)throw fail('invalid_tool_response');
-    let submission, valid=false;
+    let submission, valid=false,fields=[];
     try {
      submission=sanitizeReviewInput(parseToolArguments(finals[0].function.arguments));
      valid=Boolean(submission&&typeof submission==='object'&&!Array.isArray(submission)&&
       (phase==='generation' ? Array.isArray(submission.findings)&&Array.isArray(submission.limitations)&&typeof submission.coverageComplete==='boolean' : Array.isArray(submission.verdicts)));
+     if(valid&&phase==='generation')for(const [index,finding]of submission.findings.entries()){
+      for(const field of ['file','title','trigger','evidence','impact','suggestion'])if(typeof finding?.[field]!=='string'||!finding[field].trim())fields.push(`findings[${index}].${field}`);
+      if(!['P1','P2','P3'].includes(finding?.priority))fields.push(`findings[${index}].priority`);
+     }
+     if(valid&&phase==='verification')for(const [index,verdict]of submission.verdicts.entries()){
+      if(!Number.isInteger(verdict?.index)||!['confirmed','refuted','uncertain'].includes(verdict?.verdict)||typeof verdict?.reason!=='string')fields.push(`verdicts[${index}]`);
+     }
+     valid=valid&&fields.length===0;
     }catch{}
+    if(submission)await onSubmission({phase,submission,valid});
     if(!valid){
-     await repair('invalid_terminal_arguments');
+     await repair('invalid_terminal_arguments',fields);
      continue;
     }
     for(const diagnostic of protocolDiagnostics){diagnostic.repaired=true;await onProtocolDiagnostic({...diagnostic});}
