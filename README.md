@@ -49,6 +49,8 @@ node scripts/quick-compare.mjs capture OUTPUT
 node scripts/quick-compare.mjs probe OUTPUT
 node scripts/quick-compare.mjs run OUTPUT baseline /path/to/8ee0769-checkout
 node scripts/quick-compare.mjs run OUTPUT fixed
+# 只验证一个已有冻结样本；使用新的 OUTPUT 目录，避免覆盖首次输出。
+node scripts/quick-compare.mjs run OUTPUT fixed --pr 225
 ```
 
 两个版本串行执行，使用相同冻结输入、同一模型及显式 enabled 推理请求、4 轮/32768 输出生成预算；不以增加预算作为质量改善。沿用既有全流程默认 deadline，不额外收紧。记录每次调用、完整结论、未知项和耗时，不保存原始思考内容。计时包括本地快照准备和模型调用，不包括一次性的 GitHub 采集网络耗时。

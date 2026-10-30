@@ -69,12 +69,15 @@ async function probe(){
 }
 async function run(){
  if(!['baseline','fixed'].includes(variant))throw new Error('unknown_variant');
+ const prFlag=process.argv.indexOf('--pr');
+ const selectedPr=prFlag<0?null:Number(process.argv[prFlag+1]);
+ if(selectedPr!==null&&(!Number.isSafeInteger(selectedPr)||selectedPr<1))throw new Error('invalid_pr_number');
  const root=variant==='baseline'?path.resolve(baselineRoot):path.resolve(new URL('..',import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,'$1'));
  const moduleAt=relative=>import(variant==='baseline'?pathToFileURL(path.join(root,relative)).href:new URL(`../${relative}`,import.meta.url));
  const {reviewPrBatches,DEFAULT_REVIEW_DURATION_MS}=await moduleAt('src/pr-review.mjs');
  const {createModelClient:makeClient}=await moduleAt('src/model-client.mjs');
  const runDir=path.join(output,variant);fs.mkdirSync(runDir);
- for(const pullNumber of [225,269]){
+ for(const pullNumber of selectedPr===null?[225,269]:[selectedPr]){
   const fixtureBytes=fs.readFileSync(path.join(output,`pr-${pullNumber}.json`)),fixture=JSON.parse(fixtureBytes);
   const dir=path.join(runDir,`pr-${pullNumber}`);fs.mkdirSync(dir);
   const started=Date.now(),deadlineAt=started+DEFAULT_REVIEW_DURATION_MS;

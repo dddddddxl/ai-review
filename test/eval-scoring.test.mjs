@@ -27,3 +27,11 @@ test('evaluation replay supplies the frozen base SHA',()=>{
  const source=fs.readFileSync(new URL('../scripts/eval-recall.mjs',import.meta.url),'utf8');
  assert.match(source,/'--base', item\.baseSha/);
 });
+test('single-PR validation rejects invalid selectors before creating run output',()=>{
+ const output=path.join(os.tmpdir(),`ai-review-invalid-selector-${process.pid}-${Date.now()}`);
+ for(const value of ['0','-1','1.5','bad']){
+  const response=spawnSync(process.execPath,[fileURLToPath(new URL('../scripts/quick-compare.mjs',import.meta.url)),
+   'run',output,'fixed','--pr',value],{encoding:'utf8'});
+  assert.equal(response.status,1);assert.equal(fs.existsSync(output),false);
+ }
+});
