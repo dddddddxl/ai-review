@@ -134,6 +134,23 @@ test('native stream reassembles function argument fragments and ordinary review 
   assert.equal(response.metadata.totalTokens, 30);
   await assert.rejects(client.generateReview({ instructions: 'readonly', input: 'test', timeoutMs: 1000 }));
 });
+test('native tool turns honour the thinking switch for GLM models', async () => {
+  let body;
+  const client = createModelClient({ AI_API_FORMAT: 'openai-chat', AI_MODEL: 'glm-5.3-flash', AI_API_KEY: 'synthetic', AI_BASE_URL: 'https://mock.invalid' }, {
+    fetchImpl: async (_url, options) => {
+      body = JSON.parse(options.body);
+      return new Response(JSON.stringify({ choices: [{ finish_reason: 'tool_calls', message: { role: 'assistant',
+        tool_calls: [{ id: 'c1', type: 'function', function: { name: 'file_read', arguments: '{}' } }] } }] }),
+      { headers: { 'content-type': 'application/json' } });
+    },
+  });
+  const turn = { instructions: 'readonly', messages: [{ role: 'user', content: 'test' }],
+    tools: [{ type: 'function', function: { name: 'file_read' } }], maxOutputTokens: 10, timeoutMs: 1000 };
+  await client.generateToolTurn({ ...turn, disableThinking: true });
+  assert.deepEqual(body.thinking, { type: 'disabled' });
+  await client.generateToolTurn(turn);
+  assert.deepEqual(body.thinking, { type: 'enabled' });
+});
 test('native plain prose without actual tool calls remains incomplete, never a clean review', async () => {
   const result = await reviewWithNativeEvidenceAgent({ tools: toolsFor(), input: { files: [] }, client: {
     async generateToolTurn() { return { message: { role: 'assistant', content: 'Need more evidence.' } }; },

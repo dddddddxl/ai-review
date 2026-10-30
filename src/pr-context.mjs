@@ -569,5 +569,5 @@ export async function prepareRepositoryReview({ octokit, owner, repo, baseSha, f
   const repositoryContext = await buildPrRepositoryContext({ octokit, owner, repo, baseSha, files, log, snapshot, useBaseSnapshot: false, upstreamRoots });
   const reviewRules = repositoryReviewRules(snapshot, files);
   if (snapshot) log(`[Review context] snapshot files=${snapshot.files.size} omitted=${snapshot.omittedFiles} submodules=${(snapshot.submodules || []).map(item => `${item.path}@${item.sha.slice(0, 7)}`).join(',') || 'none'} rules=${reviewRules.length}`);
-  return { repositoryContext, reviewRules };
+  return { repositoryContext, reviewRules, baseSnapshot: snapshot };
 }

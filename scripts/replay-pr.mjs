@@ -12,8 +12,9 @@ import { prepareRepositoryReview } from '../src/pr-context.mjs';
 import { resolveReviewProfile } from '../src/repo-profile.mjs';
 import { upstreamContextForFiles, upstreamRoots } from '../src/upstream-context.mjs';
 import { buildPrReviewPublication } from '../src/pr-publication.mjs';
-import {createRepositoryEvidence} from '../src/review-evidence.mjs';
+import {createRepositoryEvidence,evidenceGenerationOptions} from '../src/review-evidence.mjs';
 import {sanitizeReviewInput} from '../src/review-agent.mjs';
+import {evaluationDirectory} from '../src/eval-identity.mjs';
 
 const usage = 'Usage: replay-pr.mjs OWNER/REPO PR [--head SHA] [--base SHA] [--base-ref NAME] [--label NAME] [--concurrency N]';
 const argv = process.argv.slice(2);
@@ -53,7 +54,9 @@ const files = headSha === pr.head.sha && baseSha === pr.base.sha
   ? await octokit.paginate(octokit.rest.pulls.listFiles, { owner, repo, pull_number: pullNumber, per_page: 100 })
   : (await octokit.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: `${baseSha}...${headSha}` })).data.files;
 
-const out = path.join(process.env.REPLAY_OUT_DIR || '/app-runs', label, `${owner}__${repo}__${pullNumber}__${headSha.slice(0, 10)}`);
+if(!/^[a-f0-9]{40}$/.test(baseSha)||!/^[a-f0-9]{40}$/.test(headSha))throw new Error('fixed_sha_required');
+if(!/^[\w.-]+$/.test(label))throw new Error('invalid_label');
+const out = path.join(process.env.REPLAY_OUT_DIR || '/app-runs', label, evaluationDirectory({repository:fullName,pullNumber,baseSha,headSha}));
 fs.mkdirSync(path.dirname(out), { recursive: true, mode: 0o700 });
 // A repeated command must not overwrite an earlier run's evidence.
 fs.mkdirSync(out, { mode: 0o700 });
@@ -110,17 +113,19 @@ const maxDurationMs = Number(process.env.AI_REVIEW_MAX_DURATION_MS) || DEFAULT_R
 log(`[Replay] start ${fullName}#${pullNumber} head=${headSha} base=${baseSha} files=${files.length} label=${label} concurrency=${concurrency}`);
 const candidates = [];
 const roots=upstreamRoots(process.env,{repository:fullName,baseRef});
-const upstreamContext = engine==='legacy'?upstreamContextForFiles(files,{roots}):new Map();
+const upstreamContext = upstreamContextForFiles(files, {roots});
 const result = await scope.run(async () => {
-  const { repositoryContext, reviewRules } = engine==='legacy'?await prepareRepositoryReview({ octokit, owner, repo, baseSha, files, upstreamRoots: roots, log }):{ repositoryContext: [], reviewRules: '' };
+  const { repositoryContext, reviewRules, baseSnapshot } = await prepareRepositoryReview({ octokit, owner, repo, baseSha, files, upstreamRoots: roots, log });
   const profile = resolveReviewProfile({ repository: fullName, files });
   log(`[Replay] profile ${profile.key} rules=${reviewRules.length}chars`);
-  const evidenceFactory=engine==='evidence-v1'?createRepositoryEvidence({octokit,owner,repo,baseSha,headSha,roots,deadlineAt:started+maxDurationMs}):undefined;
+  const evidenceFactory=engine==='evidence-v1'?createRepositoryEvidence({octokit,owner,repo,baseSha,headSha,roots,baseSnapshot,deadlineAt:started+maxDurationMs}):undefined;
   log(`[Replay] context ${repositoryContext.map(entry => `${entry.filename}(${entry.kinds.join('+')})`).join(' ') || '(none)'}`);
   log(`[Replay] upstream ${[...upstreamContext].map(([file, text]) => `${file}:${(text.match(/^TARGET: /gm) || []).length}targets/${text.length}chars`).join(' ') || '(none)'}`);
   return reviewPrBatches({ client, files, repository: fullName, pullNumber, title: pr.title,
     prDescription: pr.body || '', repositoryContext, upstreamContext, headSha, baseSha, totalFiles: files.length,
-    engine,evidenceFactory,profile,reviewRules,thinking:process.env.AI_REVIEW_THINKING!=='off',batchParallelism:Number(process.env.AI_REVIEW_BATCH_PARALLELISM)||undefined,batchChars: Number(process.env.AI_REVIEW_BATCH_CHARS) || (engine==='evidence-v1'?80000:10000), log,
+    engine,evidenceFactory,profile,reviewRules,thinking:process.env.AI_REVIEW_THINKING!=='off',
+    ...evidenceGenerationOptions(process.env),
+    batchParallelism:Number(process.env.AI_REVIEW_BATCH_PARALLELISM)||undefined,batchChars: Number(process.env.AI_REVIEW_BATCH_CHARS) || (engine==='evidence-v1'?80000:10000), log,
     state: new ReviewState(path.join(out, 'state')), maxDurationMs, deadlineAt: started + maxDurationMs,
     onCandidates: record => { candidates.push(record); fs.writeFileSync(path.join(out, 'candidates.json'), JSON.stringify(candidates, null, 2)); } });
 });
@@ -138,7 +143,7 @@ const summary = {
   reviewFindings: result.reviewFindings.map(f => ({ priority: f.priority, file: f.file, line: f.line, title: f.title })),
   reviewUncertain: (result.reviewUncertain || []).map(f => ({ priority: f.priority, file: f.file, line: f.line, title: f.title })),
 };
-fs.writeFileSync(path.join(out, 'result.json'), JSON.stringify(result, null, 2));
+fs.writeFileSync(path.join(out, 'result.json'), JSON.stringify({...result,repository:fullName,pullNumber,headSha,baseSha}, null, 2));
 fs.writeFileSync(path.join(out, 'publication.md'), publication.body);
 fs.writeFileSync(path.join(out, 'summary.json'), JSON.stringify(summary, null, 2));
 log(`[Replay] done ${JSON.stringify(summary)}`);

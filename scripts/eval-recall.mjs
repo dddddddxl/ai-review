@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import {evaluationIdentity,evaluationDirectory,proximityMatches} from '../src/eval-identity.mjs';
 
 const LINE_WINDOW = Number(process.env.EVAL_LINE_WINDOW) || 15;
 const argv = process.argv.slice(2);
@@ -25,10 +26,10 @@ const { cases } = JSON.parse(fs.readFileSync(evalFile, 'utf8'));
 const outRoot = path.join(process.env.REPLAY_OUT_DIR || '/app-runs', label);
 const groups = new Map();
 for (const item of cases) {
-  const key = `${item.repository}#${item.pullNumber}@${item.headSha}`;
+  const key = evaluationIdentity(item);
   groups.set(key, [...(groups.get(key) || []), item]);
 }
-const replayDir = item => path.join(outRoot, `${item.repository.replace('/', '__')}__${item.pullNumber}__${item.headSha.slice(0, 10)}`);
+const replayDir = item => path.join(outRoot, evaluationDirectory(item));
 
 if (command === 'run') {
   const engine = argv[argv.indexOf('--engine') + 1];
@@ -38,7 +39,7 @@ if (command === 'run') {
     if (fs.existsSync(replayDir(item))) { console.log(`[eval] skip ${key} (unfinished run exists; inspect it, do not overwrite)`); continue; }
     console.log(`[eval] replay ${key}`);
     const result = spawnSync(process.execPath, [script, item.repository, String(item.pullNumber), '--head', item.headSha,
-      '--base-ref', item.baseRef, '--label', label, ...(argv.includes('--engine') ? ['--engine', engine] : [])], { stdio: 'inherit' });
+      '--base', item.baseSha, '--base-ref', item.baseRef, '--label', label, ...(argv.includes('--engine') ? ['--engine', engine] : [])], { stdio: 'inherit' });
     if (result.status !== 0) console.log(`[eval] replay failed ${key} status=${result.status}`);
   }
   process.exit(0);
@@ -46,26 +47,15 @@ if (command === 'run') {
 
 const counted = argv.includes('--all-labels') ? cases : cases.filter(item => item.label !== 'unconfirmed');
 const read = file => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
-const match = (expected, found) => {
-  if (found.file !== expected.file) return null;
-  if (!Number.isInteger(expected.line) || !Number.isInteger(found.line)) return 'file';
-  return Math.abs(found.line - expected.line) <= LINE_WINDOW ? 'location' : 'file';
-};
-const best = (expected, list) => {
-  const scored = list.map(found => ({ found, kind: match(expected, found) })).filter(entry => entry.kind);
-  // Among equal-kind matches prefer the best verdict, so an unrelated refuted
-  // candidate in the same file cannot hide a confirmed one without a line.
-  const rank = entry => ({ confirmed: 0, uncertain: 1, refuted: 2 })[entry.found.verdict] ?? 1;
-  const pick = kind => scored.filter(entry => entry.kind === kind).sort((a, b) => rank(a) - rank(b))[0];
-  return pick('location') || pick('file') || null;
-};
-const stages = ['generated', 'published', 'confirmed'];
+const stages = ['generated', 'publicationCandidates', 'modelConfirmed'];
 const totals = Object.fromEntries(stages.map(stage => [stage, { location: 0, file: 0 }]));
 let missingRuns = 0, scored = 0;
-const sheet = [`# Recall review sheet: ${label}`, '', `Line window ±${LINE_WINDOW}. Confirm each location match by reading both texts.`, ''];
+const sheet = [`# 人工复核表：${label}`, '', `位置邻近匹配 ±${LINE_WINDOW} 行；一对一建议，不代表同一缺陷。changed_after/author_fixed 不是人工认证标签。`, ''];
 for (const [key, items] of groups) {
   const dir = replayDir(items[0]);
-  const result = read(path.join(dir, 'result.json'));
+  const raw = read(path.join(dir, 'result.json'));
+  const result = raw && raw.repository===items[0].repository && raw.pullNumber===items[0].pullNumber &&
+    raw.baseSha===items[0].baseSha && raw.headSha===items[0].headSha ? raw : null;
   const expected = items.filter(item => counted.includes(item));
   if (!expected.length) continue;
   if (!result) { missingRuns += expected.length; sheet.push(`## ${key}`, '', '_no replay result_', ''); continue; }
@@ -80,21 +70,24 @@ for (const [key, items] of groups) {
     .flatMap(file => read(path.join(stateDir, file))?.results || []).flatMap(leaves)
     .flatMap(r => r?.pendingVerification?.findings || []);
   const generated = [...judged, ...published, ...pending];
+  const matches = {generated:proximityMatches(expected,generated,LINE_WINDOW),
+    publicationCandidates:proximityMatches(expected,published,LINE_WINDOW),modelConfirmed:proximityMatches(expected,confirmed,LINE_WINDOW)};
   sheet.push(`## ${key}`, '', `candidates=${result.candidateCount ?? '?'} confirmed=${confirmed.length} uncertain=${(result.reviewUncertain || []).length} partial=${result.partial}`, '');
-  for (const item of expected) {
+  for (const [index,item] of expected.entries()) {
     scored++;
-    const hits = { generated: best(item, generated), published: best(item, published), confirmed: best(item, confirmed) };
-    for (const stage of stages) if (hits[stage]) totals[stage][hits[stage].kind]++;
-    const hit = hits.generated;
+    for (const stage of stages) if (matches[stage].has(index)) totals[stage].location++;
+    const hit = matches.generated.get(index);
     sheet.push(`- [${item.label}] ${item.priority || ''} \`${item.file}:${item.line ?? '?'}\` ${item.issue}`,
-      hit ? `  - ${hit.kind} match${hit.found.verdict ? ` (${hit.found.verdict})` : ''}: \`${hit.found.file}:${hit.found.line ?? '?'}\` ${hit.found.title}` : '  - **missed**');
+      hit ? `  - 待核实位置匹配: \`${hit.file}:${hit.line}\` ${hit.title}` : '  - 无位置匹配（不是已裁定漏报）');
   }
   sheet.push('');
 }
-const percent = n => scored ? `${Math.round(100 * n / scored)}%` : '-';
+const percent = n => counted.length ? `${Math.round(100 * n / counted.length)}%` : '-';
 const summary = { label, expected: counted.length, scored, missingRuns, lineWindow: LINE_WINDOW,
-  recall: Object.fromEntries(stages.map(stage => [stage, { location: totals[stage].location, sameFile: totals[stage].location + totals[stage].file,
-    locationRate: percent(totals[stage].location) }])) };
+  schemaVersion:2, unknownLabels:cases.filter(item=>item.label==='unconfirmed').length,
+  precision:null, recall:null, note:'仅位置邻近代理指标；缺失/身份不符的运行计入总分母。需人工按缺陷语义裁定，不表示实际发布。',
+  locationProxy: Object.fromEntries(stages.map(stage => [stage, { matches: totals[stage].location,
+    rateAcrossAllExpected: percent(totals[stage].location) }])) };
 fs.mkdirSync(outRoot, { recursive: true });
 fs.writeFileSync(path.join(outRoot, 'score.md'), sheet.join('\n'));
 fs.writeFileSync(path.join(outRoot, 'score.json'), JSON.stringify(summary, null, 2));

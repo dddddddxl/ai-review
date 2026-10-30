@@ -40,6 +40,23 @@ test('generation uses a real read-only tool result before its final submission',
  })});
  assert.equal(calls,2);assert.equal(result.reviewFindings.length,1);assert.equal(result.partial,false);
 });
+test('evidence generation uses recall-oriented instructions and receives proactive cross-file context',async()=>{
+ let generationInstructions='',generationInput='';
+ const result=await reviewPrBatches({...options,
+  repositoryContext:[{filename:'unchanged_helper.py',kinds:['import'],terms:['call'],origins:['a.py'],excerpt:'def call(a,b,c): return a+b+c'}],
+  upstreamContext:new Map([['a.py','TARGET: pkg.mod\nclass X:\n  def f(self, impl): ...']]),
+  reviewRules:'MUST pass the implementation argument',
+  client:client(async o=>{
+   if(isVerifier(o)){assert.ok(o.instructions.includes('缺少上下文不等于存在缺陷'));return verdict('confirmed');}
+   generationInstructions=o.instructions;generationInput=o.messages[0].content;return generation([finding]);
+  })});
+ assert.equal(result.reviewFindings.length,1);
+ assert.match(generationInstructions,/漏报的代价高于误报/);
+ assert.ok(!generationInstructions.includes('不追求数量'));
+ assert.match(generationInput,/unchanged_helper\.py/);
+ assert.match(generationInput,/TARGET: pkg\.mod/);
+ assert.match(generationInput,/MUST pass the implementation argument/);
+});
 test('verifier searches then reads a missing definition instead of only listing a limitation',async()=>{
  let turns=0;
  const result=await reviewPrBatches({...options,client:client(async o=>{
@@ -139,6 +156,17 @@ const tar=entries=>gzipSync(Buffer.concat(entries.flatMap(([name,text])=>{
  const data=Buffer.from(text),header=Buffer.alloc(512);header.write('root/'+name);header.write(data.length.toString(8).padStart(11,'0'),124);header.write('0',156);
  return [header,data,Buffer.alloc((512-data.length%512)%512)];
 }).concat([Buffer.alloc(1024)])));
+
+test('prefetched base is shared without redownload or mutating its sensitive-path map',async()=>{
+ const baseSnapshot={sha:'b'.repeat(40),files:new Map([['helper.py','base source'],['.aws/credentials.py','hidden']])};
+ const reads=[];
+ const factory=createRepositoryEvidence({owner:'o',repo:'r',headSha:'a'.repeat(40),baseSha:baseSnapshot.sha,baseSnapshot,deadlineAt:Date.now()+10000,
+  octokit:{request:async(_route,args)=>{reads.push(args.ref);return {data:tar([['helper.py','head source']])};}}});
+ const result=await factory().execute({tool:'file_read',path:'helper.py',side:'base'});
+ assert.match(result.text,/base source/);assert.deepEqual(reads,['a'.repeat(40)]);
+ assert.ok(baseSnapshot.files.has('.aws/credentials.py'));
+ const search=await factory().execute({tool:'code_search',query:'hidden',side:'base'});assert.equal(search.hits.length,0);
+});
 test('lazy fixed SHA snapshots are fetched once per review and reused across phases',async()=>{
  const reads=[];const factory=createRepositoryEvidence({owner:'o',repo:'r',headSha:'a'.repeat(40),baseSha:'b'.repeat(40),deadlineAt:Date.now()+1000,
  octokit:{request:async(route,args)=>{assert.equal(route,'GET /repos/{owner}/{repo}/tarball/{ref}');reads.push(args.ref);return {data:tar([['helper.py','safe'],['.aws/credentials.py','sensitive_literal']])};}}});

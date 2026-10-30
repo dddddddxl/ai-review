@@ -87,6 +87,9 @@ export function createModelClient(
   }
 
   if (format === 'openai-chat') {
+    const thinkingProtocol = environment.AI_THINKING_PROTOCOL || (/^glm(?:-|[0-9])/i.test(model) ? 'glm' : 'none');
+    if (!['glm', 'none'].includes(thinkingProtocol)) throw new Error('Invalid AI_THINKING_PROTOCOL');
+    const thinkingFields = disabled => thinkingProtocol === 'glm' ? { thinking: { type: disabled ? 'disabled' : 'enabled' } } : {};
     const endpoint = chatCompletionsUrl(baseUrl);
     const configuredTimeoutMs = positiveInteger(environment.AI_API_TIMEOUT_MS, DEFAULT_TIMEOUT_MS);
     // Reasoning models can think for many minutes. When streaming, a request is
@@ -95,9 +98,9 @@ export function createModelClient(
     const idleTimeoutMs = positiveInteger(environment.AI_STREAM_IDLE_TIMEOUT_MS, 90_000);
     const streamMaxMs = positiveInteger(environment.AI_STREAM_MAX_MS, 1_200_000);
     return {
-      configured, format, insecureHttp, model, stream, requestTimeoutMs: stream ? streamMaxMs : configuredTimeoutMs,
+      configured, format, insecureHttp, model, stream, thinkingProtocol, requestTimeoutMs: stream ? streamMaxMs : configuredTimeoutMs,
       // Opt-in native tool turns. Ordinary review decoding remains unchanged.
-      async generateToolTurn({ instructions, messages, tools, toolChoice = 'auto', maxOutputTokens,
+      async generateToolTurn({ instructions, messages, tools, toolChoice = 'auto', maxOutputTokens, disableThinking = false,
         onMetadata, timeoutMs, deadlineAt, signal }) {
         const requestMs = boundedTimeout(stream ? Math.min(streamMaxMs, positiveInteger(timeoutMs, streamMaxMs)) : timeoutMs,
           configuredTimeoutMs, deadlineAt, signal);
@@ -111,6 +114,7 @@ export function createModelClient(
           const response = await fetchImpl(endpoint, { method: 'POST',
             headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
             body: JSON.stringify({ model, stream, ...(stream ? { stream_options: { include_usage: true } } : {}),
+              ...thinkingFields(disableThinking),
               max_tokens: maxOutputTokens, messages: [{ role: 'system', content: instructions }, ...messages], tools, tool_choice: toolChoice }),
             signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal });
           if (!response.ok) throw Object.assign(new Error(`Native tool API returned HTTP ${response.status}`), { code: 'native_tool_http_error', status: response.status });
@@ -122,7 +126,8 @@ export function createModelClient(
           onMetadata?.(metadata);
           if (data?.choices?.length !== 1 || message?.role !== 'assistant' || message.refusal ||
               !['stop', 'tool_calls'].includes(choice.finish_reason))
-            throw Object.assign(new Error('Incomplete native tool response'), { code: 'incomplete_tool_response' });
+            throw Object.assign(new Error('Incomplete native tool response'), { code: 'incomplete_tool_response',
+              reason: choice?.finish_reason === 'length' ? 'output_truncated' : 'response_protocol' });
           const calls = message.tool_calls || [], ids = new Set();
           for (const call of calls) {
             if (typeof call.id !== 'string' || ids.has(call.id) || call.type !== 'function' ||
@@ -149,7 +154,7 @@ export function createModelClient(
             method: 'POST',
             headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
             body: JSON.stringify({ model, stream, ...(stream ? { stream_options: { include_usage: true } } : {}), max_tokens: maxOutputTokens,
-              ...(disableThinking && /^glm-/i.test(model) ? { thinking: { type: 'disabled' } } : {}),
+              ...thinkingFields(disableThinking),
               messages: [{ role: 'system', content: instructions }, { role: 'user', content: input }] }),
             signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal,
           });

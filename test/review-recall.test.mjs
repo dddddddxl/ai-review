@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { reviewPrBatches } from '../src/pr-review.mjs';
 import { CI_INSTRUCTIONS, PR_INSTRUCTIONS, PR_RISK_CHECKLIST, PR_VERIFICATION_INSTRUCTIONS } from '../src/review-templates.mjs';
+import { NATIVE_AGENT_INSTRUCTIONS, NATIVE_GENERATION_INSTRUCTIONS } from '../src/review-agent.mjs';
 
 const files = [{ filename: 'a.py', status: 'added', patch: '@@ -0,0 +1 @@\n+a = 1', additions: 1, deletions: 0 }];
 const finding = { priority: 'P2', file: 'a.py', line: 1, title: 'Incorrect result', trigger: 'input zero',
@@ -41,6 +42,12 @@ test('generation prompt favours recall; verification and CI prompts keep the str
   assert(PR_INSTRUCTIONS.includes('漏报的代价高于误报'));
   assert(!PR_INSTRUCTIONS.includes('缺少上下文不等于存在缺陷'));
   assert(!PR_INSTRUCTIONS.includes('不凑问题数量'));
+  // The evidence engine generation prompt must carry the same recall bias; the
+  // conservative standalone pilot prompt is kept only for evaluation.
+  assert(NATIVE_GENERATION_INSTRUCTIONS.includes('漏报的代价高于误报'));
+  assert(!NATIVE_GENERATION_INSTRUCTIONS.includes('不追求数量'));
+  assert(!NATIVE_GENERATION_INSTRUCTIONS.includes('不凑数量'));
+  assert(NATIVE_AGENT_INSTRUCTIONS.includes('不凑数量'));
   for (const strict of [PR_VERIFICATION_INSTRUCTIONS, CI_INSTRUCTIONS]) {
     assert(strict.includes('缺少上下文不等于存在缺陷'));
     assert(!strict.includes(PR_RISK_CHECKLIST));

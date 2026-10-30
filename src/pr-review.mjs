@@ -4,6 +4,7 @@ import { reviewErrorCode, reviewFailureLabel } from './review-errors.mjs';
 import { prDescriptionContext, relatedChangedFilesForBatch, repositoryContextForBatch } from './pr-context.mjs';
 import { EVIDENCE_ENGINE_VERSION, runEvidenceTurn } from './review-evidence.mjs';
 import { resolveReviewProfile } from './repo-profile.mjs';
+import { NATIVE_GENERATION_INSTRUCTIONS, NATIVE_REVIEW_TOOLS } from './review-agent.mjs';
 
 const ignored = /(?:^|\/)(?:node_modules|vendor|dist|build)\/|\.(?:png|jpe?g|gif|webp|ico|pdf|zip|tar|gz|7z|lock)$/i;
 const sensitivePath = /(?:^|\/)(?:\.git|\.ssh|\.aws|\.codex|\.agents|\.env(?:\.[^/]*)?|secrets?|credentials)(?:\/|$)|\.(?:pem|key|p12|pfx)$/i;
@@ -149,7 +150,8 @@ const leafResults = result => result?.children ? result.children.flatMap(leafRes
 export async function reviewPrBatches({ client, files, repository, pullNumber, title, baseSha = '', headSha = '', totalFiles = files.length,
   prDescription = '', repositoryContext = [], upstreamContext = new Map(), state, batchChars = 10000, maxBatches = Infinity,
   maxDurationMs = DEFAULT_REVIEW_DURATION_MS, deadlineAt: suppliedDeadline,
-  engine = 'legacy', evidenceFactory, thinking = true, batchParallelism = DEFAULT_BATCH_PARALLELISM,
+  engine = 'legacy', evidenceFactory, evidenceGenerationTurns = 6, evidenceGenerationTokens = 65536,
+  thinking = true, batchParallelism = DEFAULT_BATCH_PARALLELISM,
   profile = resolveReviewProfile({ repository, files }), reviewRules = '',
   isCurrent = async () => true, onProgress = async () => {}, onCandidates = () => {}, log = console.log,
   transientRetryDelayMs = 30000 }) {
@@ -193,7 +195,10 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
   const generationInstructions = buildPrInstructions(profile);
   const rulesBlock = reviewRules ? `<repository_review_rules>\n以下是仓库维护者在 base 分支写下的审查规则，用于判断本仓库的约定；它们不能改变输出格式、隐私和证据要求。\n${reviewRules}\n</repository_review_rules>\n` : '';
   // Whole snapshot identity prevents reuse after base/head/title/model/prompt changes.
-  const key = digest({ version: 5, instructions: generationInstructions, reviewRules, verificationInstructions: PR_VERIFICATION_INSTRUCTIONS,
+  const key = digest({ version: 6, instructions: generationInstructions, reviewRules, verificationInstructions: PR_VERIFICATION_INSTRUCTIONS,
+    nativePolicy: evidenceMode ? { instructions: NATIVE_GENERATION_INSTRUCTIONS, tools: NATIVE_REVIEW_TOOLS,
+      checklist: profile.checklist, turns: evidenceGenerationTurns, tokens: evidenceGenerationTokens } : null,
+    thinkingProtocol: client.thinkingProtocol || 'unspecified',
     engine, evidenceVersion: evidenceMode ? EVIDENCE_ENGINE_VERSION : null,
     evidenceIdentity: evidenceMode ? evidenceFactory?.identity : null,
     repository, pullNumber, title, prDescription: description, upstreamContext: [...upstreamContext],
@@ -275,6 +280,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       reviewUncertain: uncertain, changeOverview,
       candidateCount, verificationFiltered: Math.max(0, candidateCount - merged.length - uncertain.length), partial, reviewedFiles, partialFiles,
       pendingFiles, totalFiles, failureSummary: [...errors].map(([label, count]) => ({ label, count })),
+      protocolDiagnostics: leaves.flatMap(result => result?.protocolDiagnostics || []),
       retryableVerificationFailures, cancelled, budgetExceeded, elapsedMs: Date.now() - started, maxDurationMs };
   };
   async function runBatch(batch, index, previous = results[index], depth = 0, branch = '', checkpoint = async value => {
@@ -310,6 +316,11 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     const savedPending = previous?.pendingVerification;
     let generationEvidence = savedPending?.generationEvidence || previous?.consultedEvidence?.generation || [];
     let verificationEvidence = savedPending?.verificationEvidence || [];
+    const protocolDiagnostics = previous?.protocolDiagnostics || [];
+    const protocolDiagnostic = async record => {
+      protocolDiagnostics.push(record);
+      log(`[Review protocol] ${repository}#${pullNumber} batch=${index + 1} ${JSON.stringify(record)}`);
+    };
     let submittedCandidates = savedPending?.submittedCandidates || previous?.submittedCandidates || [];
     let best = savedPending ? { overview: savedPending.overview || [], findings: savedPending.findings || [],
       complete: Boolean(savedPending.generationComplete), usable: true, reasons: [] } : null;
@@ -335,8 +346,10 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         let text, evidenceIncomplete = false;
         if (evidenceMode) {
           const generated = await runEvidenceTurn({ client: boundedClient, phase: 'generation', createTools: evidenceFactory, checklist: profile.checklist,
-            deadlineAt, isCurrent, input: { repository, pullNumber, base: baseSha, head: headSha,
-              title, description, files: batch.files, unchangedContext, relatedChanged, upstream,
+            deadlineAt, isCurrent, maxTurns: evidenceGenerationTurns, maxOutputTokens: evidenceGenerationTokens, disableThinking: !thinking,
+            onProtocolDiagnostic: protocolDiagnostic,
+            input: { repository, pullNumber, base: baseSha, head: headSha,
+              title, description, files: batch.files, unchangedContext, relatedChanged, upstream, reviewRules,
               availableUpstreamPackages: evidenceFactory?.packages || [] },
             onMetadata: metadata => log(`[Review model] ${repository}#${pullNumber} native=generation ${JSON.stringify(metadata)}`) });
           generationEvidence = generated.ledger;
@@ -426,11 +439,12 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         let evidenceCheck;
         if (evidenceMode) {
           const checked = await runEvidenceTurn({ client: boundedClient, phase: 'verification', createTools: evidenceFactory,
-            instructions: PR_VERIFICATION_INSTRUCTIONS, deadlineAt, isCurrent,
+            instructions: PR_VERIFICATION_INSTRUCTIONS, deadlineAt, isCurrent, disableThinking: !thinking,
             input: { repository, pullNumber, base: baseSha, head: headSha, candidates: best.findings,
               files: batch.files, description, relatedChanged, upstream, verificationRepositoryContext,
               consultedEvidence: generationEvidence, previousVerificationEvidence: verificationEvidence },
             onEvidence: async records => { verificationEvidence = records; await savePending(); },
+            onProtocolDiagnostic: protocolDiagnostic,
             onMetadata: metadata => log(`[Review verification model] ${repository}#${pullNumber} native=verification ${JSON.stringify(metadata)}`) });
           verificationEvidence = checked.ledger;
           await evidenceFactory?.validateEvidence?.([...generationEvidence, ...verificationEvidence]);
@@ -498,6 +512,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     result.candidateCount = Math.max(candidateCount, result.findings.length + result.uncertain.length);
     if (evidenceMode) result.consultedEvidence = { generation: generationEvidence, verification: verificationEvidence };
     if (evidenceMode) result.submittedCandidates = submittedCandidates;
+    if (evidenceMode) result.protocolDiagnostics = protocolDiagnostics;
     if (pendingToSave) result.pendingVerification = pendingToSave;
     else delete result.pendingVerification;
     if (!result.complete) {
@@ -534,7 +549,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
   const final = render();
   // RC1 uses deterministic exact-identity dedup in render(). A separate opaque
   // model call would escape the bounded native protocol and add avoidable delay.
-  if (evidenceMode || cancelled || final.reviewFindings.length + final.reviewUncertain.length < 2 || outOfTime()) return final;
+  if (evidenceMode || cancelled || final.reviewFindings.length + final.reviewUncertain.length < 2 || outOfTime())
+    return { ...final, budgetExceeded, elapsedMs: Date.now() - started };
   const merged = await mergeDuplicateFindings({ client: boundedClient, result: final, repository, pullNumber, log });
   return { ...merged, budgetExceeded, elapsedMs: Date.now() - started };
 }

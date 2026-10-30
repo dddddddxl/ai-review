@@ -12,7 +12,7 @@ import { DEFAULT_BATCH_PARALLELISM, DEFAULT_REVIEW_DURATION_MS, reviewPrBatches 
 import { prepareRepositoryReview } from './pr-context.mjs';
 import { resolveReviewProfile } from './repo-profile.mjs';
 import { upstreamContextForFiles, upstreamRoots } from './upstream-context.mjs';
-import { createRepositoryEvidence } from './review-evidence.mjs';
+import { createRepositoryEvidence, evidenceGenerationOptions } from './review-evidence.mjs';
 import { deleteProgressComment, publishPrReview, updateReviewWithCiEvidence, upsertProgressComment } from './pr-publication.mjs';
 import { applyPendingCiBackfeeds, ciBackfeedIsCurrent } from './ci-backfeed.mjs';
 import { isUpstreamSyncBranch, isUpstreamSyncPullRequest } from './review-policy.mjs';
@@ -155,12 +155,17 @@ async function reviewPullRequest(job) {
     pull_number: pullNumber,
     per_page: 100,
   });
-  const { repositoryContext, reviewRules } = prReviewEngine === 'legacy' ? await prepareRepositoryReview({ octokit, owner, repo,
-    baseSha: currentPr.base.sha, files, upstreamRoots: upstreamRoots(process.env, { repository, baseRef: currentPr.base.ref }), log: message => console.log(message) }) : { repositoryContext: [], reviewRules: '' };
+  const roots = upstreamRoots(process.env, { repository, baseRef: currentPr.base.ref });
+  // Cross-file context is built for both engines. The evidence engine can also
+  // fetch with tools, but proactive unchanged callers/definitions and the
+  // replaced upstream implementation are what surface semantic-equivalence
+  // defects during generation; without them a lighter model spends its whole
+  // investigation budget rediscovering context it never had.
+  const { repositoryContext, reviewRules, baseSnapshot } = await prepareRepositoryReview({ octokit, owner, repo,
+    baseSha: currentPr.base.sha, files, upstreamRoots: roots, log: message => console.log(message) });
   const profile = resolveReviewProfile({ repository, files });
   console.log(`[Review profile] repository=${repository} pr=${pullNumber} profile=${profile.key}`);
-  const upstreamContext = prReviewEngine === 'legacy' ? upstreamContextForFiles(files, {
-    roots: upstreamRoots(process.env, { repository, baseRef: currentPr.base.ref }) }) : new Map();
+  const upstreamContext = upstreamContextForFiles(files, { roots });
   if (upstreamContext.size) console.log(`[Review context] upstream adapters=${upstreamContext.size} repository=${repository} pr=${pullNumber}`);
 
   const isCurrent = async () => {
@@ -168,7 +173,7 @@ async function reviewPullRequest(job) {
     return latest.state === 'open' && !latest.draft && latest.head.sha === currentPr.head.sha && latest.base.sha === currentPr.base.sha;
   };
   const evidenceFactory = prReviewEngine === 'evidence-v1' ? createRepositoryEvidence({ octokit, owner, repo,
-    headSha: currentPr.head.sha, baseSha: currentPr.base.sha, deadlineAt,
+    headSha: currentPr.head.sha, baseSha: currentPr.base.sha, deadlineAt, baseSnapshot,
     roots: upstreamRoots(process.env, { repository, baseRef: currentPr.base.ref }) }) : undefined;
   let lastPublished = 0;
   const result = await reviewPrBatches({ client: modelClient, files, repository, pullNumber, title: currentPr.title,
@@ -176,7 +181,9 @@ async function reviewPullRequest(job) {
     headSha: currentPr.head.sha, baseSha: currentPr.base.sha, totalFiles: currentPr.changed_files, state: reviewState,
     batchChars: positiveInteger(process.env.AI_REVIEW_BATCH_CHARS, prReviewEngine === 'evidence-v1' ? 80000 : 10000),
     maxDurationMs, deadlineAt,
-    engine: prReviewEngine, evidenceFactory, thinking: prReviewThinking, profile, reviewRules,
+    engine: prReviewEngine, evidenceFactory,
+    ...evidenceGenerationOptions(process.env),
+    thinking: prReviewThinking, profile, reviewRules,
     // With other reviews in flight, one large PR must not hold every model slot.
     batchParallelism: Math.min(activeWorkers > 1 ? 2 : 16,
       boundedPositiveInteger(process.env.AI_REVIEW_BATCH_PARALLELISM, DEFAULT_BATCH_PARALLELISM, 16)),

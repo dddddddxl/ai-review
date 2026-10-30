@@ -1,6 +1,7 @@
 // Only allowlisted categories cross the diagnostic/publication boundary.
 // Never expose provider bodies, exception messages, endpoints or credentials.
 export function reviewErrorCode(error) {
+  if(error?.code==='incomplete_tool_response')return error.reason==='output_truncated'?'output_truncated':'invalid_tool_response';
   if (error?.code === 'incomplete_response' && ['output_truncated', 'empty_response', 'response_refused', 'response_protocol'].includes(error.reason)) return error.reason;
   if (['ci_schema_invalid', 'ci_evidence_invalid', 'snapshot_changed', 'review_deadline',
     'native_tools_unavailable', 'invalid_tool_response', 'evidence_budget', 'evidence_unavailable', 'evidence_incomplete'].includes(error?.code)) return error.code;
