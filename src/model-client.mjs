@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { createHash } from 'node:crypto';
 
 const DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com";
 const DEFAULT_TIMEOUT_MS = 120_000;
@@ -101,7 +102,7 @@ export function createModelClient(
       configured, format, insecureHttp, model, stream, thinkingProtocol, requestTimeoutMs: stream ? streamMaxMs : configuredTimeoutMs,
       // Opt-in native tool turns. Ordinary review decoding remains unchanged.
       async generateToolTurn({ instructions, messages, tools, toolChoice = 'auto', maxOutputTokens, disableThinking = false,
-        onMetadata, timeoutMs, deadlineAt, signal }) {
+        onMetadata, onToolDelta, parallelToolCalls, timeoutMs, deadlineAt, signal }) {
         const requestMs = boundedTimeout(stream ? Math.min(streamMaxMs, positiveInteger(timeoutMs, streamMaxMs)) : timeoutMs,
           configuredTimeoutMs, deadlineAt, signal);
         const controller = new AbortController();
@@ -115,10 +116,11 @@ export function createModelClient(
             headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
             body: JSON.stringify({ model, stream, ...(stream ? { stream_options: { include_usage: true } } : {}),
               ...thinkingFields(disableThinking),
+              ...(typeof parallelToolCalls === 'boolean' ? {parallel_tool_calls:parallelToolCalls} : {}),
               max_tokens: maxOutputTokens, messages: [{ role: 'system', content: instructions }, ...messages], tools, tool_choice: toolChoice }),
             signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal });
           if (!response.ok) throw Object.assign(new Error(`Native tool API returned HTTP ${response.status}`), { code: 'native_tool_http_error', status: response.status });
-          const data = stream ? await readChatStream(response, touch) : await response.json();
+          const data = stream ? await readChatStream(response, touch, onToolDelta) : await response.json();
           const choice = data?.choices?.[0], message = choice?.message;
           const metadata = compactMetadata({ stopReason: choice?.finish_reason, inputTokens: data?.usage?.prompt_tokens,
             outputTokens: data?.usage?.completion_tokens, totalTokens: data?.usage?.total_tokens,
@@ -256,7 +258,7 @@ function compactMetadata(metadata) {
 
 // Reassemble an OpenAI-compatible SSE stream into the non-streaming response
 // shape, so validation stays identical. `touch` is called for every event.
-async function readChatStream(response, touch) {
+async function readChatStream(response, touch, onToolDelta) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   const choices = new Map();
@@ -280,7 +282,20 @@ async function readChatStream(response, touch) {
       if (part.tool_calls?.length) {
         const calls = choice.message.tool_calls ||= [];
         for (const fragment of part.tool_calls) {
-          const at = Number.isInteger(fragment.index) ? fragment.index : 0;
+          // Opt-in protocol diagnostics only: no argument values, content,
+          // reasoning or headers leave this callback, even across split tokens.
+          const digest = value => createHash('sha256').update(String(value)).digest('hex');
+          onToolDelta?.({ choiceIndex: index, toolIndex: fragment.index ?? null,
+            idHash: fragment.id ? digest(fragment.id) : null,
+            nameHash: fragment.function?.name ? digest(fragment.function.name) : null,
+            argumentsChars: fragment.function?.arguments?.length ?? 0,
+            argumentsHash: typeof fragment.function?.arguments === 'string' ? digest(fragment.function.arguments) : null });
+          // Never merge ambiguous/missing indices or two call IDs into one JSON
+          // object. Failing closed here keeps duplicate-key diagnosis meaningful.
+          const at = fragment.index;
+          if (!Number.isSafeInteger(at) || at < 0 || at >= 16 ||
+              (fragment.id && calls[at]?.id && fragment.id !== calls[at].id))
+            throw Object.assign(new Error('Ambiguous stream tool identity'), {code:'invalid_tool_response',reason:'stream_tool_identity'});
           const call = calls[at] ||= { id: '', type: 'function', function: { name: '', arguments: '' } };
           if (fragment.id) call.id = fragment.id;
           if (fragment.type) call.type = fragment.type;
@@ -292,7 +307,7 @@ async function readChatStream(response, touch) {
       choices.set(index, choice);
     }
   };
-  for (;;) {
+  try { for (;;) {
     const { value, done } = await reader.read();
     if (done) break;
     touch();
@@ -303,7 +318,7 @@ async function readChatStream(response, touch) {
       buffer = buffer.slice(newline + 1);
       if (line) handle(line);
     }
-  }
+  } } catch (error) { await reader.cancel().catch(()=>{}); throw error; }
   buffer += decoder.decode();
   if (buffer.trim()) handle(buffer.trim());
   // A stream that ends without [DONE] or a finish reason is cut off, never complete.

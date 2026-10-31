@@ -509,7 +509,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       } else {
         best.findings = uniqueFindings([...(previous?.findings || []), ...best.findings]);
         best.uncertain = uniqueFindings([...(previous?.uncertain || []), ...best.uncertain]);
-        if (!best.complete) failure = savedPending?.generationFailure || { phase: 'generation', code: 'invalid_response' };
+        if (!best.complete) failure = savedPending?.generationFailure || failure;
       }
     }
     const result = best || { overview: previous?.overview || [], findings: previous?.findings || [], complete: false };

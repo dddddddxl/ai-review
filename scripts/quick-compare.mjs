@@ -1,7 +1,7 @@
 // Read-only capture and frozen model replay. No publication, CI or repository execution.
 import fs from 'node:fs';
 import path from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {App} from 'octokit';
 import {createModelClient} from '../src/model-client.mjs';
@@ -25,22 +25,31 @@ async function capture(){
  fs.mkdirSync(output,{recursive:false});
  const app=new App({appId:process.env.GITHUB_APP_ID,privateKey:fs.readFileSync(process.env.GITHUB_PRIVATE_KEY_PATH,'utf8')});
  readonly(app.octokit);
- const owner='HYGON-AI',repo='vllm-plugin-das';
+ const option=name=>{const i=process.argv.indexOf(name);return i<0?null:process.argv[i+1];};
+ const repository=option('--repository')||'HYGON-AI/vllm-plugin-das';
+ if(!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository))throw new Error('invalid_repository');
+ const [owner,repo]=repository.split('/');
+ const current=process.argv.includes('--current');
+ const numbers=(option('--prs')||'225,269').split(',').map(Number);
+ if(!numbers.length||numbers.some(n=>!Number.isSafeInteger(n)||n<1)||new Set(numbers).size!==numbers.length)throw new Error('invalid_pr_number');
+ if(!current&&repository!=='HYGON-AI/vllm-plugin-das')throw new Error('historical_repository_mismatch');
  const {data:installation}=await app.octokit.request('GET /repos/{owner}/{repo}/installation',{owner,repo});
  const api=readonly(await app.getInstallationOctokit(installation.id));
- const cases=JSON.parse(fs.readFileSync(new URL('../eval/vllm-plugin-das.json',import.meta.url))).cases;
+ const cases=current?[]:JSON.parse(fs.readFileSync(new URL('../eval/vllm-plugin-das.json',import.meta.url))).cases;
  const fixtures=[];
- for(const pullNumber of [225,269]){
-  const headSha=cases.find(c=>c.pullNumber===pullNumber).headSha;
+ for(const pullNumber of numbers){
   const {data:pr}=await api.rest.pulls.get({owner,repo,pull_number:pullNumber});
-  const commits=await api.paginate(api.rest.pulls.listCommits,{owner,repo,pull_number:pullNumber,per_page:100});
-  const {data:head}=await api.rest.repos.getCommit({owner,repo,ref:headSha});
+  const headSha=current?pr.head.sha:cases.find(c=>c.pullNumber===pullNumber)?.headSha;
+  if(!headSha)throw new Error('historical_head_missing');
+  const commits=current?[]:await api.paginate(api.rest.pulls.listCommits,{owner,repo,pull_number:pullNumber,per_page:100});
+  const head=current?null:(await api.rest.repos.getCommit({owner,repo,ref:headSha})).data;
   const historicalHeadPresent=commits.some(c=>c.sha===headSha);
-  const baseSha=historicalHeadPresent?commits[0].parents[0].sha:head.parents[0].sha;
-  const {data:comparison}=await api.rest.repos.compareCommitsWithBasehead({owner,repo,basehead:`${baseSha}...${headSha}`});
+  const requestedBase=current?pr.base.sha:historicalHeadPresent?commits[0].parents[0].sha:head.parents[0].sha;
+  const {data:comparison}=await api.rest.repos.compareCommitsWithBasehead({owner,repo,basehead:`${requestedBase}...${headSha}`});
+  const baseSha=comparison.merge_base_commit?.sha||requestedBase;
   if(!comparison.files?.length||comparison.files.length>=300)throw new Error('diff_empty_or_possible_truncation');
   const fixture={repository:`${owner}/${repo}`,pullNumber,title:pr.title,baseSha,headSha,baseRef:pr.base.ref,
-   comparisonKind:historicalHeadPresent?'first_pr_commit_parent':'single_historical_commit_parent',
+   targetBaseSha:requestedBase,comparisonKind:current?'current_pr_merge_base':historicalHeadPresent?'first_pr_commit_parent':'single_historical_commit_parent',
    capturedAt:new Date().toISOString(),files:comparison.files.map(({filename,status,patch,additions,deletions,previous_filename})=>({filename,status,patch,additions,deletions,previous_filename})),
    limitations:['Historical PR description and bot comments excluded from model input','No installed upstream packages; upstream dependencies may be unknown'],archives:{}};
   for(const [side,sha] of [['base',baseSha],['head',headSha]]){
@@ -72,14 +81,23 @@ async function run(){
  const prFlag=process.argv.indexOf('--pr');
  const selectedPr=prFlag<0?null:Number(process.argv[prFlag+1]);
  if(selectedPr!==null&&(!Number.isSafeInteger(selectedPr)||selectedPr<1))throw new Error('invalid_pr_number');
- const root=variant==='baseline'?path.resolve(baselineRoot):path.resolve(new URL('..',import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,'$1'));
+ const root=variant==='baseline'?path.resolve(baselineRoot):fileURLToPath(new URL('..',import.meta.url));
  const moduleAt=relative=>import(variant==='baseline'?pathToFileURL(path.join(root,relative)).href:new URL(`../${relative}`,import.meta.url));
  const {reviewPrBatches,DEFAULT_REVIEW_DURATION_MS}=await moduleAt('src/pr-review.mjs');
  const {createModelClient:makeClient}=await moduleAt('src/model-client.mjs');
  const runDir=path.join(output,variant);fs.mkdirSync(runDir);
  for(const pullNumber of selectedPr===null?[225,269]:[selectedPr]){
   const fixtureBytes=fs.readFileSync(path.join(output,`pr-${pullNumber}.json`)),fixture=JSON.parse(fixtureBytes);
+  if(fixture.pullNumber!==pullNumber||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(fixture.repository)||
+   ![fixture.baseSha,fixture.headSha].every(s=>/^[a-f0-9]{40}$/.test(s)))throw new Error('invalid_fixture_identity');
+  const [owner,repo]=fixture.repository.split('/');
   const dir=path.join(runDir,`pr-${pullNumber}`);fs.mkdirSync(dir);
+  const sourceFiles=fs.readdirSync(path.join(root,'src')).filter(n=>n.endsWith('.mjs')).sort()
+   .map(name=>({path:`src/${name}`,sha256:hash(fs.readFileSync(path.join(root,'src',name)))}));
+  fs.writeFileSync(path.join(dir,'execution.json'),JSON.stringify({startedAt:new Date().toISOString(),variant,repository:fixture.repository,
+   pullNumber,baseSha:fixture.baseSha,headSha:fixture.headSha,inputSha256:hash(fixtureBytes),
+   sourceFingerprint:hash(JSON.stringify(sourceFiles)),sourceFiles,harnessSha256:hash(fs.readFileSync(fileURLToPath(import.meta.url))),
+   referenceAnswersProvided:false,contextType:'fresh_model_messages',blindEvaluation:false},null,2),{flag:'wx'});
   const started=Date.now(),deadlineAt=started+DEFAULT_REVIEW_DURATION_MS;
   const snapshots={};
   for(const side of ['base','head']){
@@ -93,9 +111,9 @@ async function run(){
    if(!side)throw new Error('unfrozen_git_request');
    return {data:fs.readFileSync(path.join(output,fixture.archives[side].file))};
   }};
-  const context=variant==='fixed'?await buildPrRepositoryContext({octokit:localApi,owner:'HYGON-AI',repo:'vllm-plugin-das',baseSha:fixture.baseSha,files:fixture.files,snapshot:snapshots.base}):[];
+  const context=variant==='fixed'?await buildPrRepositoryContext({octokit:localApi,owner,repo,baseSha:fixture.baseSha,files:fixture.files,snapshot:snapshots.base}):[];
   const rules=variant==='fixed'?repositoryReviewRules(snapshots.base,fixture.files):'';
-  const factory=createRepositoryEvidence({octokit:localApi,owner:'HYGON-AI',repo:'vllm-plugin-das',headSha:fixture.headSha,baseSha:fixture.baseSha,baseSnapshot:snapshots.base,deadlineAt});
+  const factory=createRepositoryEvidence({octokit:localApi,owner,repo,headSha:fixture.headSha,baseSha:fixture.baseSha,baseSnapshot:snapshots.base,deadlineAt});
   // Hold the wire-level thinking request constant even though the old native client omitted it.
   const raw=makeClient(process.env,{fetchImpl:(url,options)=>fetch(url,{...options,
    body:JSON.stringify({...JSON.parse(options.body),thinking:{type:'enabled'}})})});
@@ -104,7 +122,8 @@ async function run(){
    const begin=Date.now(),record={phase:options.tools.some(t=>t.function.name==='submit_verdicts')?'verification':'generation',
     inputChars:JSON.stringify(options.messages).length,thinkingRequested:options.disableThinking?'disabled':'enabled_or_provider_default'};
    try{
-    const answer=await raw.generateToolTurn({...options,onMetadata:m=>{record.usage=m;options.onMetadata?.(m);}});
+    const answer=await raw.generateToolTurn({...options,onMetadata:m=>{record.usage=m;options.onMetadata?.(m);},
+     onToolDelta:delta=>fs.appendFileSync(path.join(dir,'tool-deltas.jsonl'),JSON.stringify({call:records.length+1,...delta})+'\n')});
     record.submissions=sanitizeReviewInput(answer.message.tool_calls);
     if(firstResultMs===null&&record.submissions?.some(c=>['submit_review','submit_verdicts'].includes(c.function?.name)))firstResultMs=Date.now()-started;
     return answer;

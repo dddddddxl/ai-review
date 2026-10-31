@@ -10,7 +10,8 @@ export function parseToolArguments(text) {
     else if(token==='}'||token===']')stack.pop();
     else if(token.startsWith('"')&&tokens[i+1]===':'){
       const key=JSON.parse(token),keys=stack.at(-1);
-      if(keys?.has(key))throw new SyntaxError('duplicate_tool_key');
+      if(keys?.has(key))throw Object.assign(new SyntaxError('duplicate_tool_key'), {code:'duplicate_tool_key',
+        field:['query','side','prefix','path','start','end','target','findings','verdicts'].includes(key)?key:'unknown_field'});
       keys?.add(key);
     }
   }

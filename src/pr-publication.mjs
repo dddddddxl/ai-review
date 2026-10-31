@@ -253,7 +253,25 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
   return { body: `${marker}\n${body}`, comments, marker, fingerprint, safetyFiltered, status: status.label };
 }
 
-export async function publishPrReview({ octokit, owner, repo, pullNumber, pr, files, result, botLogin, isCurrent = async () => true }) {
+// Workers in one service process can receive duplicate webhook deliveries.
+// Serialize the read-check-write sequence, not just the model generation.
+// This is not a distributed lock: deploy a single service instance per queue.
+const publicationLocks = new Map();
+export async function publishPrReview(options) {
+  const key = JSON.stringify([options.owner?.toLowerCase(), options.repo?.toLowerCase(), options.pullNumber]);
+  const previous = publicationLocks.get(key) || Promise.resolve();
+  let release;
+  const current = new Promise(resolve => { release = resolve; });
+  publicationLocks.set(key, current);
+  await previous;
+  try { return await publishPrReviewUnlocked(options); }
+  finally {
+    release();
+    if (publicationLocks.get(key) === current) publicationLocks.delete(key);
+  }
+}
+
+async function publishPrReviewUnlocked({ octokit, owner, repo, pullNumber, pr, files, result, botLogin, isCurrent = async () => true }) {
   const publication = buildPrReviewPublication({ pr, files, result, pullNumber });
   const reviews = await octokit.paginate(octokit.rest.pulls.listReviews, {
     owner, repo, pull_number: pullNumber, per_page: 100,
