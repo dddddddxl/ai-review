@@ -147,7 +147,7 @@ async function run(){
    evidenceGenerationTurns:4,evidenceGenerationTokens:32768,batchChars:80000,thinking:true,deadlineAt,state:new ReviewState(path.join(dir,'state')),
    onCandidates:r=>candidates.push(r),log:l=>{logs.push(l);fs.appendFileSync(path.join(dir,'log.txt'),l+'\n');}});
   const summary={variant,pullNumber,repository:fixture.repository,baseSha:fixture.baseSha,headSha:fixture.headSha,inputSha256:hash(fixtureBytes),
-   model:raw.model,thinkingProtocol:raw.thinkingProtocol||'provider_default',wireThinkingPolicy:'enabled for both variants (experiment override)',sameGenerationBudget:{turns:4,tokens:32768},
+   model:raw.model,toolTransport:raw.toolTransport||'native',thinkingProtocol:raw.thinkingProtocol||'provider_default',wireThinkingPolicy:'enabled for both variants (experiment override)',sameGenerationBudget:{turns:4,tokens:32768},
    seconds:(Date.now()-started)/1000,firstTerminalMs:firstResultMs,modelCalls:records.length,partial:result.partial,completed:result.completed,batches:result.batches,
    findings:result.reviewFindings,uncertain:result.reviewUncertain,candidateCount:result.candidateCount,failures:result.failures,
    inputTokens:records.reduce((n,r)=>n+(r.usage?.inputTokens||0),0),outputTokens:records.reduce((n,r)=>n+(r.usage?.outputTokens||0),

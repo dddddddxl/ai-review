@@ -191,6 +191,7 @@ test('verification evidence failure cannot publish even a confirmed verdict',asy
  assert.equal(result.reviewFindings.length,0);assert.equal(result.partial,true);
  assert.equal(saved.results[0].failure.code,'evidence_incomplete');
  assert.equal(saved.results[0].pendingVerification.submittedCandidates.length,1);
+ assert.equal(result.reviewPending.length,1);assert.match(result.body,/尚未完成证据复核/);
 });
 
 test('checkpoint keeps submitted candidates across another interrupted resume',async()=>{

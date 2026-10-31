@@ -241,7 +241,7 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
     '',
     `- 变更统计：${Number.isSafeInteger(result.totalFiles) ? result.totalFiles : files.length} 个文件，+${additions}/-${deletions}。`,
     `- 覆盖情况：${coverage}`,
-    `- 候选问题：${candidateCount} 项；已确认：${rawFindings.length} 项；需人工确认：${rawUncertain.length} 项；证据复核否决：${verificationFiltered} 项；发布前敏感信息保护：${safetyFiltered + uncertainSafetyFiltered} 项。${failures}`,
+    `- 候选问题：${candidateCount} 项；已确认：${rawFindings.length} 项；需人工确认：${rawUncertain.length} 项；未完成复核：${Number.isSafeInteger(result.unverifiedCandidates)?Math.max(0,result.unverifiedCandidates):'未知'} 项；证据复核否决：${verificationFiltered} 项；发布前敏感信息保护：${safetyFiltered + uncertainSafetyFiltered} 项。${failures}`,
     '- 本服务以 GitHub 提供的 PR diff 为审查主体，PR 描述与按相关性选取的仓库片段仅用于核验；未执行代码或重跑测试，结论仍需维护者核验。',
     '',
     '</details>',

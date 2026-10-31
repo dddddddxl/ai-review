@@ -199,6 +199,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     nativePolicy: evidenceMode ? { instructions: NATIVE_GENERATION_INSTRUCTIONS, tools: NATIVE_REVIEW_TOOLS,
       checklist: profile.checklist, turns: evidenceGenerationTurns, tokens: evidenceGenerationTokens } : null,
     thinkingProtocol: client.thinkingProtocol || 'unspecified',
+    toolTransport: client.toolTransport || 'native',
     engine, evidenceVersion: evidenceMode ? EVIDENCE_ENGINE_VERSION : null,
     evidenceIdentity: evidenceMode ? evidenceFactory?.identity : null,
     repository, pullNumber, title, prDescription: description, upstreamContext: [...upstreamContext],
@@ -250,6 +251,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       truncated: plan.truncated, incompleteCoverage: partial || uncertain.length > 0, failedBatches: failures, batchCount: results.length });
     if (uncertain.length) body += `\n\n> ${uncertain.length} 条候选尚需人工确认，不能据此给出无问题结论。`;
     const leaves = results.flatMap(leafResults);
+    const reviewPending = leaves.flatMap(result=>result?.pendingVerification?.findings||[]);
+    if(reviewPending.length)body+=`\n\n> 另有 ${reviewPending.length} 条候选尚未完成证据复核，已保留在机器可读结果 reviewPending 中；不属于已确认问题，也不是已被否决。`;
     const candidateCount = leaves.reduce((total, result) => {
       if (!result) return total;
       const confirmed = Array.isArray(result.findings) ? result.findings.length : 0;
@@ -277,7 +280,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     }
     if (!plan.batches.length) body = `## AI Review\n\n本次没有可供文本审查的 patch，无法形成代码审查结论。\n\n${body.split('\n\n').filter(s => s.startsWith('>')).join('\n\n')}`;
     return { body, failures, pending, batches: results.length, completed, findings: merged.length, reviewFindings: merged,
-      reviewUncertain: uncertain, changeOverview,
+      reviewUncertain: uncertain, reviewPending, changeOverview,
       candidateCount, verificationFiltered: leaves.reduce((sum,r)=>sum+(r?.verificationRefutedCount||0),0),
       unverifiedCandidates:Math.max(0,candidateCount-leaves.reduce((sum,r)=>sum+(r?.verificationEvaluatedCount||0),0)), partial, reviewedFiles, partialFiles,
       pendingFiles, totalFiles, failureSummary: [...errors].map(([label, count]) => ({ label, count })),

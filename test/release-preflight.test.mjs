@@ -91,3 +91,22 @@ test('publication lock releases after a failed write and still blocks stale wait
  const stale=await publishPrReview({...f.args,isCurrent:async()=>false});assert.equal(stale.stale,true);
  await publishPrReview(f.args);assert.equal(f.writes.length,1);
 });
+test('opt-in JSON transport uses text protocol but leaves execution to the same host validators',async()=>{
+ let body;
+ const client=createModelClient({...env,AI_STREAM:'false',AI_TOOL_TRANSPORT:'json'},{fetchImpl:async(_url,o)=>{
+  body=JSON.parse(o.body);return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{role:'assistant',content:'{"tool_calls":[{"name":"file_read","arguments":{"path":"a.py"}}]}'}}]}));
+ }});
+ const answer=await client.generateToolTurn({instructions:'readonly',messages:[],tools:NATIVE_REVIEW_TOOLS,maxOutputTokens:100,disableThinking:true});
+ assert.equal(client.toolTransport,'json');assert.equal(body.tools,undefined);
+ assert.equal(answer.message.tool_calls[0].function.name,'file_read');assert.equal(answer.message.tool_calls[0].function.arguments,'{"path":"a.py"}');
+ assert.match(body.messages[0].content,/允许的工具定义/);
+});
+test('JSON transport never silently collapses duplicate fields',async()=>{
+ const content='{"tool_calls":[{"name":"file_read","arguments":{"path":"a.py","path":"b.py"}}]}';
+ const client=createModelClient({...env,AI_STREAM:'false',AI_TOOL_TRANSPORT:'json'},{fetchImpl:async()=>new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{role:'assistant',content}}]}))});
+ const answer=await client.generateToolTurn({instructions:'',messages:[],tools:NATIVE_REVIEW_TOOLS});
+ assert.equal(answer.message.tool_calls,undefined);assert.equal(answer.message.content,content);
+});
+test('unknown transport is rejected instead of silently enabling another protocol',()=>{
+ assert.throws(()=>createModelClient({...env,AI_TOOL_TRANSPORT:'other'}),/Invalid AI_TOOL_TRANSPORT/);
+});

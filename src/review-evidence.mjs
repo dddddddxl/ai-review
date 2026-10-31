@@ -8,7 +8,7 @@ import {upstreamDefinition} from './upstream-context.mjs';
 import {parseToolArguments} from './tool-arguments.mjs';
 import {toolSchemaErrors} from './tool-schema.mjs';
 
-export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.8';
+export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.9';
 
 export function evidenceGenerationOptions(environment = process.env) {
  const integer = (name, fallback, maximum) => {

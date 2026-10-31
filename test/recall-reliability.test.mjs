@@ -34,6 +34,7 @@ test('native policy budget and thinking protocol separate checkpoint identities'
  await reviewPrBatches(options);await reviewPrBatches(options);assert.equal(calls,1);
  await reviewPrBatches({...options,evidenceGenerationTurns:4});assert.equal(calls,2);
  await reviewPrBatches({...options,client:{...options.client,thinkingProtocol:'none'}});assert.equal(calls,3);
+ await reviewPrBatches({...options,client:{...options.client,toolTransport:'json'}});assert.equal(calls,4);
 });
 for(const model of ['GLM-5.3-Flash','glm5.3-flash'])test(`explicit thinking switch for ${model}`,async()=>{
  const bodies=[];const client=createModelClient({AI_API_FORMAT:'openai-chat',AI_MODEL:model,AI_API_KEY:'synthetic',AI_BASE_URL:'https://mock.invalid'},
