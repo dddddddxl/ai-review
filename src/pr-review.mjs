@@ -361,7 +361,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
             onSubmission: ({submission})=>{if(Array.isArray(submission.findings)){submittedCandidates=submission.findings;candidateCount=Math.max(candidateCount,submittedCandidates.length);}},
             input: { repository, pullNumber, base: baseSha, head: headSha,
               title, description, files: batch.files, unchangedContext, relatedChanged, upstream, reviewRules, contractContext,
-              availableUpstreamPackages: evidenceFactory?.packages || [] },
+              availableUpstreamPackages: evidenceFactory?.packages || [],allowedFindingPaths:plan.selected.map(f=>f.filename) },
             onMetadata: metadata => log(`[Review model] ${repository}#${pullNumber} native=generation ${JSON.stringify(metadata)}`) });
           generationEvidence = generated.ledger;
           await evidenceFactory?.validateEvidence?.(generationEvidence);
@@ -377,7 +377,10 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
           disableThinking: !thinking,
           onMetadata: metadata => log(`[Review model] ${repository}#${pullNumber} batch=${index + 1}${branch} attempt=${attempt} ${JSON.stringify(metadata)}`),
         });
-        const decoded = decodePrReview(text, batch.files);
+        // A real cross-file defect can be discovered while reading a related
+        // changed file owned by another batch. Keep it within the selected PR
+        // diff allowlist; this does NOT mark the other batch reviewed.
+        const decoded = decodePrReview(text, evidenceMode ? plan.selected : batch.files);
         if (evidenceIncomplete) {
           decoded.complete = false;
           decoded.reasons.push('evidence_incomplete');
@@ -454,6 +457,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
             instructions: PR_VERIFICATION_INSTRUCTIONS, deadlineAt, isCurrent, disableThinking: !thinking,
             input: { repository, pullNumber, base: baseSha, head: headSha, candidates: best.findings,
               files: batch.files, description, relatedChanged, upstream, verificationRepositoryContext, contractContext,
+              candidateDiffs:plan.selected.filter(f=>best.findings.some(c=>c.file===f.filename)&&!batch.files.some(b=>b.filename===f.filename)),
               availableUpstreamPackages: evidenceFactory?.packages || [],
               consultedEvidence: generationEvidence, previousVerificationEvidence: verificationEvidence },
             onEvidence: async records => { verificationEvidence = records; await savePending(); },

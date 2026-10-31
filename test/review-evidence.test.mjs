@@ -22,6 +22,23 @@ const client=fn=>({model:'mock',format:'openai-chat',generateToolTurn:fn,generat
 const isVerifier=o=>o.tools.some(t=>t.function.name==='submit_verdicts');
 const toolsResponse=requests=>({message:{role:'assistant',tool_calls:requests.map((r,i)=>({id:'tool'+i,type:'function',function:{name:r.tool,arguments:JSON.stringify(Object.fromEntries(Object.entries(r).filter(([k])=>k!=='tool')))}}))}});
 
+test('cross-batch changed-file candidates survive without completing the other batch',async()=>{
+ const other={filename:'b.py',status:'added',patch:'@@ -0,0 +1 @@\n+call(1,2)',additions:1,deletions:0};
+ const cross={...finding,file:'b.py'};let sawDiff=false;
+ const result=await reviewPrBatches({...options,files:[...files,other],batchChars:1,batchParallelism:1,client:client(async o=>{
+  const input=JSON.parse(o.messages[0].content);
+  if(isVerifier(o)){sawDiff=input.candidateDiffs.some(f=>f.filename==='b.py');return verdict('confirmed');}
+  assert.deepEqual(input.allowedFindingPaths,['a.py','b.py']);
+  return input.files[0].filename==='a.py'?generation([cross]):generation([],{coverageComplete:false});
+ })});
+ assert.equal(sawDiff,true);assert.equal(result.reviewFindings[0].file,'b.py');assert.equal(result.reviewedFiles,1);assert.equal(result.partialFiles,1);assert.equal(result.partial,true);
+});
+
+test('cross-batch routing still rejects files not in the selected PR diff',async()=>{
+ const result=await reviewPrBatches({...options,client:client(async()=>generation([{...finding,file:'not-changed.py'}]))});
+ assert.equal(result.reviewFindings.length,0);assert.equal(result.partial,true);
+});
+
 test('RC1 complete-file units never split a large patch at characters/hunks',()=>{
  const patch='@@ -0,0 +1 @@\n+'+'x'.repeat(30000);
  const plan=makeBatches([{filename:'large.py',patch,status:'added'}],{batchChars:1000,wholeFiles:true});
