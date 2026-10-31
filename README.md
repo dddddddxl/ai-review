@@ -4,6 +4,7 @@ This repository contains the `github-ai-reviewer` service source. The current co
 
 ## Version status
 
+- **2026-10-31 / branch `1031`:** 147 offline tests pass, including a clean dependency installation. Eight real-model replay runs finished, but none completed the entire requested review scope. This remains **not ready for production**. See the [latest validation report](docs/1031-VALIDATION.md) and [preflight checklist](docs/1031-PREFLIGHT.md). Historical results below are retained and are not the latest acceptance status.
 - CI recovery fixes distinguish scan execution failures from confirmed code issues, and replace obsolete failure messages after a successful rerun. These fixes were deployed separately on 2026-10-21.
 - RC1.1 uses complete-file review units, read-only repository evidence tools, independent verification, durable candidate checkpoints, and shared concurrency/accounting/deadline controls. It is a release candidate, **not an end-to-end quality-approved production release**.
 - The candidate service defaults to `AI_PR_REVIEW_ENGINE=evidence-v1`. Set `AI_PR_REVIEW_ENGINE=legacy` explicitly to select the previous review path; there is no automatic fallback.
@@ -57,7 +58,7 @@ node scripts/quick-compare.mjs run OUTPUT fixed --pr 225
 
 这只是两个已知历史样本的定向回归，不是独立盲测或准确率证明。完整验收仍需未用于调优的新样本、无缺陷对照、人工语义裁定，以及生产预取耗时和网关参数生效检查。没有配置的上游依赖仍应视为未知。
 
-### 本轮实测状态
+### 历史实测状态（本轮追加验证前）
 
 GLM-5.3-Flash 对两个冻结历史样本的原版审查均因工具协议失败，耗时约 216 秒、297 秒。首轮修复版在第一个样本生成 4 条候选，但嵌套必填 `trigger` 全部缺失，373 秒后仍未完成；第二个样本复现同类问题，提前结束并保留检查点，不计作成功。后续补上逐条字段校验、定向修复，以及“未验证候选”和“复核反驳”的独立计数。一次约 42 秒的真实格式修复调用补齐 4 条候选，其他字段不变；它不是语义复核或端到端质量验收。
 
