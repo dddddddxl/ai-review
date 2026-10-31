@@ -81,6 +81,14 @@ test('duplicate-path evidence arguments are repaired without reading either file
  const result=await runEvidenceTurn({...base,maxTurns:2,client:{generateToolTurn:async()=>++calls===1?bad:final(valid)}});
  assert.equal(result.ledger.length,0);assert.equal(result.protocolDiagnostics[0].code,'invalid_evidence_arguments');
 });
+test('duplicate-key correction identifies the field and explicitly disables parallel calls without increasing turns',async()=>{
+ const options=[];
+ const bad={message:{role:'assistant',tool_calls:[{id:'bad',type:'function',function:{name:'code_search',arguments:'{"query":"first","query":"second"}'}}]}};
+ const result=await runEvidenceTurn({...base,maxTurns:2,client:{generateToolTurn:async o=>{options.push(o);return options.length===1?bad:final(valid);}}});
+ assert.equal(options.length,2);assert.equal(options[1].parallelToolCalls,false);
+ assert.deepEqual(result.protocolDiagnostics[0].fields,['duplicate:query']);
+ assert.equal(result.ledger.length,0);
+});
 test('a missing nested trigger is repaired before the candidate decoder can drop the finding',async()=>{
  const finding={file:'a.py',priority:'P2',title:'wrong result',evidence:'return 1',impact:'incorrect output',suggestion:'handle zero'};
  let calls=0;const diagnostics=[];

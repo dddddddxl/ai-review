@@ -85,7 +85,7 @@ async function run(){
  const moduleAt=relative=>import(variant==='baseline'?pathToFileURL(path.join(root,relative)).href:new URL(`../${relative}`,import.meta.url));
  const {reviewPrBatches,DEFAULT_REVIEW_DURATION_MS}=await moduleAt('src/pr-review.mjs');
  const {createModelClient:makeClient}=await moduleAt('src/model-client.mjs');
- const runDir=path.join(output,variant);fs.mkdirSync(runDir);
+ const runDir=path.join(output,variant);fs.mkdirSync(runDir,{recursive:true});
  for(const pullNumber of selectedPr===null?[225,269]:[selectedPr]){
   const fixtureBytes=fs.readFileSync(path.join(output,`pr-${pullNumber}.json`)),fixture=JSON.parse(fixtureBytes);
   if(fixture.pullNumber!==pullNumber||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(fixture.repository)||
