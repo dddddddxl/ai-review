@@ -69,12 +69,15 @@ test('batches run through a worker pool bounded by batchParallelism', async () =
   assert.equal(peak, 3);
 });
 
-test('a slow batch does not hold back the next ones', async () => {
+test('a slow batch does not hold back the next ones', {timeout:5000}, async () => {
   const finished = [];
+  let releaseSlow;
+  const slowGate = new Promise(resolve => {releaseSlow=resolve;});
   const client = { model: 'mock', format: 'mock', async generateReview(options) {
     const slow = options.input.includes('f0.py');
-    await new Promise(resolve => setTimeout(resolve, slow ? 60 : 5));
+    if(slow)await slowGate;
     finished.push(slow ? 'slow' : 'fast');
+    if(!slow&&finished.filter(value=>value==='fast').length===3)releaseSlow();
     return JSON.stringify({ overview: [], findings: [] });
   } };
   await reviewPrBatches({ ...args, files: manyFiles(4), client, batchChars: 5000, batchParallelism: 2 });
