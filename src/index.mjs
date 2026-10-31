@@ -21,6 +21,7 @@ import { createModelUsageMeter, hasReportedUsage } from './model-usage.mjs';
 import { createDashboardSnapshot, dashboardAuthorized, dashboardHeaders, loadDashboardAssets } from './dashboard.mjs';
 import { verificationRetryDecision } from './retry-policy.mjs';
 import {registerReviewWebhooks} from './review-webhooks.mjs';
+import {createServiceLifecycle,runtimeReadiness} from './service-lifecycle.mjs';
 
 const requiredEnvironment = [
   "GITHUB_APP_ID",
@@ -209,6 +210,7 @@ async function reviewWorkflowRun(job) {
 // provider-load boundary across every PR and CI worker.
 let dispatcherBusy = false;
 let activeWorkers = 0;
+const lifecycle=createServiceLifecycle();
 async function processQueuedJob(job) {
   const usageScope = modelUsageMeter.createScope(job.usage);
   try {
@@ -229,19 +231,22 @@ async function processQueuedJob(job) {
       ...(hasReportedUsage(usage) ? { usage } : {}) }).catch(() => {});
   }
 }
-const workerTimer = setInterval(async () => {
-  if (dispatcherBusy) return;
+const workerTimer = setInterval(() => {
+  if (dispatcherBusy || lifecycle.draining) return;
   dispatcherBusy = true;
+  lifecycle.track((async()=>{
   try {
-    while (activeWorkers < queueWorkerConcurrency) {
+    while (!lifecycle.draining && activeWorkers < queueWorkerConcurrency) {
       const job = await reviewQueue.claimNext();
       if (!job) break;
+      if(lifecycle.draining){await reviewQueue.update(job,'queued');break;}
       activeWorkers++;
-      void processQueuedJob(job).finally(() => { activeWorkers--; });
+      void lifecycle.track(processQueuedJob(job).finally(() => { activeWorkers--; }));
     }
   } catch (error) {
     console.error(`[Review queue dispatcher] error=${error.name || 'Error'}`);
   } finally { dispatcherBusy = false; }
+  })());
 }, 1000);
 
 function positiveInteger(value, fallback) {
@@ -275,10 +280,11 @@ const server = http.createServer(async (request, response) => {
   }
 
   if (request.method === "GET" && pathname === "/ready") {
-    response.writeHead(200, { "content-type": "application/json" });
+    const readiness=runtimeReadiness({modelConfigured,draining:lifecycle.draining});
+    response.writeHead(readiness.statusCode, { "content-type": "application/json" });
     response.end(
       JSON.stringify({
-        status: "ready",
+        ...readiness.body,
         apiFormat: modelClient.format,
         insecureHttp: modelClient.insecureHttp,
         model: modelClient.model || null,
@@ -291,6 +297,8 @@ const server = http.createServer(async (request, response) => {
     );
     return;
   }
+
+  if(lifecycle.draining){response.writeHead(503,{'content-type':'application/json'});response.end(JSON.stringify({error:'service_draining'}));return;}
 
   if (request.method === 'GET' && pathname === '/api/dashboard') {
     if (!dashboardToken) {
@@ -334,7 +342,9 @@ server.listen(port, "0.0.0.0", () => {
 
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, () => {
+    if(lifecycle.draining)return;
     clearInterval(workerTimer);
-    server.close(() => process.exit(0));
+    const drained=lifecycle.drain();
+    Promise.all([drained,new Promise(resolve=>server.close(resolve))]).then(()=>process.exit(0));
   });
 }
