@@ -9,7 +9,7 @@ import {parseToolArguments} from './tool-arguments.mjs';
 import {toolSchemaErrors} from './tool-schema.mjs';
 import {decoratorContracts,constrainVerdicts} from './review-contracts.mjs';
 
-export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.11';
+export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.12';
 
 export function evidenceGenerationOptions(environment = process.env) {
  const integer = (name, fallback, maximum) => {
@@ -182,7 +182,7 @@ export function createRepositoryEvidence({octokit,owner,repo,headSha,baseSha,roo
  };
  factory.packages=[...roots.keys()];
  factory.contractContext=async files=>decoratorContracts(files,(await load()).head);
- factory.constrainVerdicts=async submission=>constrainVerdicts(submission,await load());
+ factory.constrainVerdicts=async (submission,scope)=>constrainVerdicts(submission,await load(),scope);
  // Configuration identity belongs to the checkpoint key. Content identity is
  // rechecked before consuming saved or freshly acquired upstream evidence.
  const viewHash=createHash('sha256');

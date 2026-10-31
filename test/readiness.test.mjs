@@ -34,6 +34,15 @@ test('fixed-source verdict permits a genuine quote but never upgrades uncertaint
 test('missing evidence, model memory and unknown premises cannot become confirmation',()=>{
  for(const change of [{basis:'unknown'},{unresolved:['upstream version unknown']},{evidenceRefs:[]},{evidenceRefs:undefined}])assert.equal(checked({...valid,...change}).verdict,'uncertain');
 });
+test('unique cited diff line corrects location; ambiguity and off-diff citations are summary-only',()=>{
+ const s={head:{sha:'a'.repeat(40),files:new Map([['a.py','first\ncall(1,2)\nlast']])}};
+ const scope={candidates:[{file:'a.py',line:1}],files:[{filename:'a.py',patch:'@@ -1,3 +1,3 @@\n first\n+call(1,2)\n last'}]};
+ const v={...valid,evidenceRefs:[{side:'head',path:'a.py',line:2,quote:'call(1,2)'}]};
+ const check=(s1,scope1=scope)=>constrainVerdicts({verdicts:[v]},s1,scope1).verdicts[0];
+ assert.equal(check(s).resolvedLine,2);
+ assert.equal(check({head:{...s.head,files:new Map([['a.py','call(1,2)\ncall(1,2)']])}}).resolvedLine,null);
+ assert.equal(check(s,{...scope,files:[{filename:'a.py',patch:'@@ -1 +1 @@\n first'}]}).resolvedLine,null);
+});
 test('wrong side, line, quote and sensitive path invalidate confirmations and refutations',()=>{
  for(const verdict of ['confirmed','refuted'])for(const ref of [
   {...valid.evidenceRefs[0],side:'base'}, {...valid.evidenceRefs[0],line:2}, {...valid.evidenceRefs[0],quote:'made up'},

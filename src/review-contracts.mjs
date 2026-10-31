@@ -54,7 +54,13 @@ export function decoratorContracts(files,snapshot,{maxItems=8,maxChars=10000}={}
 
 // A real source citation is necessary, not sufficient, for a semantic verdict.
 // The model must separately justify causality. Never upgrade a verdict here.
-export function constrainVerdicts(submission,snapshots){
+function diffLines(patch=''){
+ const found=new Set();let line=null;
+ for(const s of patch.split('\n')){const h=/^@@ -\d+(?:,\d+)? \+(\d+)/.exec(s);if(h){line=Number(h[1]);continue;}
+  if(line!==null&&(s.startsWith('+')&&!s.startsWith('+++')||s.startsWith(' ')))found.add(line++);}
+ return found;
+}
+export function constrainVerdicts(submission,snapshots,{candidates=[],files=[]}={}){
  return { ...submission,verdicts:submission.verdicts.map(v=>{
   if(v.verdict==='uncertain')return v;
   const errors=[];
@@ -67,7 +73,13 @@ export function constrainVerdicts(submission,snapshots){
    const line=s.files.get(ref.path)?.split('\n')[ref.line-1];
    if(typeof line!=='string'||!line.includes(ref.quote))errors.push('citation_not_in_fixed_source');
   }
-  return errors.length?{...v,verdict:'uncertain',modelVerdict:v.verdict,evidenceGuard:errors,
-   reason:`宿主证据校验未通过（${[...new Set(errors)].join(', ')}）；原模型结论未采纳。${v.reason||''}`} : v;
+  if(errors.length)return {...v,verdict:'uncertain',modelVerdict:v.verdict,evidenceGuard:errors,resolvedLine:null,
+   reason:`宿主证据校验未通过（${[...new Set(errors)].join(', ')}）；原模型结论未采纳。${v.reason||''}`};
+  const candidate=candidates[v.index],file=files.find(f=>f.filename===candidate?.file);
+  const lines=diffLines(file?.patch),sourceLines=snapshots.head?.files.get(candidate?.file)?.split('\n')||[];
+  const locations=(v.evidenceRefs||[]).filter(r=>r.side==='head'&&r.path===candidate?.file&&lines.has(r.line)&&sourceLines.filter(l=>l.includes(r.quote)).length===1);
+  const exact=locations.filter(r=>r.line===candidate?.line),unique=[...new Set(locations.map(r=>r.line))];
+  // Never infer a line from a title or broad textual similarity.
+  return {...v,resolvedLine:exact.length?candidate.line:unique.length===1?unique[0]:null};
  })};
 }

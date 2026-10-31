@@ -450,7 +450,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         const verificationRepositoryContext = repositoryContextForBatch(batch, repositoryContext, {
           focusText: JSON.stringify(best.findings),
         });
-        let evidenceCheck;
+        let evidenceCheck,verifiedLocations=null;
         if (evidenceMode) {
           contractContext ??= await evidenceFactory?.contractContext?.(batch.files);
           const checked = await runEvidenceTurn({ client: boundedClient, phase: 'verification', createTools: evidenceFactory,
@@ -468,7 +468,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
           // Missing/truncated evidence cannot be overridden by a model verdict.
           // Keep the original candidates pending for a later verification run.
           if (checked.incompleteEvidence) throw Object.assign(new Error('Incomplete verification evidence'), { code: 'evidence_incomplete' });
-          const constrained = evidenceFactory?.constrainVerdicts ? await evidenceFactory.constrainVerdicts(checked.submission) : checked.submission;
+          const constrained = evidenceFactory?.constrainVerdicts ? await evidenceFactory.constrainVerdicts(checked.submission,{candidates:best.findings,files:plan.selected}) : checked.submission;
+          if(evidenceFactory?.constrainVerdicts)verifiedLocations=new Map(constrained.verdicts.map(v=>[v.index,v.resolvedLine??null]));
           evidenceCheck = JSON.stringify(constrained);
         } else evidenceCheck = await boundedClient.generateReview({
           instructions: PR_VERIFICATION_INSTRUCTIONS,
@@ -480,7 +481,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         });
         const verdicts = decodeVerification(evidenceCheck, best.findings.length);
         const before = best.findings.length;
-        const judged = best.findings.map((finding, i) => ({ ...finding, verdict: verdicts[i].verdict, verifierReason: verdicts[i].reason }));
+        const judged = best.findings.map((finding, i) => ({ ...finding,...(verifiedLocations?{line:verifiedLocations.get(i)??null}:{}), verdict: verdicts[i].verdict, verifierReason: verdicts[i].reason }));
         verificationEvaluatedCount=judged.length;
         verificationRefutedCount=judged.filter(f=>f.verdict==='refuted').length;
         // Refuted candidates go to the caller's sink (private state or replay
