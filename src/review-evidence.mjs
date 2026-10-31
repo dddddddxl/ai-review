@@ -9,7 +9,7 @@ import {parseToolArguments} from './tool-arguments.mjs';
 import {toolSchemaErrors} from './tool-schema.mjs';
 import {decoratorContracts,constrainVerdicts} from './review-contracts.mjs';
 
-export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.13';
+export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.14';
 
 export function evidenceGenerationOptions(environment = process.env) {
  const integer = (name, fallback, maximum) => {

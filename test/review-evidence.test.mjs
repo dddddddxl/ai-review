@@ -10,6 +10,7 @@ import {createModelClient} from '../src/model-client.mjs';
 import {limitModelConcurrency} from '../src/review-state.mjs';
 import {createModelUsageMeter} from '../src/model-usage.mjs';
 import {decodePrReview} from '../src/review-templates.mjs';
+import {constrainVerdicts} from '../src/review-contracts.mjs';
 const files=[{filename:'a.py',status:'added',patch:'@@ -0,0 +1 @@\n+call(1, 2)',additions:1,deletions:0}];
 const finding={priority:'P2',file:'a.py',line:1,title:'Missing argument',trigger:'call is evaluated',evidence:'helper needs three arguments',impact:'startup fails',suggestion:'pass the required argument'};
 const response=(name,value)=>({message:{role:'assistant',tool_calls:[{id:'call',type:'function',function:{name,arguments:JSON.stringify(value)}}]}});
@@ -21,6 +22,21 @@ const options={repository:'synthetic/repo',pullNumber:1,title:'test',files,headS
 const client=fn=>({model:'mock',format:'openai-chat',generateToolTurn:fn,generateReview:async()=>{throw Error('must not fall back to legacy');}});
 const isVerifier=o=>o.tools.some(t=>t.function.name==='submit_verdicts');
 const toolsResponse=requests=>({message:{role:'assistant',tool_calls:requests.map((r,i)=>({id:'tool'+i,type:'function',function:{name:r.tool,arguments:JSON.stringify(Object.fromEntries(Object.entries(r).filter(([k])=>k!=='tool')))}}))}});
+
+test('partial ledger keeps independently source-grounded findings without declaring the batch complete',async()=>{
+ const fixed={...snapshots,head:{...snapshots.head,files:new Map([...snapshots.head.files,['a.py','call(1, 2)']])}};
+ const factory=()=>createEvidenceTools({snapshots:fixed,upstreamLookup:async()=>({error:'missing'})});
+ factory.constrainVerdicts=(v,scope)=>constrainVerdicts(v,fixed,scope);
+ let n=0;
+ const result=await reviewPrBatches({...options,evidenceFactory:factory,client:client(async o=>{
+  if(!isVerifier(o))return generation([finding]);
+  if(++n===1)return toolsResponse([{tool:'file_read',path:'unrelated-missing.py'}]);
+  return response('submit_verdicts',{verdicts:[{index:0,verdict:'confirmed',reason:'caller has two args, helper requires three',basis:'fixed_source',unresolved:[],evidenceRefs:[
+   {side:'head',path:'a.py',line:1,quote:'call(1, 2)'},{side:'head',path:'helper.py',line:1,quote:'def call(a,b,c): return a+b+c'}]}]});
+ })});
+ assert.equal(result.partial,true);assert.equal(result.completed,0);assert.equal(result.reviewFindings.length,1);assert.equal(result.reviewFindings[0].line,1);
+ assert.match(result.failureSummary[0].label,/证据|核实/);
+});
 
 test('tool repair and final-object repair share four turns without starving finalization',async()=>{
  let n=0;

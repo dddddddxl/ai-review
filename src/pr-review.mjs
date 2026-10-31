@@ -466,11 +466,13 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
             onMetadata: metadata => log(`[Review verification model] ${repository}#${pullNumber} native=verification ${JSON.stringify(metadata)}`) });
           verificationEvidence = checked.ledger;
           await evidenceFactory?.validateEvidence?.([...generationEvidence, ...verificationEvidence]);
-          // Missing/truncated evidence cannot be overridden by a model verdict.
-          // Keep the original candidates pending for a later verification run.
-          if (checked.incompleteEvidence) throw Object.assign(new Error('Incomplete verification evidence'), { code: 'evidence_incomplete' });
+          // Without the fixed-source guard, an incomplete ledger cannot yield
+          // any publishable verdict. With it, retain individually grounded
+          // conclusions, but NEVER turn the whole batch into a complete review.
+          if (checked.incompleteEvidence && !evidenceFactory?.constrainVerdicts) throw Object.assign(new Error('Incomplete verification evidence'), { code: 'evidence_incomplete' });
           const constrained = evidenceFactory?.constrainVerdicts ? await evidenceFactory.constrainVerdicts(checked.submission,{candidates:best.findings,files:plan.selected}) : checked.submission;
           if(evidenceFactory?.constrainVerdicts)verifiedLocations=new Map(constrained.verdicts.map(v=>[v.index,v.resolvedLine??null]));
+          if(checked.incompleteEvidence){best.complete=false;failure={phase:'verification',code:'evidence_incomplete'};}
           evidenceCheck = JSON.stringify(constrained);
         } else evidenceCheck = await boundedClient.generateReview({
           instructions: PR_VERIFICATION_INSTRUCTIONS,
