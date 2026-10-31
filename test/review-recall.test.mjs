@@ -37,16 +37,15 @@ test('uncertain P3 candidates are retained for capped summary publication', asyn
   assert.equal(judged.length, 2);
 });
 
-test('generation prompt favours recall; verification and CI prompts keep the strict rules', () => {
+test('native generation preserves grounded recall without inventing missing dependency contracts', () => {
   assert(PR_INSTRUCTIONS.includes(PR_RISK_CHECKLIST));
   assert(PR_INSTRUCTIONS.includes('漏报的代价高于误报'));
   assert(!PR_INSTRUCTIONS.includes('缺少上下文不等于存在缺陷'));
   assert(!PR_INSTRUCTIONS.includes('不凑问题数量'));
-  // The evidence engine generation prompt must carry the same recall bias; the
-  // conservative standalone pilot prompt is kept only for evaluation.
-  assert(NATIVE_GENERATION_INSTRUCTIONS.includes('漏报的代价高于误报'));
-  assert(!NATIVE_GENERATION_INSTRUCTIONS.includes('不追求数量'));
-  assert(!NATIVE_GENERATION_INSTRUCTIONS.includes('不凑数量'));
+  assert(NATIVE_GENERATION_INSTRUCTIONS.includes('confidence=low'));
+  assert(NATIVE_GENERATION_INSTRUCTIONS.includes('函数签名与调用参数冲突'));
+  assert(NATIVE_GENERATION_INSTRUCTIONS.includes('缺少上下文不等于存在缺陷'));
+  assert(!NATIVE_GENERATION_INSTRUCTIONS.includes('漏报的代价高于误报'));
   assert(NATIVE_AGENT_INSTRUCTIONS.includes('不凑数量'));
   for (const strict of [PR_VERIFICATION_INSTRUCTIONS, CI_INSTRUCTIONS]) {
     assert(strict.includes('缺少上下文不等于存在缺陷'));

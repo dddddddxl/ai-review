@@ -51,7 +51,7 @@ test('evidence generation uses recall-oriented instructions and receives proacti
    generationInstructions=o.instructions;generationInput=o.messages[0].content;return generation([finding]);
   })});
  assert.equal(result.reviewFindings.length,1);
- assert.match(generationInstructions,/漏报的代价高于误报/);
+ assert.match(generationInstructions,/函数签名与调用参数冲突/);
  assert.ok(!generationInstructions.includes('不追求数量'));
  assert.match(generationInput,/unchanged_helper\.py/);
  assert.match(generationInput,/TARGET: pkg\.mod/);
