@@ -4,6 +4,7 @@ This repository contains the `github-ai-reviewer` service source. The current co
 
 ## Version status
 
+- **最新候选验收（2026-10-31）：** [连续修复与验证结果](docs/1031-READINESS-RESULTS.md)：170 项离线回归及独立干净目录检查通过，专用 PR 真实发评、幂等和定位验证通过；复杂样例仍有格式／证据未完成，**尚不具备生产质量放行条件**。详见[交付与上线清单](docs/1031-RELEASE-RUNBOOK.md)。以下为保留的历史记录。
 - **追加候选验证：** [quality-gate #17 的真实发评检查](docs/1031-PUBLICATION-VALIDATION.md)已完成，单文件合成样例审查 113.296 秒；真实发布、同进程幂等、旧 head 拦截与人工探针定位通过。它不是生产缺陷召回或上线质量认证，并发现变更概览与复核结论不一致的待修项。
 - **2026-10-31 / branch `1031`:** 147 offline tests pass, including a clean dependency installation. Eight real-model replay runs finished, but none completed the entire requested review scope. This remains **not ready for production**. See the [latest validation report](docs/1031-VALIDATION.md) and [preflight checklist](docs/1031-PREFLIGHT.md). Historical results below are retained and are not the latest acceptance status.
 - CI recovery fixes distinguish scan execution failures from confirmed code issues, and replace obsolete failure messages after a successful rerun. These fixes were deployed separately on 2026-10-21.
