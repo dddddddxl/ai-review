@@ -5,6 +5,7 @@ import { prDescriptionContext, relatedChangedFilesForBatch, repositoryContextFor
 import { EVIDENCE_ENGINE_VERSION, runEvidenceTurn } from './review-evidence.mjs';
 import { resolveReviewProfile } from './repo-profile.mjs';
 import { NATIVE_GENERATION_INSTRUCTIONS, NATIVE_REVIEW_TOOLS } from './review-agent.mjs';
+import {structuralOverview} from './review-contracts.mjs';
 
 const ignored = /(?:^|\/)(?:node_modules|vendor|dist|build)\/|\.(?:png|jpe?g|gif|webp|ico|pdf|zip|tar|gz|7z|lock)$/i;
 const sensitivePath = /(?:^|\/)(?:\.git|\.ssh|\.aws|\.codex|\.agents|\.env(?:\.[^/]*)?|secrets?|credentials)(?:\/|$)|\.(?:pem|key|p12|pfx)$/i;
@@ -234,7 +235,9 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       if (!seen.has(id)) { seen.add(id); uncertain.push(f); }
     }
     uncertain.sort((a, b) => a.priority.localeCompare(b.priority));
-    const changeOverview = uniqueOverview(results.flatMap(result => result?.overview || [])).slice(0, 4);
+    // Generation prose is not independently verified and may retain refuted claims.
+    // Preserve it in private batch checkpoints; public overview is structural.
+    const changeOverview = structuralOverview(plan.selected);
     const failures = results.filter(r => r && !r.complete).length;
     const pending = results.filter(r => !r).length;
     const completed = results.filter(r => r?.complete).length;
@@ -336,6 +339,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
     const descriptionBlock = description ? `<pr_description>\n${description}\n</pr_description>\n` : '';
     const repositoryBlock = unchangedContext ? `<unchanged_repository_context>\n${unchangedContext}\n</unchanged_repository_context>\n` : '';
     const relatedChanged = relatedChangedFilesForBatch(batch, contextFiles);
+    let contractContext = null;
     const relatedBlock = relatedChanged ? `<related_changed_files>\n${relatedChanged}\n</related_changed_files>\n` : '';
     // Adapters in this batch, or changed files they wrap, get the replaced upstream definitions.
     const upstreamFor = new Set(batch.files.map(file => file.filename));
@@ -350,12 +354,13 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
       try {
         let text, evidenceIncomplete = false;
         if (evidenceMode) {
+          contractContext ??= await evidenceFactory?.contractContext?.(batch.files);
           const generated = await runEvidenceTurn({ client: boundedClient, phase: 'generation', createTools: evidenceFactory, checklist: profile.checklist,
             deadlineAt, isCurrent, maxTurns: evidenceGenerationTurns, maxOutputTokens: evidenceGenerationTokens, disableThinking: !thinking,
             onProtocolDiagnostic: protocolDiagnostic,
             onSubmission: ({submission})=>{if(Array.isArray(submission.findings)){submittedCandidates=submission.findings;candidateCount=Math.max(candidateCount,submittedCandidates.length);}},
             input: { repository, pullNumber, base: baseSha, head: headSha,
-              title, description, files: batch.files, unchangedContext, relatedChanged, upstream, reviewRules,
+              title, description, files: batch.files, unchangedContext, relatedChanged, upstream, reviewRules, contractContext,
               availableUpstreamPackages: evidenceFactory?.packages || [] },
             onMetadata: metadata => log(`[Review model] ${repository}#${pullNumber} native=generation ${JSON.stringify(metadata)}`) });
           generationEvidence = generated.ledger;
@@ -444,10 +449,11 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
         });
         let evidenceCheck;
         if (evidenceMode) {
+          contractContext ??= await evidenceFactory?.contractContext?.(batch.files);
           const checked = await runEvidenceTurn({ client: boundedClient, phase: 'verification', createTools: evidenceFactory,
             instructions: PR_VERIFICATION_INSTRUCTIONS, deadlineAt, isCurrent, disableThinking: !thinking,
             input: { repository, pullNumber, base: baseSha, head: headSha, candidates: best.findings,
-              files: batch.files, description, relatedChanged, upstream, verificationRepositoryContext,
+              files: batch.files, description, relatedChanged, upstream, verificationRepositoryContext, contractContext,
               availableUpstreamPackages: evidenceFactory?.packages || [],
               consultedEvidence: generationEvidence, previousVerificationEvidence: verificationEvidence },
             onEvidence: async records => { verificationEvidence = records; await savePending(); },
@@ -458,7 +464,8 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
           // Missing/truncated evidence cannot be overridden by a model verdict.
           // Keep the original candidates pending for a later verification run.
           if (checked.incompleteEvidence) throw Object.assign(new Error('Incomplete verification evidence'), { code: 'evidence_incomplete' });
-          evidenceCheck = JSON.stringify(checked.submission);
+          const constrained = evidenceFactory?.constrainVerdicts ? await evidenceFactory.constrainVerdicts(checked.submission) : checked.submission;
+          evidenceCheck = JSON.stringify(constrained);
         } else evidenceCheck = await boundedClient.generateReview({
           instructions: PR_VERIFICATION_INSTRUCTIONS,
           input: `逐条复核以下候选：有具体代码证据的判 confirmed，找到具体反证的判 refuted，既无法确证也找不到反证的判 uncertain。PR描述和未修改文件只能证明本次diff的触发条件或影响，不能把其中的历史问题当作本次新增缺陷。\n<candidates>\n${JSON.stringify(best.findings)}\n</candidates>\n${descriptionBlock}<diff>\n${batch.text}\n</diff>\n${relatedBlock}${upstreamBlock}<related_changed_context>\n${relatedContext(batch, contextFiles, best.findings)}\n</related_changed_context>\n<unchanged_repository_context>\n${verificationRepositoryContext}\n</unchanged_repository_context>\n只返回 {"verdicts":[{"index":0,"verdict":"confirmed|uncertain|refuted","reason":"..."}]}，每个候选一项。`,

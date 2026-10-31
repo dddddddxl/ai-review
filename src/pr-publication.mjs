@@ -1,5 +1,6 @@
 import { digest } from './review-state.mjs';
 import { restrictedCiMessage, safeGateStatus } from './ci-publication.mjs';
+import {structuralOverview} from './review-contracts.mjs';
 
 const MAX_FILE_ROWS = 20;
 const MAX_UNPOSITIONED_FINDINGS = 5;
@@ -167,7 +168,7 @@ export function buildPrReviewPublication({ pr, files, result, pullNumber = pr?.n
   const rawFindings = Array.isArray(result.reviewFindings) ? result.reviewFindings : [];
   const safeFindings = rawFindings.filter(findingIsSafe);
   const findingSafetyFiltered = rawFindings.length - safeFindings.length;
-  const { safe: changeOverview, filtered: overviewSafetyFiltered } = safeOverviewItems(result.changeOverview);
+  const { safe: changeOverview, filtered: overviewSafetyFiltered } = safeOverviewItems(structuralOverview(files));
   const safetyFiltered = findingSafetyFiltered + overviewSafetyFiltered;
   const fileLines = new Map(files.map(file => [file.filename, rightSideLines(file.patch)]));
   const comments = [];

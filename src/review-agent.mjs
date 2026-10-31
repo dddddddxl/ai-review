@@ -57,7 +57,8 @@ export function createEvidenceTools({ snapshots, upstreamLookup, maxCalls = 16, 
           if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 1 || end < start) result = { error: 'invalid_range' };
           else {
             const lines = snapshot.files.get(request.path).split('\n'), stop = Math.min(end, start + maxReadLines - 1, lines.length);
-            result = { sha: snapshot.sha, path: request.path, start, end: stop, totalLines: lines.length,
+            if(start>lines.length)result={error:'invalid_range',sha:snapshot.sha,path:request.path,totalLines:lines.length};
+            else result = { sha: snapshot.sha, path: request.path, start, end: stop, totalLines: lines.length,
               truncated: stop < Math.min(end, lines.length), text: lines.slice(start - 1, stop).map((line, i) => `${start + i}: ${line}`).join('\n') };
           }
         }
@@ -69,7 +70,8 @@ export function createEvidenceTools({ snapshots, upstreamLookup, maxCalls = 16, 
           const hits = []; let matched = 0;
           for (const [file, text] of snapshot.files) {
             if (!safePath(file)) continue;
-            if (prefix && !file.startsWith(prefix)) continue;
+            const normalizedPrefix=prefix.replace(/\/$/,'');
+            if (prefix && file!==normalizedPrefix && !file.startsWith(normalizedPrefix+'/')) continue;
             const lines = text.split('\n');
             for (let index = 0; index < lines.length; index++) if (lines[index].includes(query)) {
               matched++;
@@ -210,6 +212,7 @@ export const NATIVE_GENERATION_INSTRUCTIONS = `你是中文只读 PR 审查员�
 按改动涉及的风险选择调查方向：资源的分配/预算/释放，接口与调用契约，数值精度与计算顺序，状态的初始化/更新/读取，异常与回退，跨进程/worker 传播，替换上游实现时的语义等价。这些只是调查方向，不是判错依据。
 可以围绕疑点主动读取未修改的方法、调用方、测试和上游定义；优先查能确认或推翻疑点的最小证据，不重复取相同片段。PR 描述只代表作者意图，不能证明故障。不要靠记忆补全当前上游版本；缺少上下文不等于存在缺陷。仅凭“外部包可能没有该符号”“解释器可能不存在”“部署配置可能不同”等未经证实的假设，不能建立 finding；这些只写 limitations。反之，已读到函数签名与调用参数冲突、确定可达的错误分支等具体证据时，不得因未实测就省略候选。工具标记的截断/遗漏要在 limitations 中说明。
 工具只有 file_read、code_search、upstream_definition。没有 shell、网络或代码执行权限。不得声称跑过测试。敏感信息不得输出。
+优先核对 contractContext 中新增装饰器与实际定义的调用契约：@factory(args) 先调用 factory(args)，之后才把被装饰函数传给返回值；不是自动把函数作为 factory 缺失的第三个参数。装饰器表达式在定义时求值，可能早于函数体内的 feature flag 检查。提示只提供固定版本源码，不代表已判定缺陷；仍需考虑默认参数、*args、重绑定及真正的定义执行路径。先查此类本仓可核实矛盾，再调查外部框架假设。
 调查结束调用 submit_review，最终候选必须有具体代码依据、触发条件和影响。file 必须是本次 diff 路径，line 只能是 diff 新侧行号，不能确认就 null。每个 findings 文本字段不超过1000字符。不得输出思考过程。coverageComplete 只说明本批 diff 的静态审查是否完成，不表示做过运行测试；仍有未查明的关键调用契约时为 false。`;
 
 export async function reviewWithNativeEvidenceAgent({ client, input, tools, onEvent = () => {},
