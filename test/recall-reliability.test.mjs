@@ -94,7 +94,14 @@ test('a missing nested trigger is repaired before the candidate decoder can drop
  let calls=0;const diagnostics=[];
  const result=await runEvidenceTurn({...base,maxTurns:2,onProtocolDiagnostic:r=>diagnostics.push(r),client:{generateToolTurn:async()=>
   final(JSON.stringify({overview:[],findings:[++calls===1?finding:{...finding,trigger:'input zero'}],limitations:[],coverageComplete:true}))}});
- assert.equal(calls,2);assert.deepEqual(diagnostics[0].fields,['findings[0].trigger']);assert.equal(result.submission.findings.length,1);
+ assert.equal(calls,2);assert(diagnostics[0].fields.includes('findings[0].trigger'));assert.equal(result.submission.findings.length,1);
+});
+test('mixed tool fields without duplicate keys are rejected before any source read',async()=>{
+ let calls=0;
+ const mixed={message:{role:'assistant',tool_calls:[{id:'mixed',type:'function',function:{name:'file_read',arguments:'{"path":"a.py","query":"symbol"}'}}]}};
+ const result=await runEvidenceTurn({...base,maxTurns:2,client:{generateToolTurn:async()=>++calls===1?mixed:final(valid)}});
+ assert.equal(result.ledger.length,0);
+ assert(result.protocolDiagnostics[0].fields.includes('calls[0].<unknown>:additional_property'));
 });
 test('malformed candidates remain unverified, not counted as verifier rejections',async()=>{
  const submission={overview:[],findings:[{file:'a.py',priority:'P2',title:'missing trigger',evidence:'return 1',impact:'wrong',suggestion:'fix'}],limitations:[],coverageComplete:false};

@@ -6,8 +6,9 @@ import {PR_RISK_CHECKLIST} from './review-templates.mjs';
 import {extractSources} from './repository-snapshot.mjs';
 import {upstreamDefinition} from './upstream-context.mjs';
 import {parseToolArguments} from './tool-arguments.mjs';
+import {toolSchemaErrors} from './tool-schema.mjs';
 
-export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.5';
+export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.6';
 
 export function evidenceGenerationOptions(environment = process.env) {
  const integer = (name, fallback, maximum) => {
@@ -67,6 +68,7 @@ export async function runEvidenceTurn({client, phase, input, createTools, instru
     let submission, valid=false,fields=[];
     try {
      submission=sanitizeReviewInput(parseToolArguments(finals[0].function.arguments));
+     fields.push(...toolSchemaErrors(submission,terminal.function.parameters));
      valid=Boolean(submission&&typeof submission==='object'&&!Array.isArray(submission)&&
       (phase==='generation' ? Array.isArray(submission.findings)&&Array.isArray(submission.limitations)&&typeof submission.coverageComplete==='boolean' : Array.isArray(submission.verdicts)));
      if(valid&&phase==='generation')for(const [index,finding]of submission.findings.entries()){
@@ -91,6 +93,11 @@ export async function runEvidenceTurn({client, phase, input, createTools, instru
    let requests;
    try{requests=calls.map(call=>({...parseToolArguments(call.function.arguments),tool:call.function.name}));}
    catch(error){await repair('invalid_evidence_arguments',error.code==='duplicate_tool_key'?[`duplicate:${error.field}`]:['invalid_json_object']);continue;}
+   const schemaErrors=calls.flatMap((call,index)=>{
+    const {tool,...args}=requests[index];
+    return toolSchemaErrors(args,evidenceTools.find(t=>t.function.name===tool).function.parameters,`calls[${index}]`);
+   });
+   if(schemaErrors.length){await repair('invalid_evidence_arguments',schemaErrors.slice(0,32));continue;}
    // Transient provider reasoning stays only in this in-memory continuation.
    messages.push(response.message);tools??=await createTools();
    for(const [index,call]of calls.entries()){

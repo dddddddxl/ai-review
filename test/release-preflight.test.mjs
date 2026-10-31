@@ -4,6 +4,8 @@ import {createModelClient} from '../src/model-client.mjs';
 import {buildPrReviewPublication,publishPrReview} from '../src/pr-publication.mjs';
 import {verificationRetryDecision} from '../src/retry-policy.mjs';
 import {releasePreflight} from '../src/release-preflight.mjs';
+import {toolSchemaErrors} from '../src/tool-schema.mjs';
+import {NATIVE_REVIEW_TOOLS} from '../src/review-agent.mjs';
 
 const env={AI_API_FORMAT:'openai-chat',AI_API_KEY:'synthetic',AI_MODEL:'mock',AI_BASE_URL:'https://mock.invalid',AI_STREAM:'true'};
 const wire=events=>new Response(events.map(e=>`data: ${JSON.stringify(e)}\n\n`).join('')+'data: [DONE]\n\n');
@@ -73,4 +75,19 @@ test('parallel tool compatibility override is explicit and otherwise absent',asy
  await client.generateToolTurn({instructions:'',messages:[],tools:[],parallelToolCalls:false});
  await client.generateToolTurn({instructions:'',messages:[],tools:[]});
  assert.equal(bodies[0].parallel_tool_calls,false);assert.equal('parallel_tool_calls' in bodies[1],false);
+});
+test('host schema rejects wrong types, enum, missing fields and unexpected keys without echoing values',()=>{
+ const schema=NATIVE_REVIEW_TOOLS.find(t=>t.function.name==='file_read').function.parameters;
+ for(const value of [{side:'head'},{path:'a.py',side:'other'},{path:'a.py',start:1.5},{path:'a.py',PRIVATE_SECRET:'value'}])
+  assert(toolSchemaErrors(value,schema).length>0);
+ assert.equal(toolSchemaErrors({path:'a.py',side:'head',start:1,end:20},schema).length,0);
+ assert.doesNotMatch(JSON.stringify(toolSchemaErrors({path:'a.py',PRIVATE_SECRET:'value'},schema)),/PRIVATE_SECRET|value/);
+});
+test('publication lock releases after a failed write and still blocks stale waiting results',async()=>{
+ const f=publisher();let fail=true;
+ const original=f.args.octokit.rest.pulls.createReview;
+ f.args.octokit.rest.pulls.createReview=async args=>{if(fail){fail=false;throw Error('synthetic_write_failure');}return original(args);};
+ await assert.rejects(publishPrReview(f.args));
+ const stale=await publishPrReview({...f.args,isCurrent:async()=>false});assert.equal(stale.stale,true);
+ await publishPrReview(f.args);assert.equal(f.writes.length,1);
 });
