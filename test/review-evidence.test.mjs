@@ -25,7 +25,8 @@ const toolsResponse=requests=>({message:{role:'assistant',tool_calls:requests.ma
 test('cross-batch changed-file candidates survive without completing the other batch',async()=>{
  const other={filename:'b.py',status:'added',patch:'@@ -0,0 +1 @@\n+call(1,2)',additions:1,deletions:0};
  const cross={...finding,file:'b.py'};let sawDiff=false;
- const result=await reviewPrBatches({...options,files:[...files,other],batchChars:1,batchParallelism:1,client:client(async o=>{
+ const first={...files[0],patch:files[0].patch+'\n+#'+'x'.repeat(1100),additions:2};
+ const result=await reviewPrBatches({...options,files:[first,other],batchChars:1000,batchParallelism:1,client:client(async o=>{
   const input=JSON.parse(o.messages[0].content);
   if(isVerifier(o)){sawDiff=input.candidateDiffs.some(f=>f.filename==='b.py');return verdict('confirmed');}
   assert.deepEqual(input.allowedFindingPaths,['a.py','b.py']);
