@@ -11,6 +11,8 @@ import {repositoryReviewRules,resolveReviewProfile} from '../src/repo-profile.mj
 import {createRepositoryEvidence} from '../src/review-evidence.mjs';
 import {sanitizeReviewInput} from '../src/review-agent.mjs';
 import {ReviewState} from '../src/review-state.mjs';
+import {parseToolArguments} from '../src/tool-arguments.mjs';
+import {toolSchemaErrors} from '../src/tool-schema.mjs';
 const [command,outputArg,variant,baselineRoot]=process.argv.slice(2);
 const output=path.resolve(outputArg||'replay-results/quick');
 const hash=value=>createHash('sha256').update(value).digest('hex');
@@ -125,6 +127,15 @@ async function run(){
     const answer=await raw.generateToolTurn({...options,onMetadata:m=>{record.usage=m;options.onMetadata?.(m);},
      onToolDelta:delta=>fs.appendFileSync(path.join(dir,'tool-deltas.jsonl'),JSON.stringify({call:records.length+1,...delta})+'\n')});
     record.submissions=sanitizeReviewInput(answer.message.tool_calls);
+    if(!answer.message.tool_calls?.length&&typeof answer.message.content==='string'){
+     record.finalContentChars=answer.message.content.length;
+     record.finalContentHash=hash(answer.message.content);
+     try{
+      const value=parseToolArguments(answer.message.content.trim());
+      const schema=options.tools.find(t=>t.function.name===(record.phase==='verification'?'submit_verdicts':'submit_review'))?.function.parameters;
+      if(schema&&!toolSchemaErrors(value,schema).length)record.finalJson=sanitizeReviewInput(value);
+     }catch{}
+    }
     if(firstResultMs===null&&record.submissions?.some(c=>['submit_review','submit_verdicts'].includes(c.function?.name)))firstResultMs=Date.now()-started;
     return answer;
    }catch(error){record.error=error?.code||error?.name||'error';record.status=error?.status;throw error;}

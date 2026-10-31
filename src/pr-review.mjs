@@ -445,6 +445,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
             instructions: PR_VERIFICATION_INSTRUCTIONS, deadlineAt, isCurrent, disableThinking: !thinking,
             input: { repository, pullNumber, base: baseSha, head: headSha, candidates: best.findings,
               files: batch.files, description, relatedChanged, upstream, verificationRepositoryContext,
+              availableUpstreamPackages: evidenceFactory?.packages || [],
               consultedEvidence: generationEvidence, previousVerificationEvidence: verificationEvidence },
             onEvidence: async records => { verificationEvidence = records; await savePending(); },
             onProtocolDiagnostic: protocolDiagnostic,

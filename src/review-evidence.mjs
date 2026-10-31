@@ -8,7 +8,7 @@ import {upstreamDefinition} from './upstream-context.mjs';
 import {parseToolArguments} from './tool-arguments.mjs';
 import {toolSchemaErrors} from './tool-schema.mjs';
 
-export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.7';
+export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.8';
 
 export function evidenceGenerationOptions(environment = process.env) {
  const integer = (name, fallback, maximum) => {
@@ -52,15 +52,32 @@ export async function runEvidenceTurn({client, phase, input, createTools, instru
     messages,tools:last?[terminal]:[...evidenceTools,terminal],toolChoice:'auto',
     ...(repairs ? {parallelToolCalls:false} : {}),
     maxOutputTokens,timeoutMs:Math.max(1,Math.min(600000,deadlineAt-Date.now())),deadlineAt,disableThinking,onMetadata});
-   await check();const calls=response?.message?.tool_calls||[];
-   if(!calls.length||calls.length>16)throw fail('invalid_tool_response');
+   await check();let calls=response?.message?.tool_calls||[];
+   let textTerminal=false;
+   // Some compatible providers return the requested final JSON in content,
+   // not tool_calls. Only a complete terminal object is eligible; never parse
+   // prose, fenced snippets, reasoning, or text describing evidence requests.
+   if(!calls.length&&typeof response?.message?.content==='string'){
+    const content=response.message.content.trim();
+    try{
+     const value=parseToolArguments(content);
+     if(!toolSchemaErrors(value,terminal.function.parameters).length){
+      textTerminal=true;
+      calls=[{id:'host_validated_text_terminal',type:'function',function:{name:terminal.function.name,arguments:content}}];
+     }
+    }catch{}
+   }
+   if(calls.length>16)throw fail('invalid_tool_response');
    const repair=async (code,fields=[])=>{
     const diagnostic={phase,round:round+1,code,fields,repaired:false};protocolDiagnostics.push(diagnostic);await onProtocolDiagnostic({...diagnostic});
     if(last||repairs>=1)throw fail('invalid_tool_response');
     repairs++;messages.push(response.message);
+    if(!calls.length)messages.push({role:'user',content:JSON.stringify({error:code,executed:false,
+     instruction:`Return the complete final object using ${terminal.function.name}. No prose or reasoning. Do not claim completion if evidence is missing.`})});
     for(const call of calls)messages.push({role:'tool',tool_call_id:call.id,content:JSON.stringify({error:code,fields,executed:false,
      instruction:'None of this batch was accepted. For the correction, submit exactly ONE tool call with exactly ONE target, not multiple searches in one object. For code_search: {"query":"one literal symbol","side":"head"}. Fill every required terminal and finding field, especially trigger. Preserve existing findings and unknowns; do not remove candidates merely to pass validation.'})});
    };
+   if(!calls.length){await repair('missing_terminal_tool');continue;}
    if(calls.length>4){await repair('too_many_tools_in_turn');continue;}
    const finals=calls.filter(c=>c.function?.name===terminal.function.name);
    if(finals.length){
@@ -82,8 +99,13 @@ export async function runEvidenceTurn({client, phase, input, createTools, instru
     }catch{}
     if(submission)await onSubmission({phase,submission,valid});
     if(!valid){
+     if(textTerminal)calls=[];
      await repair('invalid_terminal_arguments',fields);
      continue;
+    }
+    if(textTerminal){
+     const diagnostic={phase,round:round+1,code:'terminal_text_fallback',fields:[],repaired:true};
+     protocolDiagnostics.push(diagnostic);await onProtocolDiagnostic({...diagnostic});
     }
     for(const diagnostic of protocolDiagnostics){diagnostic.repaired=true;await onProtocolDiagnostic({...diagnostic});}
     return {submission,ledger,protocolDiagnostics,turns:round+1,incompleteEvidence:ledger.some(r=>r.result?.error||r.result?.truncated||r.result?.omittedFiles>0)};

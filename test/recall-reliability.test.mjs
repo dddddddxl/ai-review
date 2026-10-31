@@ -103,6 +103,27 @@ test('mixed tool fields without duplicate keys are rejected before any source re
  assert.equal(result.ledger.length,0);
  assert(result.protocolDiagnostics[0].fields.includes('calls[0].<unknown>:additional_property'));
 });
+test('exact final JSON in assistant content uses the same terminal schema without running tools',async()=>{
+ const result=await runEvidenceTurn({...base,maxTurns:1,client:{generateToolTurn:async()=>({message:{role:'assistant',content:valid,reasoning_content:'do not parse this'}})}});
+ assert.equal(result.ledger.length,0);assert.equal(result.submission.coverageComplete,true);
+ assert.equal(result.protocolDiagnostics[0].code,'terminal_text_fallback');
+});
+test('text verifier output is validated as verdicts, not as executable tool requests',async()=>{
+ const result=await runEvidenceTurn({...base,phase:'verification',maxTurns:1,client:{generateToolTurn:async()=>({message:{role:'assistant',content:'{"verdicts":[{"index":0,"verdict":"uncertain","reason":"unknown"}]}'}})}});
+ assert.equal(result.submission.verdicts[0].verdict,'uncertain');
+ for(const content of ['{"action":"tools","requests":[]}',`prose ${valid}`,`\u0060\u0060\u0060json\n${valid}\n\u0060\u0060\u0060`,'{"verdicts":[],"verdicts":[]}']){
+  await assert.rejects(runEvidenceTurn({...base,phase:'verification',maxTurns:1,client:{generateToolTurn:async()=>({message:{role:'assistant',content}})}}),{code:'invalid_tool_response'});
+ }
+});
+test('malformed text final gets one correction, with host feedback, in the original budget',async()=>{
+ let count=0,feedback;
+ const result=await runEvidenceTurn({...base,maxTurns:2,client:{generateToolTurn:async options=>{
+  count++;if(count===2)feedback=options.messages.at(-1);
+  return count===1?{message:{role:'assistant',content:'not a terminal'}}:final(valid);
+ }}});
+ assert.equal(count,2);assert.equal(feedback.role,'user');assert.match(feedback.content,/missing_terminal_tool/);
+ assert.equal(result.protocolDiagnostics[0].repaired,true);
+});
 test('malformed candidates remain unverified, not counted as verifier rejections',async()=>{
  const submission={overview:[],findings:[{file:'a.py',priority:'P2',title:'missing trigger',evidence:'return 1',impact:'wrong',suggestion:'fix'}],limitations:[],coverageComplete:false};
  const result=await reviewPrBatches({repository:'synthetic/repo',pullNumber:1,title:'schema',engine:'evidence-v1',
