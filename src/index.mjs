@@ -20,6 +20,7 @@ import { ReviewState, ReviewQueue, limitModelConcurrency, stateDirectory } from 
 import { createModelUsageMeter, hasReportedUsage } from './model-usage.mjs';
 import { createDashboardSnapshot, dashboardAuthorized, dashboardHeaders, loadDashboardAssets } from './dashboard.mjs';
 import { verificationRetryDecision } from './retry-policy.mjs';
+import {registerReviewWebhooks} from './review-webhooks.mjs';
 
 const requiredEnvironment = [
   "GITHUB_APP_ID",
@@ -73,40 +74,7 @@ await reviewQueue.recover();
 const { data: appInfo } = await githubApp.octokit.request('GET /app');
 const botLogin = `${appInfo.slug}[bot]`;
 const reviewCi = createCiReviewer({ modelClient, botLogin, state: new ReviewState(path.join(stateDirectory(), 'ci')), backfeedState: ciBackfeedState });
-githubApp.webhooks.on('workflow_run.completed', async (context) => {
-  const repository = context.payload.repository.full_name.toLowerCase();
-  if (allowedRepositories.size && !allowedRepositories.has(repository)) return;
-  const run = context.payload.workflow_run;
-  if (isUpstreamSyncBranch(run.head_branch)) return;
-  await reviewQueue.enqueue({ kind: 'ci', repository: context.payload.repository.full_name,
-    installationId: context.payload.installation.id, runId: run.id, runAttempt: run.run_attempt || 1, headSha: run.head_sha });
-});
-
-githubApp.webhooks.on(
-  [
-    "pull_request.opened",
-    "pull_request.synchronize",
-    "pull_request.reopened",
-    "pull_request.ready_for_review",
-  ],
-  async (context) => {
-    const { payload } = context;
-    const pullRequest = payload.pull_request;
-    const repository = payload.repository.full_name.toLowerCase();
-
-    if (pullRequest.draft) return;
-    if (isUpstreamSyncPullRequest(pullRequest)) return;
-    if (
-      allowedRepositories.size > 0 &&
-      !allowedRepositories.has(repository)
-    ) {
-      return;
-    }
-
-    await reviewQueue.enqueue({ repository: payload.repository.full_name, pullNumber: pullRequest.number,
-      headSha: pullRequest.head.sha, installationId: payload.installation.id });
-  },
-);
+registerReviewWebhooks(githubApp.webhooks,{queue:reviewQueue,allowedRepositories});
 
 githubApp.webhooks.onError((error) => {
   console.error(`[Webhook] ${safeErrorMessage(error)}`);

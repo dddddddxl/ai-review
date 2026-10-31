@@ -4,7 +4,7 @@
   "description": "Label-triggered GitHub App service for AI-assisted pull request review",
   "main": "index.js",
   "scripts": {
-    "test": "node --test",
+    "test": "node --import ./scripts/test-network-guard.mjs --test",
     "preflight": "node scripts/preflight.mjs",
     "start": "node src/index.mjs",
     "preview:dashboard": "node scripts/preview-dashboard.mjs"
