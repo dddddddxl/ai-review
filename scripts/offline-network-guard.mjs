@@ -1,4 +1,4 @@
-// npm test is offline by default. Live replay is a separate explicit command.
+// npm test is offline by default. This preload is not a test case.
 import http from 'node:http';
 import https from 'node:https';
 import net from 'node:net';
