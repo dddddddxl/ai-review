@@ -358,6 +358,7 @@ export async function reviewPrBatches({ client, files, repository, pullNumber, t
           const generated = await runEvidenceTurn({ client: boundedClient, phase: 'generation', createTools: evidenceFactory, checklist: profile.checklist,
             deadlineAt, isCurrent, maxTurns: evidenceGenerationTurns, maxOutputTokens: evidenceGenerationTokens, disableThinking: !thinking,
             onProtocolDiagnostic: protocolDiagnostic,
+            onEvidence:async records=>{generationEvidence=records;},
             onSubmission: ({submission})=>{if(Array.isArray(submission.findings)){submittedCandidates=submission.findings;candidateCount=Math.max(candidateCount,submittedCandidates.length);}},
             input: { repository, pullNumber, base: baseSha, head: headSha,
               title, description, files: batch.files, unchangedContext, relatedChanged, upstream, reviewRules, contractContext,

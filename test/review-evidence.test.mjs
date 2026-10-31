@@ -22,6 +22,25 @@ const client=fn=>({model:'mock',format:'openai-chat',generateToolTurn:fn,generat
 const isVerifier=o=>o.tools.some(t=>t.function.name==='submit_verdicts');
 const toolsResponse=requests=>({message:{role:'assistant',tool_calls:requests.map((r,i)=>({id:'tool'+i,type:'function',function:{name:r.tool,arguments:JSON.stringify(Object.fromEntries(Object.entries(r).filter(([k])=>k!=='tool')))}}))}});
 
+test('tool repair and final-object repair share four turns without starving finalization',async()=>{
+ let n=0;
+ const result=await runEvidenceTurn({phase:'generation',input:{},createTools:evidenceFactory,deadlineAt:Date.now()+2000,maxTurns:4,
+  client:client(async()=>{
+   n++;if(n===1)return {message:{role:'assistant',tool_calls:[{id:'bad',type:'function',function:{name:'code_search',arguments:'{"query":"call","query":"other"}'}}]}};
+   if(n===2)return toolsResponse([{tool:'file_read',path:'helper.py'}]);
+   if(n===3)return generation([{...finding,trigger:undefined}]);
+   return generation([finding]);
+  })});
+ assert.equal(n,4);assert.equal(result.submission.findings.length,1);assert.equal(result.ledger.length,1);
+});
+
+test('generation protocol failure preserves already-read evidence in its checkpoint',async()=>{
+ let n=0,saved;
+ const result=await reviewPrBatches({...options,state:{read:async()=>null,write:async(_k,v)=>{saved=structuredClone(v);}},
+  client:client(async()=>++n===1?toolsResponse([{tool:'file_read',path:'helper.py'}]):{message:{role:'assistant',content:'not JSON'}})});
+ assert.equal(result.partial,true);assert.equal(saved.results[0].consultedEvidence.generation[0].result.path,'helper.py');
+});
+
 test('cross-batch changed-file candidates survive without completing the other batch',async()=>{
  const other={filename:'b.py',status:'added',patch:'@@ -0,0 +1 @@\n+call(1,2)',additions:1,deletions:0};
  const cross={...finding,file:'b.py'};let sawDiff=false;

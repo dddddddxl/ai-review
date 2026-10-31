@@ -9,7 +9,7 @@ import {parseToolArguments} from './tool-arguments.mjs';
 import {toolSchemaErrors} from './tool-schema.mjs';
 import {decoratorContracts,constrainVerdicts} from './review-contracts.mjs';
 
-export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.12';
+export const EVIDENCE_ENGINE_VERSION = 'evidence-v1-rc1.13';
 
 export function evidenceGenerationOptions(environment = process.env) {
  const integer = (name, fallback, maximum) => {
@@ -42,7 +42,7 @@ export async function runEvidenceTurn({client, phase, input, createTools, instru
  if(typeof client.generateToolTurn!=='function'||typeof createTools!=='function')throw fail('native_tools_unavailable');
  const terminal=phase==='generation'?submitReview:submitVerdicts;
  const messages=[{role:'user',content:JSON.stringify(sanitizeReviewInput(input))}];
- const ledger=[], protocolDiagnostics=[];let tools, repairs=0;
+ const ledger=[], protocolDiagnostics=[],repairedKinds=new Set();let tools, repairs=0;
  const check=async()=>{if(Date.now()>=deadlineAt)throw fail('review_deadline');if(!await isCurrent())throw fail('review_stale');};
  try {
   for(let round=0;round<maxTurns;round++){
@@ -73,8 +73,11 @@ export async function runEvidenceTurn({client, phase, input, createTools, instru
    if(calls.length>16)throw fail('invalid_tool_response');
    const repair=async (code,fields=[])=>{
     const diagnostic={phase,round:round+1,code,fields,repaired:false};protocolDiagnostics.push(diagnostic);await onProtocolDiagnostic({...diagnostic});
-    if(last||repairs>=1)throw fail('invalid_tool_response');
-    repairs++;messages.push(response.message);
+    const kind=['invalid_terminal_arguments','missing_terminal_tool'].includes(code)?'terminal':'evidence';
+    // Tool-argument repair must not consume the only chance to repair a later
+    // final object. Each category gets one correction within the SAME maxTurns.
+    if(last||repairedKinds.has(kind))throw fail('invalid_tool_response');
+    repairedKinds.add(kind);repairs++;messages.push(response.message);
     if(!calls.length)messages.push({role:'user',content:JSON.stringify({error:code,executed:false,
      instruction:`Return the complete final object using ${terminal.function.name}. No prose or reasoning. Do not claim completion if evidence is missing.`})});
     for(const call of calls)messages.push({role:'tool',tool_call_id:call.id,content:JSON.stringify({error:code,fields,executed:false,
